@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="es"><head><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s)location.replace("index.html?login=1");}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estimado Clase 4/5 — P-33-7A/B · Área 33 Digestión</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--az:#1F4E79;--az2:#2E75B6;--gr:#D9E2F3;--ok:#375623;--wr:#BF8F00;--rd:#C00000;--bg:#F4F6FA;--tx:#1a1f2b;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);line-height:1.45}
+header{background:linear-gradient(135deg,var(--az),var(--az2));color:#fff;padding:28px 34px}
+header h1{font-size:1.55rem;font-weight:700;letter-spacing:-.3px}
+header p{opacity:.9;font-size:.9rem;margin-top:6px}
+.badge{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);padding:3px 11px;border-radius:20px;font-size:.72rem;margin-right:7px;margin-top:11px;font-weight:600;letter-spacing:.4px}
+.wrap{max-width:1400px;margin:0 auto;padding:26px 34px 60px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:15px;margin-bottom:26px}
+.kpi{background:#fff;border-radius:11px;padding:17px 19px;border-left:4px solid var(--az2);box-shadow:0 1px 3px rgba(16,24,40,.07)}
+.kpi .l{font-size:.68rem;text-transform:uppercase;letter-spacing:.7px;color:#667;font-weight:700}
+.kpi .v{font-size:1.5rem;font-weight:700;color:var(--az);margin-top:5px}
+.kpi .s{font-size:.74rem;color:#889;margin-top:2px}
+.kpi.hi{border-left-color:var(--ok);background:linear-gradient(180deg,#fff,#F3F8EF)}
+.kpi.hi .v{color:var(--ok);font-size:1.72rem}
+.kpi.wr{border-left-color:var(--wr)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:22px}
+.card{background:#fff;border-radius:11px;padding:20px 22px;box-shadow:0 1px 3px rgba(16,24,40,.07)}
+.card h2{font-size:.95rem;color:var(--az);margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid var(--gr);font-weight:700}
+canvas{max-height:290px}
+table{width:100%;border-collapse:collapse;font-size:.79rem}
+th{background:var(--az);color:#fff;padding:9px 8px;text-align:left;font-weight:600;font-size:.72rem;position:sticky;top:0;cursor:pointer;user-select:none}
+th:hover{background:var(--az2)}
+td{padding:6px 8px;border-bottom:1px solid #eef1f6}
+tr:hover td{background:#F7FAFF}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+td.b{font-weight:700}
+td.c{font-weight:700;color:var(--az)}
+td.d{font-size:.66rem;color:#778;letter-spacing:.4px}
+.tw{max-height:430px;overflow:auto;border-radius:8px}
+.flt{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.flt button{border:1px solid #ccd3e0;background:#fff;padding:5px 13px;border-radius:16px;font-size:.75rem;cursor:pointer;font-weight:600;color:#556}
+.flt button.on{background:var(--az);color:#fff;border-color:var(--az)}
+.sl{margin-bottom:15px}
+.sl label{display:flex;justify-content:space-between;font-size:.79rem;font-weight:600;margin-bottom:5px}
+.sl label span{color:var(--az2);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--az2)}
+.res{background:linear-gradient(135deg,#F3F8EF,#E8F2E0);border:1px solid #cfe0c0;border-radius:9px;padding:15px;text-align:center;margin-top:8px}
+.res .l{font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#5a6b4a;font-weight:700}
+.res .v{font-size:1.85rem;font-weight:700;color:var(--ok)}
+.res .d{font-size:.79rem;margin-top:3px}
+.up{color:var(--rd);font-weight:700}.dn{color:var(--ok);font-weight:700}
+.wf{list-style:none;font-size:.85rem}
+.wf li{display:flex;justify-content:space-between;padding:7px 3px;border-bottom:1px solid #eef1f6}
+.wf li.t{font-weight:700;background:var(--gr);padding:9px 8px;margin:5px -8px;border-radius:5px}
+.wf li.f{font-weight:700;background:#E8F2E0;color:var(--ok);padding:11px 8px;margin:7px -8px;border-radius:5px;font-size:1rem}
+.wf .v{font-variant-numeric:tabular-nums}
+.note{background:#FFF8E6;border-left:4px solid var(--wr);padding:13px 16px;border-radius:0 8px 8px 0;font-size:.82rem;margin-bottom:22px}
+.risk{font-size:.82rem}
+.risk li{padding:8px 0 8px 22px;border-bottom:1px solid #eef1f6;position:relative;list-style:none}
+.risk li:before{content:"▲";position:absolute;left:0;color:var(--wr);font-size:.7rem}
+footer{text-align:center;font-size:.73rem;color:#889;padding:22px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.wrap{padding:18px}}
+</style><style>/* movil */ body{-webkit-text-size-adjust:100%} @media(max-width:700px){table{display:block;overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch} body{font-size:13px}}</style></head><body><div style="position:sticky;top:0;z-index:9999;background:#061A30;border-bottom:2px solid #D9A11B;padding:8px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-family:Segoe UI,Arial">
+<b style="color:#FFC400;font-size:9pt">P-33-7A/B · ÁREA 33 DIGESTIÓN — <span style="background:#B26A00;color:#fff;padding:2px 10px;border-radius:10px;font-size:7.4pt">◐ PROYECTO EN ESTUDIO</span></b>
+<span style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap">
+<a href="app-bauxilum-p33.html" style="color:#CFE0F2;font-size:8pt;font-weight:700;text-decoration:none">📊 Dashboard</a>
+<a href="p33-informe.html" style="color:#CFE0F2;font-size:8pt;font-weight:700;text-decoration:none">📄 Informe de ejecución</a>
+<a href="p33-estimado.html" style="color:#CFE0F2;font-size:8pt;font-weight:700;text-decoration:none">💲 Estimado Clase 4/5</a>
+<a href="p33-plan.html" style="color:#CFE0F2;font-size:8pt;font-weight:700;text-decoration:none">🗓 Plan de ejecución</a>
+</span></div>
+<header><h1>Estimado de Costos — Conjunto motor-bomba P-33-7A/B</h1>
+<p>Área 33 DIGESTIÓN · CVG BAUXILUM · Ciudad Guayana · Contratista: BELLAQUA, C.A.</p>
+<div><span class="badge">CLASE 4/5 · AACE 18R-97</span><span class="badge">MONEDA: USD</span><span class="badge">FECHA BASE: 29-JUL-2026</span><span class="badge">45 PARTIDAS · 3 DISCIPLINAS</span></div></header>
+<div class="wrap">
+<div class="note"><b>Exactitud esperada −15 %/−50 % a +20 %/+100 %.</b> Estimado de orden de magnitud construido por método paramétrico/factorizado. No constituye oferta en firme: los siete insumos listados en la hoja FUENTES del libro Excel requieren cotización formal antes de comprometer contrato.</div>
+<div class="kpis">
+<div class="kpi"><div class="l">Costo directo</div><div class="v">40,391</div><div class="s">USD · 45 partidas</div></div>
+<div class="kpi"><div class="l">Indirectos + admin.</div><div class="v">10,502</div><div class="s">USD · 26 % del CD</div></div>
+<div class="kpi wr"><div class="l">Contingencia</div><div class="v">15,268</div><div class="s">USD · 30 % (Clase 4/5)</div></div>
+<div class="kpi"><div class="l">Utilidad</div><div class="v">8,122</div><div class="s">USD · 12 %</div></div>
+<div class="kpi hi"><div class="l">Precio de oferta</div><div class="v">75,810</div><div class="s">USD sin IVA · 87,939 con IVA</div></div>
+<div class="kpi"><div class="l">Horas-hombre</div><div class="v">1,457</div><div class="s">HH · 182 días-hombre</div></div>
+</div>
+<div class="grid">
+<div class="card"><h2>Composición del costo directo</h2><canvas id="c1"></canvas></div>
+<div class="card"><h2>Costo directo por disciplina</h2><canvas id="c2"></canvas></div>
+</div>
+<div class="grid">
+<div class="card"><h2>Pareto — partidas que concentran el costo</h2><canvas id="c3"></canvas></div>
+<div class="card"><h2>Cascada del presupuesto</h2><ul class="wf">
+<li><span>Costo directo de obra</span><span class="v">40,391.02</span></li>
+<li><span>+ Indirectos de obra (18 %)</span><span class="v">7,270.38</span></li>
+<li><span>+ Administración central (8 %)</span><span class="v">3,231.28</span></li>
+<li class="t"><span>Subtotal</span><span class="v">50,892.68</span></li>
+<li><span>+ Contingencia (30 %)</span><span class="v">15,267.80</span></li>
+<li><span>+ Escalación (3 %)</span><span class="v">1,526.78</span></li>
+<li class="t"><span>Base antes de utilidad</span><span class="v">67,687.27</span></li>
+<li><span>+ Utilidad (12 %)</span><span class="v">8,122.47</span></li>
+<li class="f"><span>PRECIO DE OFERTA (sin IVA)</span><span class="v">75,809.74</span></li>
+<li><span>+ IVA (16 %)</span><span class="v">12,129.56</span></li>
+<li class="t"><span>Total con IVA</span><span class="v">87,939.30</span></li>
+</ul></div></div>
+<div class="grid">
+<div class="card"><h2>Simulador de sensibilidad</h2>
+<div class="sl"><label>Válvula de control 80 mm (part. 180)<span id="s1v">0 %</span></label><input type="range" id="s1" min="-40" max="80" value="0"></div>
+<div class="sl"><label>Acometida eléctrica 220 m (part. 420)<span id="s2v">0 %</span></label><input type="range" id="s2" min="-40" max="80" value="0"></div>
+<div class="sl"><label>Rendimiento de mano de obra<span id="s3v">0 %</span></label><input type="range" id="s3" min="-30" max="60" value="0"></div>
+<div class="sl"><label>Resto de materiales<span id="s4v">0 %</span></label><input type="range" id="s4" min="-30" max="60" value="0"></div>
+<div class="sl"><label>Contingencia aplicada<span id="s5v">30 %</span></label><input type="range" id="s5" min="0" max="45" value="30"></div>
+<div class="sl"><label>Utilidad<span id="s6v">12 %</span></label><input type="range" id="s6" min="0" max="30" value="12"></div>
+<div class="res"><div class="l">Precio de oferta simulado (sin IVA)</div><div class="v" id="sim">75,810</div><div class="d" id="delta">— base —</div></div></div>
+<div class="card"><h2>Riesgos principales de costo</h2><ul class="risk">
+<li>La válvula de control (part. 180) concentra <b>24 % del costo directo</b> con precio ESTIMADO por analogía. +50 % en ese ítem mueve la oferta ≈ 6 %.</li>
+<li>El cobre determina el <b>16 % del costo directo</b> (220 m de acometida). Es el insumo más volátil del estimado.</li>
+<li>El <b>curado del concreto (28 días)</b> es restricción dura: cualquier atraso en la fundación desplaza todo el montaje mecánico.</li>
+<li>Trabajo en la <b>S/E 25-E energizada</b>: depende de permisos y maniobras de Operaciones, fuera del control del contratista.</li>
+<li>La fundación existente puede presentar <b>deterioro mayor al previsto</b> al repicarse, ampliando las partidas 250, 300 y 340.</li>
+<li>La tolerancia de alineación de <b>0,05 mm (API-686)</b> exige base estable y grout curado; un rechazo obliga a repetir nivelación y grout.</li>
+<li>Existe una bomba <b>33P7C</b> en los lazos digitales que no forma parte del alcance: riesgo de interferencia en gaveta y enclavamientos.</li>
+</ul></div></div>
+<div class="card"><h2>Detalle de partidas</h2>
+<div class="flt"><button class="on" data-f="ALL">Todas (45)</button><button data-f="MECANICA">Mecánica (21)</button><button data-f="CIVIL">Civil (13)</button><button data-f="ELECTRICIDAD">Electricidad (11)</button></div>
+<div class="tw"><table id="tb"><thead><tr><th>Cód.</th><th>Disc.</th><th>Descripción</th><th>Un.</th><th>Cantidad</th><th>CD USD/un</th><th>CD total USD</th><th>% CD</th></tr></thead><tbody><tr data-d='MECANICA'><td class='c'>10</td><td class='d'>MECA</td><td>Desmontaje de 2 bases metalicas existentes y remocion de pernos de anclaje</td><td class='n'>Sg</td><td class='n'>1.00</td><td class='n'>701.57</td><td class='n b'>701.57</td><td class='n'>1.7%</td></tr><tr data-d='MECANICA'><td class='c'>20</td><td class='d'>MECA</td><td>Desmontaje de tuberia 50 mm SCH STD CS A-53 Gr.B, accesorios y soporteria</td><td class='n'>m</td><td class='n'>6.00</td><td class='n'>18.41</td><td class='n b'>110.43</td><td class='n'>0.3%</td></tr><tr data-d='MECANICA'><td class='c'>30</td><td class='d'>MECA</td><td>Suministro, fabricacion y montaje de spool 50 mm SCH STD CS A-53 Gr.B</td><td class='n'>m</td><td class='n'>12.00</td><td class='n'>122.11</td><td class='n b'>1,465.27</td><td class='n'>3.6%</td></tr><tr data-d='MECANICA'><td class='c'>40</td><td class='d'>MECA</td><td>Desmontaje de tuberia 80 mm SCH STD CS A-53 Gr.B</td><td class='n'>m</td><td class='n'>3.00</td><td class='n'>22.49</td><td class='n b'>67.46</td><td class='n'>0.2%</td></tr><tr data-d='MECANICA'><td class='c'>50</td><td class='d'>MECA</td><td>Suministro, fabricacion y montaje de spool 80 mm SCH STD CS A-53 Gr.B</td><td class='n'>m</td><td class='n'>5.00</td><td class='n'>180.14</td><td class='n b'>900.71</td><td class='n'>2.2%</td></tr><tr data-d='MECANICA'><td class='c'>60</td><td class='d'>MECA</td><td>Tomas para manometros Bourdon NPT hembra 12 mm + valvula de cierre rapido 25 bar</td><td class='n'>c/u</td><td class='n'>4.00</td><td class='n'>156.97</td><td class='n b'>627.89</td><td class='n'>1.6%</td></tr><tr data-d='MECANICA'><td class='c'>70</td><td class='d'>MECA</td><td>Codo 90 gr 50 mm R.L. STD-WT SMLS BW CS A-234 WPA/WPB</td><td class='n'>pza</td><td class='n'>8.00</td><td class='n'>25.71</td><td class='n b'>205.70</td><td class='n'>0.5%</td></tr><tr data-d='MECANICA'><td class='c'>80</td><td class='d'>MECA</td><td>Codo 90 gr 80 mm R.L. STD-WT SMLS BW CS A-234 WPA/WPB</td><td class='n'>pza</td><td class='n'>4.00</td><td class='n'>51.52</td><td class='n b'>206.08</td><td class='n'>0.5%</td></tr><tr data-d='MECANICA'><td class='c'>90</td><td class='d'>MECA</td><td>Brida 50 mm 150# W.N. R.F. CS A-105 + empacadura + esparragos A-193 B7 / tuercas A-194 2H</td><td class='n'>pza</td><td class='n'>10.00</td><td class='n'>75.42</td><td class='n b'>754.24</td><td class='n'>1.9%</td></tr><tr data-d='MECANICA'><td class='c'>100</td><td class='d'>MECA</td><td>Brida 80 mm 150# W.N. R.F. CS A-105 + empacadura + esparragos / tuercas</td><td class='n'>pza</td><td class='n'>10.00</td><td class='n'>106.33</td><td class='n b'>1,063.28</td><td class='n'>2.6%</td></tr><tr data-d='MECANICA'><td class='c'>110</td><td class='d'>MECA</td><td>Brida 65 mm 300# W.N. R.F. CS A-105, suministro y montaje</td><td class='n'>pza</td><td class='n'>2.00</td><td class='n'>152.23</td><td class='n b'>304.46</td><td class='n'>0.8%</td></tr><tr data-d='MECANICA'><td class='c'>120</td><td class='d'>MECA</td><td>Brida 50 mm 300# W.N. R.F. CS A-105, suministro y montaje</td><td class='n'>pza</td><td class='n'>1.00</td><td class='n'>125.33</td><td class='n b'>125.33</td><td class='n'>0.3%</td></tr><tr data-d='MECANICA'><td class='c'>130</td><td class='d'>MECA</td><td>Brida 40 mm 150# W.N. R.F. CS A-105</td><td class='n'>pza</td><td class='n'>2.00</td><td class='n'>59.52</td><td class='n b'>119.04</td><td class='n'>0.3%</td></tr><tr data-d='MECANICA'><td class='c'>140</td><td class='d'>MECA</td><td>Reduccion concentrica 65x50 mm BW STD WT CS A-53 A/B</td><td class='n'>pza</td><td class='n'>2.00</td><td class='n'>41.62</td><td class='n b'>83.23</td><td class='n'>0.2%</td></tr><tr data-d='MECANICA'><td class='c'>150</td><td class='d'>MECA</td><td>Tee con reduccion 150x80 mm BW STD WT CS A-53 A/B</td><td class='n'>pza</td><td class='n'>2.00</td><td class='n'>191.85</td><td class='n b'>383.70</td><td class='n'>0.9%</td></tr><tr data-d='MECANICA'><td class='c'>160</td><td class='d'>MECA</td><td>Reduccion concentrica 80x50 mm BW STD WT CS A-53 A/B</td><td class='n'>pza</td><td class='n'>4.00</td><td class='n'>39.62</td><td class='n b'>158.46</td><td class='n'>0.4%</td></tr><tr data-d='MECANICA'><td class='c'>170</td><td class='d'>MECA</td><td>Reduccion concentrica 50x40 mm BW STD WT CS A-53 A/B</td><td class='n'>pza</td><td class='n'>2.00</td><td class='n'>30.05</td><td class='n b'>60.11</td><td class='n'>0.1%</td></tr><tr data-d='MECANICA'><td class='c'>180</td><td class='d'>MECA</td><td>Valvula de control tipo plug multietapas 80 mm 150 Lb con volante</td><td class='n'>c/u</td><td class='n'>2.00</td><td class='n'>4,878.08</td><td class='n b'>9,756.16</td><td class='n'>24.2%</td></tr><tr data-d='MECANICA'><td class='c'>190</td><td class='d'>MECA</td><td>Valvula check 50 mm tipo swing ANSI RF CS 150 Lb</td><td class='n'>c/u</td><td class='n'>2.00</td><td class='n'>384.04</td><td class='n b'>768.08</td><td class='n'>1.9%</td></tr><tr data-d='MECANICA'><td class='c'>200</td><td class='d'>MECA</td><td>Montaje, instalacion, nivelacion y alineacion conjunto bomba-motor-base + conexionado</td><td class='n'>c/u</td><td class='n'>2.00</td><td class='n'>2,093.03</td><td class='n b'>4,186.05</td><td class='n'>10.4%</td></tr><tr data-d='MECANICA'><td class='c'>210</td><td class='d'>MECA</td><td>Arranque y puesta en marcha + revision integral (GS-595)</td><td class='n'>c/u</td><td class='n'>2.00</td><td class='n'>689.42</td><td class='n b'>1,378.85</td><td class='n'>3.4%</td></tr><tr data-d='CIVIL'><td class='c'>220</td><td class='d'>CIVI</td><td>Limpieza y achique del area a intervenir</td><td class='n'>m2</td><td class='n'>10.00</td><td class='n'>8.50</td><td class='n b'>84.97</td><td class='n'>0.2%</td></tr><tr data-d='CIVIL'><td class='c'>230</td><td class='d'>CIVI</td><td>Cuadrilla topografica: nivelacion y replanteo</td><td class='n'>H/H</td><td class='n'>32.00</td><td class='n'>7.61</td><td class='n b'>243.49</td><td class='n'>0.6%</td></tr><tr data-d='CIVIL'><td class='c'>240</td><td class='d'>CIVI</td><td>Paredes de bloque de concreto e=15 cm, 3 hiladas (control de rebose)</td><td class='n'>m2</td><td class='n'>8.00</td><td class='n'>46.37</td><td class='n b'>370.98</td><td class='n'>0.9%</td></tr><tr data-d='CIVIL'><td class='c'>250</td><td class='d'>CIVI</td><td>Repicado manual de base existente y limpieza</td><td class='n'>m2</td><td class='n'>2.60</td><td class='n'>44.58</td><td class='n b'>115.91</td><td class='n'>0.3%</td></tr><tr data-d='CIVIL'><td class='c'>260</td><td class='d'>CIVI</td><td>Juntas: corte con disco de diamante h=5 cm + sellador elastico</td><td class='n'>ml</td><td class='n'>12.00</td><td class='n'>20.28</td><td class='n b'>243.32</td><td class='n'>0.6%</td></tr><tr data-d='CIVIL'><td class='c'>270</td><td class='d'>CIVI</td><td>Pernos de anclaje: perforacion 7/8 in x 6-3/4 in + HIT-HY 200 + varilla HAS 3/4 in</td><td class='n'>pza</td><td class='n'>8.00</td><td class='n'>80.05</td><td class='n b'>640.37</td><td class='n'>1.6%</td></tr><tr data-d='CIVIL'><td class='c'>280</td><td class='d'>CIVI</td><td>Sikadur 32 - puente de adherencia concreto viejo/nuevo</td><td class='n'>m2</td><td class='n'>2.60</td><td class='n'>19.76</td><td class='n b'>51.39</td><td class='n'>0.1%</td></tr><tr data-d='CIVIL'><td class='c'>290</td><td class='d'>CIVI</td><td>Encofrado de madera recto, obra limpia, biselado de borde</td><td class='n'>m2</td><td class='n'>3.20</td><td class='n'>36.29</td><td class='n b'>116.14</td><td class='n'>0.3%</td></tr><tr data-d='CIVIL'><td class='c'>300</td><td class='d'>CIVI</td><td>Mortero de nivelacion tipo Groutex o similar</td><td class='n'>m3</td><td class='n'>0.32</td><td class='n'>2,499.24</td><td class='n b'>799.76</td><td class='n'>2.0%</td></tr><tr data-d='CIVIL'><td class='c'>310</td><td class='d'>CIVI</td><td>Demolicion de paredes de bloque (barrera de rebose)</td><td class='n'>m2</td><td class='n'>8.00</td><td class='n'>11.83</td><td class='n b'>94.63</td><td class='n'>0.2%</td></tr><tr data-d='CIVIL'><td class='c'>320</td><td class='d'>CIVI</td><td>Limpieza, recoleccion, carga y bote de material de demolicion</td><td class='n'>m3</td><td class='n'>3.00</td><td class='n'>22.48</td><td class='n b'>67.43</td><td class='n'>0.2%</td></tr><tr data-d='CIVIL'><td class='c'>330</td><td class='d'>CIVI</td><td>Demolicion de losa de concreto armado con equipo liviano + corte con disco</td><td class='n'>m3</td><td class='n'>0.15</td><td class='n'>577.24</td><td class='n b'>86.59</td><td class='n'>0.2%</td></tr><tr data-d='CIVIL'><td class='c'>340</td><td class='d'>CIVI</td><td>Concreto Rcc = 280 kgf/cm2 a 28 dias para piso de concreto armado</td><td class='n'>m3</td><td class='n'>0.15</td><td class='n'>419.35</td><td class='n b'>62.90</td><td class='n'>0.2%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>350</td><td class='d'>ELEC</td><td>Pletina de acero galvanizado 4x60 mm para interconexion de puesta a tierra + 4 bloques</td><td class='n'>m</td><td class='n'>5.00</td><td class='n'>48.29</td><td class='n b'>241.43</td><td class='n'>0.6%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>360</td><td class='d'>ELEC</td><td>Cable de control 4Px20 AWG 300 V (botonera - TBX 33-I-TBX-4D / gaveta - E-EX)</td><td class='n'>m</td><td class='n'>160.00</td><td class='n'>5.63</td><td class='n b'>900.50</td><td class='n'>2.2%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>370</td><td class='d'>ELEC</td><td>Cable de control 1Px16 AWG 300 V (gaveta - Relay Cabinet E-RC-3)</td><td class='n'>m</td><td class='n'>70.00</td><td class='n'>3.84</td><td class='n b'>268.69</td><td class='n'>0.7%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>380</td><td class='d'>ELEC</td><td>Botonera de arranque/parada con cubierta metalica y goma protectora</td><td class='n'>c/u</td><td class='n'>2.00</td><td class='n'>199.77</td><td class='n b'>399.54</td><td class='n'>1.0%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>390</td><td class='d'>ELEC</td><td>Acondicionamiento y puesta en funcionamiento de arrancador General Electric tamano 3</td><td class='n'>Sg</td><td class='n'>1.00</td><td class='n'>1,830.79</td><td class='n b'>1,830.79</td><td class='n'>4.5%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>400</td><td class='d'>ELEC</td><td>Desmontaje de acometida existente 1C(3Cx4 AWG + 1Cx6 AWG THW 600 V) + traslado a almacen</td><td class='n'>m</td><td class='n'>220.00</td><td class='n'>1.73</td><td class='n b'>381.21</td><td class='n'>0.9%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>410</td><td class='d'>ELEC</td><td>Desmontaje de conduit rigido galv. serie pesada 1-1/2 in + traslado a almacen</td><td class='n'>m</td><td class='n'>42.00</td><td class='n'>4.13</td><td class='n b'>173.66</td><td class='n'>0.4%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>420</td><td class='d'>ELEC</td><td>Acometida nueva 1C(3C#4 + 1C#6 GND) THW 600 V 75 gr C</td><td class='n'>m</td><td class='n'>220.00</td><td class='n'>28.98</td><td class='n b'>6,374.89</td><td class='n'>15.8%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>430</td><td class='d'>ELEC</td><td>Conduit rigido galv. serie pesada 1-1/2 in + anillos, condulets, uniones, unistrut</td><td class='n'>m</td><td class='n'>42.00</td><td class='n'>76.54</td><td class='n b'>3,214.50</td><td class='n'>8.0%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>440</td><td class='d'>ELEC</td><td>Conduit flexible liquid-tight 1-1/2 in + conector recto</td><td class='n'>m</td><td class='n'>4.00</td><td class='n'>42.69</td><td class='n b'>170.77</td><td class='n'>0.4%</td></tr><tr data-d='ELECTRICIDAD'><td class='c'>450</td><td class='d'>ELEC</td><td>Pintura de fondo cromato de zinc en puntos de interconexion</td><td class='n'>gal</td><td class='n'>0.25</td><td class='n'>124.36</td><td class='n b'>31.09</td><td class='n'>0.1%</td></tr></tbody></table></div></div>
+</div>
+<footer>Estimado Clase 4/5 · Moneda USD · Fecha base 29-jul-2026 · Elaborado por ESTIMADOR SENIOR — Ingeniería de Costos · BELLAQUA, C.A.<br>Documento de trabajo. No constituye oferta en firme.</footer>
+<script>
+const F={legend:{labels:{font:{size:11},boxWidth:12}}};
+new Chart(document.getElementById('c1'),{type:'doughnut',data:{labels:['Materiales','Mano de obra','Equipos'],datasets:[{data:[29775.25,8771.59,1844.18],backgroundColor:['#1F4E79','#2E75B6','#9DC3E6'],borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:F.legend.labels},tooltip:{callbacks:{label:c=>c.label+': USD '+c.raw.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+(100*c.raw/40391.02).toFixed(1)+'%)'}}}}});
+new Chart(document.getElementById('c2'),{type:'doughnut',data:{labels:["MECANICA", "CIVIL", "ELECTRICIDAD"],datasets:[{data:[23426.11, 2977.87, 13987.04],backgroundColor:['#1F4E79','#70AD47','#ED7D31'],borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:F.legend.labels},tooltip:{callbacks:{label:c=>c.label+': USD '+c.raw.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+(100*c.raw/40391.02).toFixed(1)+'%)'}}}}});
+new Chart(document.getElementById('c3'),{data:{labels:["180", "420", "200", "430", "390", "30", "210", "100", "50", "360", "300", "190"],datasets:[
+{type:'bar',label:'Costo directo USD',data:[9756.16, 6374.89, 4186.05, 3214.5, 1830.79, 1465.27, 1378.85, 1063.28, 900.71, 900.5, 799.76, 768.08],backgroundColor:'#2E75B6',yAxisID:'y'},
+{type:'line',label:'% acumulado',data:[24.2, 39.9, 50.3, 58.3, 62.8, 66.4, 69.8, 72.5, 74.7, 76.9, 78.9, 80.8],borderColor:'#C00000',backgroundColor:'#C00000',yAxisID:'y1',tension:.25,pointRadius:3}]},
+options:{plugins:{legend:{position:'bottom',labels:F.legend.labels},tooltip:{callbacks:{title:i=>["180 \u2014 Valvula de control tipo plug multietapas 80 mm 150 Lb con vo", "420 \u2014 Acometida nueva 1C(3C#4 + 1C#6 GND) THW 600 V 75 gr C", "200 \u2014 Montaje, instalacion, nivelacion y alineacion conjunto bomba", "430 \u2014 Conduit rigido galv. serie pesada 1-1/2 in + anillos, condul", "390 \u2014 Acondicionamiento y puesta en funcionamiento de arrancador G", "30 \u2014 Suministro, fabricacion y montaje de spool 50 mm SCH STD CS ", "210 \u2014 Arranque y puesta en marcha + revision integral (GS-595)", "100 \u2014 Brida 80 mm 150# W.N. R.F. CS A-105 + empacadura + esparrago", "50 \u2014 Suministro, fabricacion y montaje de spool 80 mm SCH STD CS ", "360 \u2014 Cable de control 4Px20 AWG 300 V (botonera - TBX 33-I-TBX-4D", "300 \u2014 Mortero de nivelacion tipo Groutex o similar", "190 \u2014 Valvula check 50 mm tipo swing ANSI RF CS 150 Lb"][i[0].dataIndex]}}},
+scales:{y:{position:'left',title:{display:true,text:'USD'}},y1:{position:'right',min:0,max:100,grid:{drawOnChartArea:false},title:{display:true,text:'% acumulado'}}}}});
+const B={v180:9756.16,v420:6374.89,mo:8771.59,eq:1844.18,mat:29775.25,cd:40391.02,ind:0.18,adm:0.08,esc:0.03,ofr:75809.74};
+const m180=9600.00, m420=5610.00;
+function sim(){
+ const g=i=>+document.getElementById('s'+i).value;
+ const a=g(1)/100,b=g(2)/100,c=g(3)/100,d=g(4)/100,ct=g(5)/100,ut=g(6)/100;
+ ['1','2','3','4'].forEach(i=>document.getElementById('s'+i+'v').textContent=(g(+i)>0?'+':'')+g(+i)+' %');
+ document.getElementById('s5v').textContent=g(5)+' %'; document.getElementById('s6v').textContent=g(6)+' %';
+ const mat=(m180*(1+a))+(m420*(1+b))+((B.mat-m180-m420)*(1+d));
+ const mo=B.mo*(1+c), eq=B.eq*(1+c);
+ const cd=mat+mo+eq, sub=cd*(1+B.ind+B.adm), base=sub*(1+ct+B.esc), ofr=base*(1+ut);
+ document.getElementById('sim').textContent=ofr.toLocaleString('es',{maximumFractionDigits:0});
+ const dl=100*(ofr-B.ofr)/B.ofr;
+ document.getElementById('delta').innerHTML= Math.abs(dl)<0.05?'— base —':'<span class="'+(dl>0?'up':'dn')+'">'+(dl>0?'▲ +':'▼ ')+dl.toFixed(1)+' %</span> vs. base (USD '+B.ofr.toLocaleString('es',{maximumFractionDigits:0})+')';
+}
+for(let i=1;i<=6;i++) document.getElementById('s'+i).addEventListener('input',sim);
+document.querySelectorAll('.flt button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.flt button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+ const f=b.dataset.f;
+ document.querySelectorAll('#tb tbody tr').forEach(r=>r.style.display=(f==='ALL'||r.dataset.d===f)?'':'none');
+});
+document.querySelectorAll('#tb th').forEach((th,i)=>{let asc=false; th.onclick=()=>{asc=!asc;
+ const tb=document.querySelector('#tb tbody'); const rs=[...tb.rows];
+ rs.sort((x,y)=>{const a=x.cells[i].textContent.replace(/[.,\s%]/g,''),b=y.cells[i].textContent.replace(/[.,\s%]/g,'');
+ const na=parseFloat(a),nb=parseFloat(b); return (!isNaN(na)&&!isNaN(nb))?(asc?na-nb:nb-na):(asc?a.localeCompare(b):b.localeCompare(a));});
+ rs.forEach(r=>tb.appendChild(r));};});
+sim();
+</script></body></html>

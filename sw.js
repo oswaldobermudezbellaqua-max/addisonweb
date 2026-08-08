@@ -1,0 +1,5 @@
+const C='addison-v72';const A=['./','./index.html','./empresas.html','./app-cvm-santabarbara.html','./app-bauxilum-mb32.html','./app-bauxilum-agua.html','./planos-bauxilum.html','./app-bauxilum-p33.html','./p33-informe.html','./p33-estimado.html','./p33-plan.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting()));});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;
+e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(n=>{const cp=n.clone();caches.open(C).then(c=>c.put(e.request,cp));return n;}).catch(()=>caches.match('./index.html'))));});
