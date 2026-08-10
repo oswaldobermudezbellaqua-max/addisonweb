@@ -110,5 +110,63 @@
     window.addEventListener('offline', ()=>setBadge('⚠ Sin conexión', '#B26A00'));
   }
 
-  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, online };
+  // ============ MODO ESPEJO GENÉRICO ============
+  // Deja una página "lista para la nube": cualquier dato que guarde en localStorage
+  // bajo el prefijo indicado se sube solo, y se baja de la nube al abrir.
+  // cfg = { proyecto:'p33', prefix:'p33_', onRemote?:function(map){} }
+  function initMirror(cfg){
+    const pref = cfg.prefix || (cfg.proyecto + '_');
+    let lastRemote = 0, pushing = false, timer = null;
+    const me = (function(){try{return (JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}').u)||'?';}catch(e){return '?';}})();
+
+    function setBadge(txt, color){
+      let b=document.getElementById('adCloudBadge');
+      if(!b){ b=document.createElement('div'); b.id='adCloudBadge';
+        b.style.cssText='position:fixed;right:12px;bottom:12px;z-index:99999;font:800 8pt Segoe UI,Arial;padding:7px 13px;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.35);color:#fff';
+        document.body.appendChild(b);} b.style.background=color||'#0f7a35'; b.textContent=txt;
+    }
+    function collect(){ const o={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.indexOf(pref)===0) o[k]=localStorage.getItem(k); } return o; }
+    function applyMap(map){ let changed=false; Object.keys(map||{}).forEach(function(k){ if(localStorage.getItem(k)!==map[k]){ try{localStorage.setItem(k,map[k]);changed=true;}catch(e){} } }); return changed; }
+
+    async function pull(initial){
+      try{
+        const rows = await sel('estados_proyecto','proyecto=eq.'+cfg.proyecto+'&select=data,actualizado,por');
+        if(!rows.length) return;
+        const row=rows[0], ts=new Date(row.actualizado).getTime();
+        if(ts<=lastRemote && !initial) return;
+        lastRemote=ts;
+        if(row.data && Object.keys(row.data).length){
+          const changed=applyMap(row.data);
+          if(changed){
+            if(cfg.onRemote) cfg.onRemote(row.data);
+            else if(!initial){ setBadge('🔄 Datos actualizados', '#1650a7'); setTimeout(()=>location.reload(), 600); }
+          }
+        }
+      }catch(e){}
+    }
+    async function doPush(){
+      if(!online()){ setBadge('⚠ Sin conexión — guardado local', '#B26A00'); return; }
+      pushing=true;
+      try{
+        await upsert('estados_proyecto',[{proyecto:cfg.proyecto, data:collect(), actualizado:new Date().toISOString(), por:me}], 'proyecto');
+        lastRemote=Date.now()+500; setBadge('☁ Guardado en la nube', '#0f7a35');
+      }catch(e){ setBadge('⚠ Error de nube — guardado local', '#B26A00'); }
+      pushing=false;
+    }
+    function push(){ clearTimeout(timer); timer=setTimeout(doPush, 800); }
+    window.cloudPush = push;
+
+    // Interceptar escrituras a localStorage con el prefijo del proyecto
+    const _set = localStorage.setItem.bind(localStorage);
+    const _rem = localStorage.removeItem.bind(localStorage);
+    localStorage.setItem = function(k,v){ _set(k,v); if(k&&k.indexOf(pref)===0) push(); };
+    localStorage.removeItem = function(k){ _rem(k); if(k&&k.indexOf(pref)===0) push(); };
+
+    async function loop(){ if(!pushing) await pull(false); setTimeout(loop, 6000); }
+    (async function(){ setBadge('☁ Sincronizando…','#0A2A4D'); await pull(true); setBadge('☁ Listo para la nube','#0f7a35'); setTimeout(()=>{const b=document.getElementById('adCloudBadge');if(b)b.style.opacity='0.55';},2500); loop(); })();
+    window.addEventListener('online', ()=>{ setBadge('☁ Reconectado','#0f7a35'); push(); });
+    window.addEventListener('offline', ()=>setBadge('⚠ Sin conexión','#B26A00'));
+  }
+
+  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online };
 })();
