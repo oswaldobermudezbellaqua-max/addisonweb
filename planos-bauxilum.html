@@ -3,7 +3,7 @@
 <title>Planos de Ingeniería por Partida — CVG Bauxilum · SUMINISTROS ADDISON</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="icon-192.png"><meta name="theme-color" content="#0A2A4D">
-<script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s)location.replace("index.html?login=1");}catch(e){location.replace("index.html?login=1")}})();</script>
+<script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("planos")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script>
 <style>
 :root{--navy:#0A2A4D;--navy2:#061A30;--gold:#D9A11B;--gold2:#FFC400;--ice:#CFE0F2;--mid:#31435a;--sky:#A9C4E4}
 *{box-sizing:border-box}

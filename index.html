@@ -176,7 +176,7 @@ function lgOpen(){document.getElementById('lgModal').style.display='flex';setTim
 function doLogin(){const u=document.getElementById('lgU').value.trim().toLowerCase(),c=document.getElementById('lgC').value;
 const rec=AUSERS.find(x=>x.u.toLowerCase()===u);
 if(!rec||rec.h!==hsh(c)){document.getElementById('lgErr').textContent='Usuario o clave incorrectos.';return;}
-const sess={u:rec.u,nom:rec.nom,rol:rec.rol,t:Date.now()};
+const sess={u:rec.u,nom:rec.nom,rol:rec.rol,proy:rec.proy||null,perms:rec.perms||null,t:Date.now()};
 (document.getElementById('lgRec').checked?localStorage:sessionStorage).setItem('addison_sess',JSON.stringify(sess));
 location.href='empresas.html';}
 // sesión activa → directo al selector de empresas
