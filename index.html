@@ -9,6 +9,7 @@
 <meta property="og:type" content="website"><meta property="og:locale" content="es_VE">
 <link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0A2A4D">
+<script src="addison-cloud.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"SUMINISTROS ADDISON, C.A.","alternateName":"Suministros Addison","taxID":"J-40254910-5","description":"Suministros, procura, construcción y gestión de proyectos industriales en Venezuela.","address":[{"@type":"PostalAddress","addressLocality":"Maturín","addressRegion":"Monagas","addressCountry":"VE"},{"@type":"PostalAddress","addressLocality":"Puerto Ordaz","addressRegion":"Bolívar","addressCountry":"VE"}],"areaServed":"Venezuela","knowsAbout":["procura industrial","construcción","montaje electromecánico","mantenimiento industrial","gestión de proyectos"]}</script>
 <style>
 :root{--navy:#0A2A4D;--navy2:#061A30;--gold:#D9A11B;--gold2:#FFC400;--ice:#CFE0F2;--mid:#31435a;--sky:#A9C4E4}
@@ -173,9 +174,18 @@ function hsh(s){let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(
 let AUSERS=[];try{AUSERS=JSON.parse(localStorage.getItem('addison_users')||'[]');}catch(e){}
 if(!AUSERS.length){AUSERS=[{u:'admin',h:'h1phpmnl11',nom:'Administrador Principal',rol:'ADMIN'}];localStorage.setItem('addison_users',JSON.stringify(AUSERS));}
 function lgOpen(){document.getElementById('lgModal').style.display='flex';setTimeout(()=>document.getElementById('lgU').focus(),50);}
-function doLogin(){const u=document.getElementById('lgU').value.trim().toLowerCase(),c=document.getElementById('lgC').value;
-const rec=AUSERS.find(x=>x.u.toLowerCase()===u);
-if(!rec||rec.h!==hsh(c)){document.getElementById('lgErr').textContent='Usuario o clave incorrectos.';return;}
+async function doLogin(){const u=document.getElementById('lgU').value.trim().toLowerCase(),c=document.getElementById('lgC').value;
+const eEl=document.getElementById('lgErr');eEl.textContent='Verificando…';
+let cuenta=null;
+try{ if(window.ADCloud){ cuenta=await ADCloud.login(u,c); } }catch(e){ cuenta=undefined; /* sin conexión */ }
+if(cuenta===null){ eEl.textContent='Usuario o clave incorrectos.'; return; }
+if(!cuenta){ // sin conexión a la nube → respaldo local
+  const rec=AUSERS.find(x=>x.u.toLowerCase()===u);
+  if(!rec||rec.h!==hsh(c)){eEl.textContent='Sin conexión y credenciales locales no válidas.';return;}
+  cuenta={u:rec.u,nom:rec.nom,rol:rec.rol,proy:rec.proy||null,perms:rec.perms||null};
+}
+eEl.textContent='';
+const rec=cuenta;
 const sess={u:rec.u,nom:rec.nom,rol:rec.rol,proy:rec.proy||null,perms:rec.perms||null,t:Date.now()};
 (document.getElementById('lgRec').checked?localStorage:sessionStorage).setItem('addison_sess',JSON.stringify(sess));
 location.href='empresas.html';}
