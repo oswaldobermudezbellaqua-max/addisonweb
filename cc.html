@@ -1,0 +1,279 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centro de Control — SUMINISTROS ADDISON</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="icon-192.png"><meta name="theme-color" content="#0A2A4D">
+<script src="addison-cloud.js"></script>
+<script>
+// Guardia por proyecto (clave desde ?p=)
+(function(){try{
+var P=new URLSearchParams(location.search).get('p')||'';
+if(['motores','p33','agua'].indexOf(P)<0){location.replace('empresas.html');return;}
+var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");
+if(!s){location.replace("index.html?login=1");return;}
+var S=JSON.parse(s);
+if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf(P)<0)){alert("Tu usuario no tiene acceso a este proyecto.");location.replace("empresas.html");}
+}catch(e){location.replace("index.html?login=1")}})();
+</script>
+<style>
+:root{--navy:#0A2A4D;--navy2:#061A30;--gold:#D9A11B;--gold2:#FFC400;--ice:#CFE0F2;--mid:#31435a;--sky:#A9C4E4}
+*{box-sizing:border-box}
+body{margin:0;background:#F2F5F9;font-family:'Segoe UI',Arial,sans-serif;-webkit-text-size-adjust:100%}
+.top{position:sticky;top:0;z-index:20;background:var(--navy);border-bottom:3px solid var(--gold);padding:9px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top b{color:#fff;font-size:10pt}
+.top .est{font-size:7pt;font-weight:800;padding:3px 10px;border-radius:10px;color:#fff}
+.top a{color:var(--gold2);text-decoration:none;font-size:8.4pt;font-weight:700;margin-left:auto}
+.hero{background:linear-gradient(100deg,var(--navy2),var(--navy));padding:20px 5% 16px}
+.hero h1{color:#fff;font-size:15pt;font-weight:900;margin:0 0 2px}
+.hero p{color:var(--sky);font-size:8.6pt;margin:0;line-height:1.5}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;padding:14px 5% 0}
+.kpi{background:#fff;border-radius:10px;box-shadow:0 4px 12px rgba(10,42,77,.10);padding:12px 14px;text-align:center}
+.kpi b{display:block;font-size:14pt;color:var(--navy)}
+.kpi span{font-size:7.2pt;color:#7d8ea3;letter-spacing:.5px}
+.tabs{display:flex;gap:6px;padding:14px 5% 0;flex-wrap:wrap}
+.tb{background:#fff;border:1.5px solid #C9D6E6;border-radius:16px;padding:8px 16px;font-weight:800;font-size:8.2pt;color:var(--navy);cursor:pointer}
+.tb.on{background:var(--navy);color:var(--gold2);border-color:var(--navy)}
+.page{display:none;padding:14px 5% 60px}
+.page.on{display:block}
+.card{background:#fff;border-radius:11px;box-shadow:0 4px 14px rgba(10,42,77,.08);padding:16px 18px;margin-bottom:12px}
+h3{color:var(--navy);font-size:10.5pt;margin:0 0 8px}
+p.d{color:var(--mid);font-size:8.4pt;line-height:1.5;margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-size:8.2pt}
+th{text-align:left;background:var(--navy);color:var(--gold2);font-size:7.2pt;letter-spacing:.8px;padding:7px 8px}
+td{padding:6px 8px;border-bottom:1px solid #F0F4F9;color:var(--mid);vertical-align:middle}
+tr:nth-child(even) td{background:#FAFCFE}
+input,select,textarea{padding:8px 10px;border:1.5px solid #C9D6E6;border-radius:8px;font-size:8.6pt;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+.frm{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end}
+.frm label{display:flex;flex-direction:column;gap:3px;font-size:7pt;font-weight:800;color:var(--navy)}
+button.add{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:900;font-size:8.4pt;cursor:pointer}
+button.add:hover{background:var(--gold);color:var(--navy)}
+button.mini{background:#FDEBEA;color:#C62828;border:none;border-radius:7px;padding:4px 9px;font-size:7.2pt;font-weight:800;cursor:pointer}
+.bar{background:#E4EAF2;border-radius:8px;height:14px;position:relative;overflow:hidden;min-width:90px}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:8px}
+.bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7pt;font-weight:900;color:var(--navy)}
+.mot{border:1px solid #E4EAF2;border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.mot .hd{display:flex;gap:10px;align-items:center;cursor:pointer;flex-wrap:wrap}
+.mot .hd b{color:var(--navy);font-size:9pt;flex:1}
+.mot .cmp{display:none;margin-top:8px;border-top:1px dashed #E4EAF2;padding-top:8px}
+.mot.open .cmp{display:block}
+.cmp label{display:flex;gap:8px;align-items:center;font-size:8pt;color:var(--mid);padding:3px 0;cursor:pointer}
+.cmp label b{color:var(--navy);min-width:34px}
+.docs a{display:inline-block;background:#fff;border:1.5px solid #C9D6E6;border-radius:9px;padding:9px 13px;font-size:8.2pt;color:var(--navy);text-decoration:none;font-weight:700;margin:0 8px 8px 0}
+.docs a:hover{border-color:var(--gold)}
+.nota{background:#FFF6DE;border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:9px 12px;font-size:8pt;color:#6a5518;margin:10px 0;line-height:1.5}
+@media(max-width:640px){.frm{flex-direction:column;align-items:stretch}.frm label{width:100%}.frm input,.frm select{width:100%}}
+</style></head><body>
+<div class="top"><b id="tTit">CENTRO DE CONTROL</b><span class="est" id="tEst"></span><a href="empresas.html">⌂ EMPRESAS</a></div>
+<div class="hero"><h1 id="hTit"></h1><p id="hSub"></p></div>
+<div class="kpis" id="kpis"></div>
+<div class="tabs" id="tabs"></div>
+<div id="pages"></div>
+
+<script>
+const P=new URLSearchParams(location.search).get('p');
+const SESS=(function(){try{return JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');}catch(e){return{}}})();
+function can(k){ if(SESS.rol==='ADMIN')return true; return !!(SESS.perms&&SESS.perms[k]); }
+const RO=!can('edit'); // solo lectura si no tiene permiso de edición
+const ECO=can('eco')||SESS.rol==='ADMIN';
+
+// ══════════ CONFIGURACIÓN POR PROYECTO ══════════
+const PESOS=[["Recepción, desmontaje y diagnóstico",5],["Desarme, limpieza y extracción de bobinado",7],["Rebobinado según número de polos",30],["Barnizado por inmersión/VPI y horneado",8],["Reparación de núcleo / masa magnética",8],["Reparación mecánica: tapas, eje, base",12],["Rodamientos, guardagrasa y escudo",7],["Ventilador y tapas protectoras",5],["Resistencia de calefacción",3],["Balanceo dinámico (ISO 1940)",5],["Armado final y pintura",4],["Pruebas eléctricas, aislamiento y vacío",4],["Transporte y entrega en planta",2]];
+const CFG={
+ motores:{
+  titulo:"CONTRATO MACRO — 113 MOTORES ELÉCTRICOS", estado:"EN EJECUCIÓN", estColor:"#0f7a35",
+  sub:"C.V.G. Bauxilum · Gcia. de Servicios — Suptcia. Taller Electricidad · Universo: 113 motores de 0,3 a 1.500 HP · 6 rangos · Precio base US$ 1.572.146,35 (oficio GEII-501/2026) · Órdenes por emitirse bajo el contrato macro",
+  modoMotores:true,
+  items:[],
+  rangos:[["1","Motores ≤ 30 HP",25,"2.201,45","55.036,25"],["2","> 30 HP y < 60 HP",24,"6.658,56","159.805,44"],["3","> 60 HP y < 120 HP",8,"8.471,52","67.772,16"],["4","120 HP a 200 HP",29,"12.020,70","348.600,30"],["5","> 200 HP y < 300 HP",4,"16.191,17","64.764,68"],["6","300 HP a 1500 HP",23,"38.094,24","876.167,52"]],
+  docs:[["📄 Informe consolidado del contrato","docs-motores/Informe_Consolidado_113_Motores.pdf"],["📄 Expediente maestro (7 hojas)","docs-motores/Expediente_Maestro_113_Motores.pdf"],["📄 Planilla de valuación del contrato macro","docs-motores/Planilla_Valuacion_Contrato_Macro.pdf"]],
+  notas:"Registra cada motor cuando ingrese al taller (serie, potencia y monto según su rango) y marca sus 13 componentes con la matriz de ponderación oficial (rebobinado 30%, mecánica 12%…). El avance de cada motor se calcula solo. Alcance por unidad: mantenimiento mayor completo con rebobinado, pruebas de aislamiento, balanceo dinámico y transporte planta–taller–planta."
+ },
+ p33:{
+  titulo:"P-33-7A/B — ÁREA 33 DIGESTIÓN", estado:"◐ EN ESTUDIO", estColor:"#B26A00",
+  sub:"C.V.G. Bauxilum · Adecuación de fundación, montaje, arranque y puesta en marcha del conjunto motor-bomba P-33-7A/B · 45 partidas · 3 disciplinas · 68 días planificados (Rev.0 — PARA REVISIÓN)",
+  modoMotores:false,
+  items:[],
+  docs:[["📊 Dashboard del proyecto","app-bauxilum-p33.html"],["📄 Informe de ejecución","p33-informe.html"],["💲 Estimado Clase 4/5","p33-estimado.html"],["🗓 Plan de ejecución","p33-plan.html"]],
+  notas:"Proyecto en evaluación por CVG Bauxilum. Registra aquí las partidas cuando se apruebe el inicio — todo lo que cargues queda guardado en la nube desde ya."
+ },
+ agua:{
+  titulo:"TRATAMIENTO DE AGUA INDUSTRIAL — ÁREAS 81·82·66", estado:"EN PROCURA", estColor:"#1650a7",
+  sub:"C.V.G. Bauxilum · Fase 1 · PRO-2026-090 · 15 partidas (áreas 81, 82 y 66) · APU del 07-jul-2026",
+  modoMotores:false,
+  items:[
+   {id:"81.1",n:"Análisis de agua — instrumentación portátil de calidad",pos:"Área 81",pu:0,av:0},
+   {id:"81.2",n:"Acondicionamiento de tanques de agua cruda (2 tanques)",pos:"Área 81",pu:0,av:0},
+   {id:"81.3",n:"Acondicionamiento de filtros multicapa (2 filtros)",pos:"Área 81",pu:0,av:0},
+   {id:"81.4",n:"Suministro e instalación de motobombas de transferencia (3)",pos:"Área 81",pu:0,av:0},
+   {id:"81.5",n:"Habilitación del tanque alterno de reserva de agua cruda",pos:"Área 81",pu:0,av:0},
+   {id:"81.6",n:"Acondicionamiento del tanque T-82-1 y bomba de respaldo",pos:"Área 82",pu:0,av:0},
+   {id:"66.1",n:"Integridad mecánica del Tren 1 e interconexión 81-66",pos:"Área 66",pu:0,av:0},
+   {id:"66.2",n:"Filtro de carbón, intercambiadores y desgasificador",pos:"Área 66",pu:0,av:0},
+   {id:"66.3",n:"Reactivos (H2SO4/NaOH) y piscina de neutralización",pos:"Área 66",pu:0,av:0},
+   {id:"66.4",n:"Instrumentación, control y válvulas del Tren 1 (crítico)",pos:"Área 66",pu:0,av:0},
+   {id:"66.5",n:"Bombeo del Tren 1: P-66-1 y recirculación P-66-2",pos:"Área 66",pu:0,av:0},
+   {id:"66.6",n:"Limpieza y protección epóxica de tanques T-66-1/2",pos:"Área 66",pu:0,av:0},
+   {id:"66.7",n:"Reparación del sistema de fosas de desechos",pos:"Área 66",pu:0,av:0},
+   {id:"G.1",n:"Estudio de integridad mecánica de equipos estáticos",pos:"General",pu:0,av:0},
+   {id:"G.2",n:"Pintura y alumbrado general de las áreas",pos:"General",pu:0,av:0}
+  ],
+  docs:[["🧭 PFD interactivo del sistema","app-bauxilum-agua.html"],["📐 Planos por partida (visor GPI)","planos-bauxilum.html"]],
+  notas:"Proyecto en fase de PROCURA: registra en la pestaña Procura cada renglón cotizado/comprado. Los montos por partida (columna Monto US$) pueden cargarse desde el APU cuando lo definas."
+ }
+};
+const C=CFG[P];
+
+// ══════════ ESTADO ══════════
+let S={items:JSON.parse(JSON.stringify(C.items)),proc:[],pers:[],gastos:[],diario:[]};
+try{const g=JSON.parse(localStorage.getItem('cc_'+P)||'{}'); if(g&&g.items) S=g;}catch(e){}
+function save(){ localStorage.setItem('cc_'+P,JSON.stringify(S)); kpis(); if(window.cloudPush)cloudPush(); }
+
+// ══════════ UI BASE ══════════
+document.getElementById('tTit').textContent='CENTRO DE CONTROL — '+C.titulo;
+const est=document.getElementById('tEst'); est.textContent=C.estado; est.style.background=C.estColor;
+document.getElementById('hTit').textContent=C.titulo;
+document.getElementById('hSub').textContent=C.sub;
+const TABS=[["res","📊 Resumen"],["items",C.modoMotores?"⚙ Motores":"📋 Partidas"],["proc","🛒 Procura"],["pers","👷 Personal"],["gas","💸 Gastos"],["dia","📝 Diario"],["doc","📎 Documentos"]];
+document.getElementById('tabs').innerHTML=TABS.map(function(t,i){return '<button class="tb'+(i===0?' on':'')+'" data-t="'+t[0]+'" onclick="tab(this)">'+t[1]+'</button>';}).join('');
+document.getElementById('pages').innerHTML=TABS.map(function(t,i){return '<div class="page'+(i===0?' on':'')+'" id="pg_'+t[0]+'"></div>';}).join('');
+function tab(b){document.querySelectorAll('.tb').forEach(function(x){x.classList.toggle('on',x===b);});
+document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('on',p.id==='pg_'+b.dataset.t);});}
+
+function avItem(it){ if(C.modoMotores){let a=0;PESOS.forEach(function(p,i){if(it.comp[i])a+=p[1];});return a;} return it.av||0; }
+function money(n){return 'US$ '+(n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function kpis(){
+ const n=S.items.length;
+ const av=n?Math.round(S.items.reduce(function(s,it){return s+avItem(it);},0)/n):0;
+ const monto=S.items.reduce(function(s,it){return s+(+it.pu||0);},0);
+ const val=S.items.reduce(function(s,it){return s+(+it.pu||0)*avItem(it)/100;},0);
+ const gas=S.gastos.reduce(function(s,g){return s+(+g.m||0);},0);
+ const compr=S.proc.filter(function(r){return r.e==='COMPRADO'||r.e==='EN OBRA';}).length;
+ let h='';
+ h+='<div class="kpi"><b>'+av+'%</b><span>AVANCE FÍSICO</span></div>';
+ h+='<div class="kpi"><b>'+n+'</b><span>'+(C.modoMotores?'MOTORES REGISTRADOS':'PARTIDAS')+'</span></div>';
+ h+='<div class="kpi"><b>'+compr+'/'+S.proc.length+'</b><span>PROCURA COMPRADA</span></div>';
+ h+='<div class="kpi"><b>'+S.pers.filter(function(p){return p.e!=='EGRESADO';}).length+'</b><span>PERSONAL ACTIVO</span></div>';
+ if(ECO){h+='<div class="kpi"><b>'+money(val)+'</b><span>VALUADO (AVANCE × MONTO)</span></div>';
+ h+='<div class="kpi"><b>'+money(gas)+'</b><span>GASTOS REGISTRADOS</span></div>';}
+ document.getElementById('kpis').innerHTML=h;
+ rendRes();
+}
+
+// ══════════ RESUMEN ══════════
+function rendRes(){
+ let h='<div class="card"><h3>Estado del proyecto</h3><p class="d">'+C.sub+'</p>';
+ h+='<div class="nota">'+C.notas+'</div>';
+ if(C.rangos){h+='<h3 style="margin-top:12px">Estructura del contrato — 6 rangos (precio base GEII-501/2026)</h3><table><tr><th>ÍTEM</th><th>RANGO</th><th>CANT.</th>'+(ECO?'<th>P.U. US$</th><th>TOTAL US$</th>':'')+'</tr>';
+ C.rangos.forEach(function(r){h+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td>'+(ECO?('<td>'+r[3]+'</td><td><b>'+r[4]+'</b></td>'):'')+'</tr>';});
+ h+='</table>';}
+ h+='<h3 style="margin-top:12px">Avance por '+(C.modoMotores?'motor':'partida')+'</h3><table><tr><th>ID</th><th>DESCRIPCIÓN</th><th style="width:130px">AVANCE</th>'+(ECO?'<th>MONTO</th>':'')+'</tr>';
+ S.items.forEach(function(it){const a=avItem(it);
+  h+='<tr><td><b>'+it.id+'</b></td><td>'+it.n+'</td><td><div class="bar"><i style="width:'+a+'%"></i><span>'+a+'%</span></div></td>'+(ECO?'<td>'+money(+it.pu||0)+'</td>':'')+'</tr>';});
+ h+='</table></div>';
+ document.getElementById('pg_res').innerHTML=h;
+}
+
+// ══════════ ITEMS (motores con ponderación / partidas con %) ══════════
+function rendItems(){
+ let h='<div class="card"><h3>'+(C.modoMotores?'Motores en taller — avance por matriz de ponderación (13 componentes)':'Partidas del proyecto')+'</h3>';
+ if(C.modoMotores) h+='<p class="d">Marca cada componente culminado; el % del motor se calcula solo con los pesos oficiales de la matriz (rebobinado 30%, mecánica 12%, etc.).</p>';
+ S.items.forEach(function(it,ix){
+  const a=avItem(it);
+  h+='<div class="mot" id="mot'+ix+'"><div class="hd" onclick="document.getElementById(\'mot'+ix+'\').classList.toggle(\'open\')">';
+  h+='<b>'+it.id+' · '+it.n+'</b><span style="font-size:7.4pt;color:#7d8ea3">'+(it.pos||'')+'</span>';
+  h+='<div class="bar" style="width:120px"><i style="width:'+a+'%"></i><span>'+a+'%</span></div>';
+  if(!RO)h+='<button class="mini" onclick="event.stopPropagation();delItem('+ix+')">🗑</button>';
+  h+='</div>';
+  if(C.modoMotores){
+   h+='<div class="cmp">'+PESOS.map(function(p,i){return '<label><input type="checkbox" '+(it.comp[i]?'checked':'')+' '+(RO?'disabled':'')+' onchange="tglComp('+ix+','+i+',this.checked)"><b>'+p[1]+'%</b> '+p[0]+'</label>';}).join('')+'</div>';
+  } else {
+   h+='<div class="cmp"><label style="max-width:340px">Avance % <input type="number" min="0" max="100" value="'+(it.av||0)+'" '+(RO?'disabled':'')+' onchange="setAv('+ix+',this.value)" style="width:90px;margin-left:8px"></label>'+(ECO?'<label style="max-width:340px">Monto US$ <input type="number" min="0" step="0.01" value="'+(it.pu||0)+'" '+(RO?'disabled':'')+' onchange="setPu('+ix+',this.value)" style="width:130px;margin-left:8px"></label>':'')+'</div>';
+  }
+  h+='</div>';});
+ if(!RO){
+  if(C.modoMotores){
+   h+='<div class="frm" style="margin-top:12px"><label>SERIE / ID<input id="niId" style="width:110px" placeholder="Ej: 1003126"></label><label style="flex:1;min-width:220px">Descripción<input id="niN" placeholder="Ej: Motor 250 HP / 6 polos — bomba de proceso"></label><label>Rango<input id="niPos" style="width:130px" placeholder="Ej: 120-200 HP"></label>'+(ECO?'<label>Monto US$<input id="niPu" type="number" step="0.01" style="width:110px" value="0"></label>':'')+'<button class="add" onclick="addItem()">+ REGISTRAR MOTOR</button></div>';
+  } else {
+   h+='<div class="frm" style="margin-top:12px"><label>ID<input id="niId" style="width:80px" placeholder="P1"></label><label style="flex:1;min-width:220px">Descripción<input id="niN" placeholder="Descripción de la partida"></label><label>Grupo<input id="niPos" style="width:110px" placeholder="Disciplina/área"></label><button class="add" onclick="addItem()">+ AGREGAR PARTIDA</button></div>';
+  }
+ }
+ h+='</div>';
+ document.getElementById('pg_items').innerHTML=h;
+}
+function tglComp(ix,i,v){S.items[ix].comp[i]=v?1:0;save();rendItems();}
+function setAv(ix,v){S.items[ix].av=Math.max(0,Math.min(100,+v||0));save();rendItems();}
+function setPu(ix,v){S.items[ix].pu=+v||0;save();rendItems();}
+function addItem(){const id=document.getElementById('niId').value.trim(),n=document.getElementById('niN').value.trim();
+if(!id||!n){alert('Indica ID y descripción');return;}
+const pu=(document.getElementById('niPu')?(+document.getElementById('niPu').value||0):0);
+const base={id:id,n:n,pos:document.getElementById('niPos').value.trim(),pu:pu};
+if(C.modoMotores){base.comp=PESOS.map(function(){return 0;});}else{base.av=0;}
+S.items.push(base);save();rendItems();}
+function delItem(ix){if(confirm('¿Eliminar la partida '+S.items[ix].id+'?')){S.items.splice(ix,1);save();rendItems();}}
+
+// ══════════ PROCURA ══════════
+function rendProc(){
+ let h='<div class="card"><h3>Procura — renglones cotizados y comprados</h3>';
+ if(!RO)h+='<div class="frm"><label style="flex:1;min-width:200px">Descripción<input id="prD" placeholder="Ej: Alambre magneto AWG 14 clase H"></label><label>Cant.<input id="prC" type="number" style="width:70px" value="1"></label><label>Unidad<input id="prU" style="width:70px" placeholder="kg"></label>'+(ECO?'<label>Costo US$<input id="prM" type="number" step="0.01" style="width:100px" value="0"></label>':'')+'<label>Estado<select id="prE"><option>POR COTIZAR</option><option>COTIZADO</option><option>COMPRADO</option><option>EN OBRA</option></select></label><button class="add" onclick="addProc()">+ AGREGAR</button></div>';
+ h+='<table><tr><th>DESCRIPCIÓN</th><th>CANT.</th>'+(ECO?'<th>COSTO</th>':'')+'<th>ESTADO</th><th></th></tr>';
+ S.proc.forEach(function(r,ix){h+='<tr><td>'+r.d+'</td><td>'+r.c+' '+(r.u||'')+'</td>'+(ECO?'<td>'+money(+r.m||0)+'</td>':'')+'<td>'+(RO?r.e:'<select onchange="S.proc['+ix+'].e=this.value;save();rendProc();"><option'+(r.e==='POR COTIZAR'?' selected':'')+'>POR COTIZAR</option><option'+(r.e==='COTIZADO'?' selected':'')+'>COTIZADO</option><option'+(r.e==='COMPRADO'?' selected':'')+'>COMPRADO</option><option'+(r.e==='EN OBRA'?' selected':'')+'>EN OBRA</option></select>')+'</td><td>'+(RO?'':'<button class="mini" onclick="S.proc.splice('+ix+',1);save();rendProc();">🗑</button>')+'</td></tr>';});
+ h+='</table></div>';
+ document.getElementById('pg_proc').innerHTML=h;
+}
+function addProc(){const d=document.getElementById('prD').value.trim();if(!d){alert('Describe el renglón');return;}
+S.proc.push({d:d,c:+document.getElementById('prC').value||1,u:document.getElementById('prU').value.trim(),m:ECO?(+document.getElementById('prM').value||0):0,e:document.getElementById('prE').value});save();rendProc();}
+
+// ══════════ PERSONAL ══════════
+function rendPers(){
+ let h='<div class="card"><h3>Registro de personal</h3>';
+ if(!RO)h+='<div class="frm"><label style="flex:1;min-width:180px">Nombre<input id="peN" placeholder="Nombre y apellido"></label><label>Cargo<input id="peC" placeholder="Ej: Bobinador"></label><label>C.I.<input id="peI" style="width:110px" placeholder="V-12.345.678"></label><button class="add" onclick="addPers()">+ AGREGAR</button></div>';
+ h+='<table><tr><th>NOMBRE</th><th>CARGO</th><th>C.I.</th><th>ESTADO</th><th></th></tr>';
+ S.pers.forEach(function(p,ix){h+='<tr><td><b>'+p.n+'</b></td><td>'+p.c+'</td><td>'+(p.i||'')+'</td><td>'+(RO?(p.e||'ACTIVO'):'<select onchange="S.pers['+ix+'].e=this.value;save();rendPers();"><option'+((p.e||'ACTIVO')==='ACTIVO'?' selected':'')+'>ACTIVO</option><option'+(p.e==='EGRESADO'?' selected':'')+'>EGRESADO</option></select>')+'</td><td>'+(RO?'':'<button class="mini" onclick="S.pers.splice('+ix+',1);save();rendPers();">🗑</button>')+'</td></tr>';});
+ h+='</table></div>';
+ document.getElementById('pg_pers').innerHTML=h;
+}
+function addPers(){const n=document.getElementById('peN').value.trim();if(!n){alert('Indica el nombre');return;}
+S.pers.push({n:n,c:document.getElementById('peC').value.trim(),i:document.getElementById('peI').value.trim(),e:'ACTIVO'});save();rendPers();}
+
+// ══════════ GASTOS ══════════
+function rendGas(){
+ if(!ECO){document.getElementById('pg_gas').innerHTML='<div class="card"><div class="nota">Tu usuario no tiene permiso para ver la información económica.</div></div>';return;}
+ let h='<div class="card"><h3>Gastos reales</h3>';
+ if(!RO)h+='<div class="frm"><label>Fecha<input id="gaF" type="date"></label><label style="flex:1;min-width:180px">Concepto<input id="gaC" placeholder="Ej: Rodamientos 6312 (2)"></label><label>Categoría<select id="gaK"><option>MATERIALES</option><option>MANO DE OBRA</option><option>TRANSPORTE</option><option>SERVICIOS</option><option>OTROS</option></select></label><label>Monto US$<input id="gaM" type="number" step="0.01" style="width:110px" value="0"></label><button class="add" onclick="addGas()">+ REGISTRAR</button></div>';
+ h+='<table><tr><th>FECHA</th><th>CONCEPTO</th><th>CATEGORÍA</th><th>MONTO</th><th></th></tr>';
+ S.gastos.slice().reverse().forEach(function(g){const ix=S.gastos.indexOf(g);
+  h+='<tr><td>'+g.f+'</td><td>'+g.c+'</td><td>'+g.k+'</td><td><b>'+money(+g.m||0)+'</b></td><td>'+(RO?'':'<button class="mini" onclick="S.gastos.splice('+ix+',1);save();rendGas();">🗑</button>')+'</td></tr>';});
+ h+='</table></div>';
+ document.getElementById('pg_gas').innerHTML=h;
+}
+function addGas(){const c=document.getElementById('gaC').value.trim();if(!c){alert('Describe el gasto');return;}
+S.gastos.push({f:document.getElementById('gaF').value||new Date().toISOString().slice(0,10),c:c,k:document.getElementById('gaK').value,m:+document.getElementById('gaM').value||0});save();rendGas();}
+
+// ══════════ DIARIO ══════════
+function rendDia(){
+ const puedeDia=can('diario')||can('edit')||SESS.rol==='ADMIN';
+ let h='<div class="card"><h3>Diario de obra / taller</h3>';
+ if(puedeDia)h+='<div class="frm"><label>Fecha<input id="diF" type="date"></label><label style="flex:1;min-width:240px">Actividades del día<textarea id="diT" rows="2" style="width:100%" placeholder="Qué se hizo, novedades, pendientes…"></textarea></label><button class="add" onclick="addDia()">+ GUARDAR DÍA</button></div>';
+ S.diario.slice().reverse().forEach(function(d){const ix=S.diario.indexOf(d);
+  h+='<div class="mot"><div class="hd"><b>📅 '+d.f+'</b>'+(puedeDia?'<button class="mini" onclick="S.diario.splice('+ix+',1);save();rendDia();">🗑</button>':'')+'</div><p class="d" style="margin:6px 0 0;white-space:pre-wrap">'+d.t+'</p><p class="d" style="margin:4px 0 0;font-size:7pt;color:#9aa8ba">Registrado por '+(d.por||'—')+'</p></div>';});
+ h+='</div>';
+ document.getElementById('pg_dia').innerHTML=h;
+}
+function addDia(){const t=document.getElementById('diT').value.trim();if(!t){alert('Escribe las actividades');return;}
+S.diario.push({f:document.getElementById('diF').value||new Date().toISOString().slice(0,10),t:t,por:SESS.u});save();rendDia();}
+
+// ══════════ DOCUMENTOS ══════════
+function rendDoc(){
+ let h='<div class="card"><h3>Documentos del proyecto</h3><div class="docs">';
+ C.docs.forEach(function(d){h+='<a href="'+d[1]+'" target="_blank">'+d[0]+'</a>';});
+ h+='</div><div class="nota">'+C.notas+'</div></div>';
+ document.getElementById('pg_doc').innerHTML=h;
+}
+
+// ══════════ ARRANQUE + NUBE ══════════
+function initAll(){kpis();rendItems();rendProc();rendPers();rendGas();rendDia();rendDoc();}
+initAll();
+if(window.ADCloud){ADCloud.initProject({proyecto:P,storeKey:'cc_'+P,getS:function(){return S;},apply:function(d){try{if(d&&d.items){S=d;initAll();}}catch(e){}}});}
+</script></body></html>
