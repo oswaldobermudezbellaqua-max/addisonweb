@@ -545,14 +545,15 @@ function realPct(hasta){const mm=avanceMap(hasta);let s=0;P48.forEach(p=>{s+=(mm
 // ---------- T1 ----------
 function rendP(){const q=(document.getElementById('q1').value||'').toLowerCase(),f=document.getElementById('f1').value,se=document.getElementById('s1').value;
 const av=avanceMap();let h='';
-P48.forEach(p=>{const mats=ITEMS.filter(i=>(i.br&&i.br.length?i.br:[{pp:i.pp}]).some(b=>b.pp==='P'+p.n));
-const txt=('P'+p.n+' '+p.t+' '+p.alc+' '+p.pre+' '+mats.map(m=>m.d).join(' ')).toLowerCase();
+P48.forEach(p=>{const cod=(p.t.split(' · ')[0]||'').trim();
+const mats=ITEMS.filter(i=>(i.br&&i.br.length?i.br:[{pp:i.pp,c:i.c}]).some(b=>b.pp===cod||b.pp==='P'+p.n));
+const txt=('P'+p.n+' '+cod+' '+p.t+' '+p.alc+' '+p.pre+' '+mats.map(m=>m.d).join(' ')).toLowerCase();
 if(q&&!txt.includes(q))return;if(f&&p.f!==f)return;if(se&&p.s!==se)return;
 const pct=av[p.n]||0;
 h+=`<details class="card"><summary><span class="pn">P${p.n}</span><span class="pt">${p.t}</span><span class="avb" style="${pct>=100?'background:#d9efe1;color:#1e7e46':pct>0?'background:#fdf3dd;color:#c79500':''}">${pct}%</span><span class="pm">${num(p.m)}</span><span class="pv">${fch(p.a)} → ${fch(p.b)} · ${p.f} · ${p.s}</span></summary>
 <div class="body"><div class="g2"><div><h5>Alcance</h5><p>${p.alc}</p><h5>Prelaciones</h5><p>${p.pre}</p></div>
 <div><h5>Cuadrilla</h5><p>${CREWTX(p.n)}</p><h5>Equipos</h5><p>${EQP(p.n)}</p></div></div>
-<h5>Materiales (${mats.length})</h5>${mats.length?'<table><tr><th>N°</th><th>Material</th><th class="r">Cant.</th><th class="r">Total</th><th class="c">Estado</th><th class="c">Prioridad hoy</th></tr>'+mats.map(m=>{const st=(S.proc[m.id]||{}).e||'P';const pr=priIt(m);const bb=(m.br||[]).find(b=>b.pp==='P'+p.n)||{c:m.c};return `<tr class="est-${st}"><td>${m.id}</td><td>${m.d}</td><td class="r">${bb.c}<span style="font-size:6.2pt;color:var(--mid)"> de ${m.c} del pedido</span></td><td class="r">${num(bb.c*m.p)}</td><td class="c">${({P:'Pendiente',C:'Cotizado',O:'Comprado',R:'Recibido'})[st]}</td><td class="c"><span class="pri-${pr[0]}">${pr[0]==='OK'?'OK':pr[0]}</span></td></tr>`}).join('')+'</table>':'<p style="color:var(--mid)">Sin materiales directos.</p>'}</div></details>`;});
+<h5>Materiales y equipos requeridos por esta partida (${mats.length}) — Σ ${num(mats.reduce((s,m)=>{const bb=(m.br||[]).find(b=>b.pp===cod||b.pp==='P'+p.n)||{c:m.c};return s+bb.c*m.p;},0))}</h5>${mats.length?'<table><tr><th>N°</th><th>Material</th><th class="r">Cant.</th><th>Und</th><th class="r">P.U.</th><th class="r">Total</th><th class="c">Estado</th><th class="c">Prioridad hoy</th></tr>'+mats.map(m=>{const st=(S.proc[m.id]||{}).e||'P';const pr=priIt(m);const bb=(m.br||[]).find(b=>b.pp===cod||b.pp==='P'+p.n)||{c:m.c};return `<tr class="est-${st}"><td>${m.id}</td><td>${m.d}</td><td class="r">${bb.c}${bb.c!==m.c?'<span style="font-size:6.2pt;color:var(--mid)"> de '+m.c+' del pedido</span>':''}</td><td>${m.u}</td><td class="r">${num(m.p)}</td><td class="r">${num(bb.c*m.p)}</td><td class="c">${({P:'Pendiente',C:'Cotizado',O:'Comprado',R:'Recibido'})[st]}</td><td class="c"><span class="pri-${pr[0]}">${pr[0]==='OK'?'OK':pr[0]}</span></td></tr>`}).join('')+'</table>':'<p style="color:var(--mid)">Sin materiales directos.</p>'}</div></details>`;});
 document.getElementById('plist').innerHTML=h;}
 // ---------- T4 procura ----------
 function rendProc(){const q=(document.getElementById('q4').value||'').toLowerCase(),ef=document.getElementById('e4').value,ord=document.getElementById('o4').value;
