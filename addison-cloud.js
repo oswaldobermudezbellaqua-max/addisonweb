@@ -51,6 +51,21 @@
   }
   async function deleteUser(u){ if(u==='admin') throw new Error('admin protegido'); return del('usuarios','u=eq.'+encodeURIComponent(u)); }
 
+
+  // ---- Respaldo automático versionado (cada edición → snapshot; retiene 30 por proyecto) ----
+  async function snapshot(proyecto, data, usuario){
+    try{
+      await fetch(REST+'respaldos', {method:'POST', headers:Object.assign({},HDR,{Prefer:'return=minimal'}),
+        body:JSON.stringify([{proyecto:proyecto, usuario:usuario, data:data}])});
+      const olds = await sel('respaldos','proyecto=eq.'+proyecto+'&select=id&order=id.desc&offset=30');
+      if(olds.length){
+        const ids=olds.map(function(o){return o.id;}).join(',');
+        await fetch(REST+'respaldos?id=in.('+ids+')',{method:'DELETE',headers:HDR});
+      }
+    }catch(e){/* el respaldo nunca debe bloquear el guardado */}
+  }
+  async function listBackups(proyecto){ return sel('respaldos','proyecto=eq.'+proyecto+'&select=id,usuario,en&order=id.desc&limit=30'); }
+  async function getBackup(id){ const r=await sel('respaldos','id=eq.'+id+'&select=data'); return r.length?r[0].data:null; }
   // ============ ESTADO DE PROYECTO EN TIEMPO REAL ============
   // cfg = { proyecto:'sb', storeKey:'sb_ctrl3', getS:()=>S, apply:(data)=>{...}, badge:true }
   function initProject(cfg){
@@ -88,7 +103,8 @@
         await upsert('estados_proyecto',
           [{proyecto:cfg.proyecto, data:data, actualizado:new Date().toISOString(), por:me}], 'proyecto');
         lastRemote=Date.now()+500;
-        setBadge('☁ Guardado en la nube', '#0f7a35');
+        setBadge('☁ Guardado y respaldado', '#0f7a35');
+        snapshot(cfg.proyecto, (typeof data!=='undefined'?data:collect()), me);
       }catch(e){ setBadge('⚠ Error de nube — guardado local', '#B26A00'); }
       pushing=false;
     }
@@ -168,5 +184,5 @@
     window.addEventListener('offline', ()=>setBadge('⚠ Sin conexión','#B26A00'));
   }
 
-  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online };
+  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup };
 })();
