@@ -66,6 +66,32 @@
   }
   async function listBackups(proyecto){ return sel('respaldos','proyecto=eq.'+proyecto+'&select=id,usuario,en&order=id.desc&limit=30'); }
   async function getBackup(id){ const r=await sel('respaldos','id=eq.'+id+'&select=data'); return r.length?r[0].data:null; }
+
+  // ---- Fusión anti-aplastamiento ----
+  // Combina el estado de la nube (rem) con el local (loc) sin perder registros de ninguno:
+  // listas → unión sin duplicados; mapas → registro por registro (gana el editor local);
+  // valores simples → gana el local (es la intención del que está guardando).
+  function mergeStates(rem, loc){
+    if(!rem) return loc; if(!loc) return rem;
+    const out={}, keys={};
+    Object.keys(rem).forEach(function(k){keys[k]=1;}); Object.keys(loc).forEach(function(k){keys[k]=1;});
+    Object.keys(keys).forEach(function(k){
+      const r=rem[k], l=loc[k];
+      if(l===undefined){out[k]=r;return;} if(r===undefined){out[k]=l;return;}
+      if(Array.isArray(r)&&Array.isArray(l)){
+        const seen={}, res=[];
+        l.concat(r).forEach(function(x){const s=JSON.stringify(x); if(!seen[s]){seen[s]=1;res.push(x);}});
+        out[k]=res;
+      }else if(r&&l&&typeof r==='object'&&typeof l==='object'){
+        const o={}; Object.keys(r).forEach(function(kk){o[kk]=r[kk];});
+        Object.keys(l).forEach(function(kk){
+          o[kk]=(o[kk]&&l[kk]&&typeof o[kk]==='object'&&typeof l[kk]==='object'&&!Array.isArray(l[kk])&&!Array.isArray(o[kk]))?Object.assign({},o[kk],l[kk]):l[kk];
+        });
+        out[k]=o;
+      }else out[k]=l;
+    });
+    return out;
+  }
   // ============ ESTADO DE PROYECTO EN TIEMPO REAL ============
   // cfg = { proyecto:'sb', storeKey:'sb_ctrl3', getS:()=>S, apply:(data)=>{...}, badge:true }
   function initProject(cfg){
@@ -99,12 +125,28 @@
       if(!online()) { setBadge('⚠ Sin conexión — se guardó local', '#B26A00'); return; }
       pushing=true;
       try{
-        const data = cfg.getS();
+        let data = cfg.getS();
+        // ANTI-APLASTAMIENTO: si la nube tiene cambios que este equipo aún no vio
+        // (otro usuario publicó, o este equipo abrió sin conexión), se FUSIONAN
+        // antes de publicar: nunca se pisa el trabajo de otro usuario.
+        try{
+          const rows = await sel('estados_proyecto','proyecto=eq.'+cfg.proyecto+'&select=data,actualizado');
+          if(rows.length){
+            const rts=new Date(rows[0].actualizado).getTime();
+            if(rts>lastRemote && rows[0].data && Object.keys(rows[0].data).length){
+              data = mergeStates(rows[0].data, data);
+              try{ localStorage.setItem(cfg.storeKey, JSON.stringify(data)); }catch(e){}
+              if(cfg.apply) cfg.apply(data);
+              setBadge('🔗 Fusionado con cambios de otros usuarios', '#1650a7');
+            }
+            lastRemote=rts;
+          }
+        }catch(e){/* si no se pudo comparar, se publica igual */}
         await upsert('estados_proyecto',
           [{proyecto:cfg.proyecto, data:data, actualizado:new Date().toISOString(), por:me}], 'proyecto');
         lastRemote=Date.now()+500;
         setBadge('☁ Guardado y respaldado', '#0f7a35');
-        snapshot(cfg.proyecto, (typeof data!=='undefined'?data:collect()), me);
+        snapshot(cfg.proyecto, data, me);
       }catch(e){ setBadge('⚠ Error de nube — guardado local', '#B26A00'); }
       pushing=false;
     }
@@ -184,5 +226,5 @@
     window.addEventListener('offline', ()=>setBadge('⚠ Sin conexión','#B26A00'));
   }
 
-  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup };
+  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup, mergeStates };
 })();

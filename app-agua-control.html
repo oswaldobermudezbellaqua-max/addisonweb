@@ -99,7 +99,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--lb)}
   <button class="tb" data-t="t13" onclick="tab(this)">💸 GASTOS</button>
   <button class="tb s" onclick="expJSON()">💾 Respaldo</button>
   <button class="tb s" onclick="document.getElementById('impfile').click()">📂 Importar</button>
-  <button class="tb r" style="background:#b03a2e" onclick="resetApp()">🧹 Reiniciar de fábrica</button>
+  <button class="tb r" id="btnReset" style="background:#b03a2e;display:none" onclick="resetApp()">🧹 Reiniciar de fábrica</button>
   <input type="file" id="impfile" class="hide" accept=".json" onchange="impJSON(this)">
 </div>
 
@@ -488,7 +488,7 @@ const S={proc:{},reps:[],extras:[],maq:{},maqx:[],pers:[],prov:[],serv:[]};
 try{Object.assign(S,JSON.parse(localStorage.getItem('agua_ctrl1')||'{}'));}catch(e){}
 ['proc','maq'].forEach(k=>S[k]=S[k]||{});['reps','extras','maqx','pers','prov','serv','tram','gastos'].forEach(k=>S[k]=S[k]||[]);
 function save(){localStorage.setItem('agua_ctrl1',JSON.stringify(S));kpis();}
-function resetApp(){if(confirm('⚠ Esto BORRA todos los datos cargados en esta aplicación (procura, reportes, personal, trámites, fotos…) y la deja como nueva.\n\n¿Deseas continuar? Exporta un respaldo antes si quieres conservar algo.')){
+function resetApp(){var _ss={};try{_ss=JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');}catch(e){}if((_ss.u||'')!=='admin'){alert('⛔ Solo la cuenta administradora principal (admin) puede reiniciar de fábrica.');return;}if(confirm('⚠ Esto BORRA todos los datos cargados en esta aplicación (procura, reportes, personal, trámites, fotos…) y la deja como nueva.\n\n¿Deseas continuar? Exporta un respaldo antes si quieres conservar algo.')){
 localStorage.removeItem('agua_ctrl1');localStorage.removeItem('agua_ctrl0');localStorage.removeItem('agua_ctrl_x');location.reload();}}
 function tab(b){document.querySelectorAll('.tb[data-t]').forEach(x=>x.classList.toggle('on',x===b));
 ['t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12','t13'].forEach(t=>{const el=document.getElementById(t);
@@ -1445,4 +1445,5 @@ initAll();
 })();
 
 if(window.ADCloud){ADCloud.initProject({proyecto:"agua",storeKey:"agua_ctrl1",getS:function(){return S;},apply:function(d){try{Object.assign(S,d);if(typeof initAll==="function"){initAll();}if(typeof rendMot==="function")rendMot();if(typeof applyD0==="function")applyD0();}catch(e){}}});}
-</script></body></html>
+</script><script>try{var _rs=JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');if((_rs.u||'')==='admin'){var _rb=document.getElementById('btnReset');if(_rb)_rb.style.display='';}}catch(e){}</script>
+</body></html>
