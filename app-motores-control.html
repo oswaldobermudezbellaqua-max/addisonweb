@@ -252,6 +252,10 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <!-- ==== T8 PROVEEDORES ==== -->
 <div class="page hide" id="t8">
 <h3>Proveedores — registro, bitácora y solicitudes de pago (ADD-SP)<span class="right" id="prvTot"></span></h3>
+<div id="uniProvBar" style="display:none;background:linear-gradient(90deg,#0A2A4D,#12457c);border-radius:9px;padding:10px 14px;margin:0 0 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+<span style="font-size:18pt">🏪</span><span style="color:#CFE0F2;font-size:8pt;line-height:1.45;flex:1"><b style="color:#FFC400">¿Buscas a quién comprarle?</b> El <b style="color:#fff">UNIVERSO DE PROVEEDORES</b> tiene 500+ suplidores verificados en los 24 estados (70 en Pto. Ordaz–San Félix) por rubro, con WhatsApp directo.</span>
+<a href="proveedores.html" style="background:#FFC400;color:#0A2A4D;font-weight:900;font-size:8pt;padding:8px 14px;border-radius:8px;text-decoration:none">ABRIR UNIVERSO →</a></div>
+<script>try{var _up=JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');if(!(_up.rol==='ADMIN'||(_up.perms&&_up.perms.prv))){document.getElementById('uniProvBar').style.display='none';}else{document.getElementById('uniProvBar').style.display='flex';}}catch(e){}</script>
 <div class="callout" style="border-left:4px solid #014695"><b>🔎 Buscador de proveedores — estudio de campo Venezuela (ago-2026):</b> empresas capaces de suministrar los materiales de la procura. Verde = ya les hemos comprado o cotizado (según tus documentos); azul = mayoristas nacionales; ámbar = minoristas de Puerto Ordaz. Busca por texto, por rubro o directamente <b>por renglón de la procura</b> (detecta el rubro solo). Con «➕ Registrar» pasa al registro formal con nota en bitácora.</div>
 <div class="frm">
 <input id="bpQ" placeholder="Buscar… (ej. lámina, grúa, epóxica, Matanzas)" style="min-width:190px" oninput="buscaProv()">

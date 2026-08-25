@@ -113,6 +113,11 @@ p.sub{color:var(--sky);font-size:10.2pt;margin:0 0 30px;max-width:760px;line-hei
 </div></div></div>
 
 </div></div>
+<div id="provWrap" hidden style="max-width:1100px;margin:8px auto 26px;padding:0 20px">
+<a class="pcard" href="proveedores.html" style="border-color:var(--gold);background:rgba(255,196,0,.07)">
+<span class="th" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#7a5a00,#D9A11B);font-size:26pt">🏪</span>
+<span class="in"><b>UNIVERSO DE PROVEEDORES — Venezuela <span style="background:#0f7a35;color:#fff;padding:1px 8px;border-radius:9px;font-size:6.8pt;font-weight:800">★ NUEVO</span></b><span>Directorio nacional: 500+ proveedores verificados en los 24 estados · 70 en Puerto Ordaz–San Félix · desplegados por rubro (construcción, hierro/acero, metalmecánica, eléctrico, pinturas, tuberías, ferretería, maquinaria, bombas) · contacto directo por WhatsApp o llamada · añade proveedores fuera del radar.</span><span class="go">ABRIR UNIVERSO DE PROVEEDORES →</span></span></a>
+</div>
 <div class="foot"><b style="color:var(--gold2)">SUMINISTROS ADDISON, C.A.</b> · RIF J-40254910-5 · Centro de Control de Proyectos · © 2026</div>
 
 <div id="usrModal" class="modal" onclick="if(event.target===this)this.style.display='none'">
@@ -151,6 +156,7 @@ p.sub{color:var(--sky);font-size:10.2pt;margin:0 0 30px;max-width:760px;line-hei
 <label><input type="checkbox" id="pm_solicitar"><span><b>📦 Crear SOLICITUDES</b> — pedidos de materiales, máquinas y equipos.</span></label>
 <label><input type="checkbox" id="pm_apr"><span><b>✅ APROBAR / RECHAZAR</b> — decide sobre las solicitudes recibidas.</span></label>
 <label><input type="checkbox" id="pm_red"><span><b>📡 PUBLICAR a la red</b> — sus cambios se comparten al archivo común del proyecto.</span></label>
+<label><input type="checkbox" id="pm_prv"><span><b>🏪 UNIVERSO DE PROVEEDORES</b> — acceso al directorio nacional de proveedores y a añadir nuevos.</span></label>
 <label><input type="checkbox" id="pm_usr" disabled><span><b>🔐 GESTIONAR USUARIOS</b> — crear y eliminar cuentas (automático y exclusivo del rol ADMINISTRADOR).</span></label>
 </div>
 
@@ -178,12 +184,12 @@ let _cacheUsers=[];
 function getUsers(){return _cacheUsers;}
 async function refreshUsers(){ try{ if(window.ADCloud){ _cacheUsers=await ADCloud.listUsers(); localStorage.setItem('addison_users',JSON.stringify(_cacheUsers)); } }catch(e){ try{_cacheUsers=JSON.parse(localStorage.getItem('addison_users')||'[]');}catch(_){_cacheUsers=[];} } return _cacheUsers; }
 const PYS=['sb','mb32','motores','agua','p33','planos'];
-const PMS=['eco','edit','diario','solicitar','apr','red','usr'];
+const PMS=['eco','edit','diario','solicitar','apr','red','usr','prv'];
 if(S.rol==='ADMIN'){document.getElementById('btnUsr').style.display='';}
 function usrOpen(){document.getElementById('usrModal').style.display='flex';rolDefaults();refreshUsers().then(rendUsers);}
 function rolDefaults(){
 const r=document.getElementById('nuRol').value;
-const d={ADMIN:{eco:1,edit:1,diario:1,solicitar:1,apr:1,red:1,usr:1},DIRECTIVA:{eco:1,apr:1},RESIDENTE:{diario:1,solicitar:1},VISITANTE:{}}[r]||{};
+const d={ADMIN:{eco:1,edit:1,diario:1,solicitar:1,apr:1,red:1,usr:1,prv:1},DIRECTIVA:{eco:1,apr:1},RESIDENTE:{diario:1,solicitar:1},VISITANTE:{}}[r]||{};
 PMS.forEach(function(k){const e=document.getElementById('pm_'+k);e.checked=!!d[k];});
 document.getElementById('pm_usr').checked=(r==='ADMIN');
 if(r==='ADMIN')PYS.forEach(function(k){document.getElementById('py_'+k).checked=true;});
@@ -242,5 +248,6 @@ document.querySelectorAll('.emp').forEach(function(card){
 const visibles=card.querySelectorAll('.pcard:not([style*="display: none"]):not([style*="display:none"])');
 if(!visibles.length)card.style.display='none';});
 })();
+try{var _pv=JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');if(_pv.rol==='ADMIN'||(_pv.perms&&_pv.perms.prv)){var _pw=document.getElementById('provWrap');if(_pw)_pw.hidden=false;}}catch(e){}
 if('serviceWorker' in navigator){try{navigator.serviceWorker.register('sw.js');}catch(e){}}
 </script></body></html>
