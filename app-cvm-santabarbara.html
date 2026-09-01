@@ -956,8 +956,8 @@ const Y=function(v){return h-padB-(v/100*(h-padB-padT));};
 let pts='',rpts='';
 for(let d=1;d<=DUR;d++){pts+=X(d).toFixed(1)+','+Y(planAt(d)).toFixed(1)+' ';}
 const reps=S.reps.filter(function(r){return !hasta||r.f<=hasta;});
-let rl=[];
-reps.forEach(function(r){const d=dnum(r.f);if(d>=1&&d<=DUR)rl.push([d,realPct(r.f)]);});
+let rl=[],fuera=0;
+reps.forEach(function(r){const d=dnum(r.f);if(d>=1&&d<=DUR)rl.push([d,realPct(r.f)]);else fuera++;});
 rl.sort(function(a,b){return a[0]-b[0];});
 rl.forEach(function(p){rpts+=X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)+' ';});
 let g='';
@@ -991,7 +991,13 @@ const leg='<rect x="'+pad+'" y="1" width="'+(w-pad-12)+'" height="16" fill="#F7F
 '<line x1="'+(pad+8)+'" y1="9" x2="'+(pad+26)+'" y2="9" stroke="#7FA8D9" stroke-width="2.6"/><text x="'+(pad+30)+'" y="12" font-size="7.2" font-weight="bold" fill="#3E5E80">PLAN programado</text>'+
 '<line x1="'+(pad+118)+'" y1="9" x2="'+(pad+136)+'" y2="9" stroke="#b03a2e" stroke-width="2.8"/><text x="'+(pad+140)+'" y="12" font-size="7.2" font-weight="bold" fill="#b03a2e">REAL ejecutado</text>'+
 '<rect x="'+(pad+224)+'" y="4.5" width="13" height="9" fill="#0f7a35" opacity="0.25"/><text x="'+(pad+241)+'" y="12" font-size="7.2" font-weight="bold" fill="#5b6b7f">brecha</text>';
-const aviso=rl.length?'':'<text x="'+(w/2)+'" y="'+(h/2)+'" font-size="8" fill="#b03a2e" text-anchor="middle" font-weight="bold">Sin curva real todavía — registra el % de avance por partida al guardar el reporte</text>';
+let aviso='';
+if(!rl.length&&fuera){aviso='<rect x="'+(pad+6)+'" y="'+(h/2-24)+'" width="'+(w-pad-30)+'" height="44" rx="4" fill="#FDEBEA" stroke="#b03a2e" stroke-width="0.8"/>'+
+ '<text x="'+(w/2)+'" y="'+(h/2-8)+'" font-size="8" fill="#b03a2e" text-anchor="middle" font-weight="bold">'+fuera+' reporte(s) quedan FUERA DEL PLAZO y no entran en la curva</text>'+
+ '<text x="'+(w/2)+'" y="'+(h/2+5)+'" font-size="7.2" fill="#8a3227" text-anchor="middle">Sus fechas son anteriores (o posteriores) a la FECHA DE ARRANQUE del proyecto.</text>'+
+ '<text x="'+(w/2)+'" y="'+(h/2+16)+'" font-size="7.2" fill="#8a3227" text-anchor="middle" font-weight="bold">Corrígela en la barra 📅 FECHA DE ARRANQUE (pestaña PARTIDAS) y la curva se traza sola.</text>';}
+else if(!rl.length){aviso='<text x="'+(w/2)+'" y="'+(h/2)+'" font-size="8" fill="#b03a2e" text-anchor="middle" font-weight="bold">Sin curva real todavía — registra el % de avance por partida al guardar el reporte</text>';}
+else if(fuera){aviso='<text x="'+(w/2)+'" y="'+(padT+10)+'" font-size="7" fill="#b03a2e" text-anchor="middle" font-weight="bold">⚠ '+fuera+' reporte(s) fuera del plazo no se grafican</text>';}
 const uni=rl.length===1?'<text x="'+(w/2)+'" y="'+(h-padB+24)+'" font-size="6.8" fill="#8a96ad" text-anchor="middle">Con un solo reporte la curva real es un punto; con dos o más se traza la línea y la brecha.</text>':'';
 return '<svg viewBox="0 0 '+w+' '+(h+(uni?10:0))+'" style="width:100%;height:auto;background:#fff;border:1px solid #dce2ec;border-radius:4px">'+g+area+vline+
 '<polyline points="'+pts+'" fill="none" stroke="#7FA8D9" stroke-width="2"/>'+
@@ -1003,10 +1009,14 @@ function tablaContraste(hasta){
  if(!reps.length)return '<p style="font-size:8.4pt;color:#b03a2e"><b>Aún no hay reportes con avance registrado</b>, por eso la curva real no contrasta contra el plan. Carga el % de avance por partida en el reporte del día.</p>';
  let filas='';
  reps.slice(-12).forEach(function(r){const d=dnum(r.f),re=realPct(r.f),pl=(d>=1&&d<=DUR)?planAt(d):0,dv=re-pl;
-  filas+='<tr><td>'+r.f+'</td><td class="c">'+d+'</td><td class="r">'+re.toFixed(1)+'%</td><td class="r">'+pl.toFixed(1)+'%</td>'+
-  '<td class="r" style="color:'+(dv>=0?'#0f7a35':'#b03a2e')+';font-weight:800">'+(dv>=0?'+':'')+dv.toFixed(1)+' pts</td>'+
-  '<td class="c" style="font-weight:800;color:'+(dv>=-2?'#0f7a35':'#b03a2e')+'">'+(dv>=2?'ADELANTADO':dv>=-2?'EN LÍNEA':'RETRASADO')+'</td></tr>';});
- return '<table><tr><th>Fecha del reporte</th><th class="c">Día</th><th class="r">REAL</th><th class="r">PLAN</th><th class="r">Desviación</th><th class="c">Estado</th></tr>'+filas+'</table>';}
+  const dentro=(d>=1&&d<=DUR);
+  filas+='<tr'+(dentro?'':' style="background:#FDEBEA"')+'><td>'+r.f+'</td><td class="c">'+d+'</td><td class="r">'+re.toFixed(1)+'%</td>'+
+  (dentro?'<td class="r">'+pl.toFixed(1)+'%</td><td class="r" style="color:'+(dv>=0?'#0f7a35':'#b03a2e')+';font-weight:800">'+(dv>=0?'+':'')+dv.toFixed(1)+' pts</td>'+
+   '<td class="c" style="font-weight:800;color:'+(dv>=-2?'#0f7a35':'#b03a2e')+'">'+(dv>=2?'ADELANTADO':dv>=-2?'EN LÍNEA':'RETRASADO')+'</td>'
+   :'<td class="r">—</td><td class="r">—</td><td class="c" style="font-weight:800;color:#b03a2e">FUERA DEL PLAZO</td>')+'</tr>';});
+ const nf=reps.filter(function(r){const d=dnum(r.f);return d<1||d>DUR;}).length;
+ const nota=nf?'<p style="font-size:7.8pt;color:#b03a2e;margin:4px 0"><b>⚠ '+nf+' reporte(s) fuera del plazo.</b> Sus fechas no caen dentro de la ventana del proyecto (día 1 al '+DUR+') porque la <b>fecha de arranque</b> está fijada en <b>'+((S.d0&&S.d0.f)||'—')+'</b>. Ajústala en la barra 📅 de la pestaña PARTIDAS para que entren en la curva.</p>':'';
+ return '<table><tr><th>Fecha del reporte</th><th class="c">Día</th><th class="r">REAL</th><th class="r">PLAN</th><th class="r">Desviación</th><th class="c">Estado</th></tr>'+filas+'</table>'+nota;}
 function curva(){var _fr=(document.getElementById('rFecha')||{}).value||null;
 document.getElementById('curva').innerHTML=svgCurva(500,240,_fr);
 var _tc=document.getElementById('tabContraste'); if(_tc)_tc.innerHTML=tablaContraste(_fr);
