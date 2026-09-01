@@ -143,7 +143,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--lb)}
 <tr><td><b>P3 Lubricación</b> (d26–33)</td><td>PRELADA por P7. PRELA a P5: prohibido girar el molino sin lubricación certificada.</td></tr>
 <tr><td><b>P6 Limpieza corona-piñón</b> (d34–37)</td><td>PRELADA por P7. PRELA a P5 (superficie apta para calibrar).</td></tr>
 <tr><td><b>P5 Calibración piñón–corona</b> (d43–47)</td><td>PRELADA por P6 + P3 + P4. PRELA a P8.</td></tr>
-<tr><td><b>P8 Alineación motriz + entrega</b> (d46–51)</td><td>PRELADA por P5. Cierra la obra: prueba en vacío, orden y limpieza, cierre del CTS (d46 = 28-sep).</td></tr>
+<tr><td><b>P8 Alineación motriz + entrega</b> (d42–46)</td><td>PRELADA por P5. Cierra la obra: prueba en vacío, orden y limpieza, cierre del CTS (d46 = 28-sep).</td></tr>
 </table>
 <div class="callout red"><b>Ruta crítica:</b> Compra láminas → P15 taller (3 sem) → P13 → P11 · y en paralelo P14 → P1 → P2 → P10/P4 → P5 → P8 (entrega d51). El disparo de TODO el cronograma es la compra del material de la pala: cada día de retraso en esa OC corre el proyecto completo. Penalidad 1%/día (máx 10%) — spec 2.1.</div>
 </div>
@@ -721,13 +721,13 @@ return `<tr${s.xtra?' style="background:#fdf6e3"':''}><td>${s.f}</td><td class="
 document.getElementById('svChips').innerHTML=`<span class="chip">Total real: <b>${num(tot)}</b></span>`+Object.entries(porTipo).map(([k,v])=>`<span class="chip">${k}: <b>${num(v)}</b></span>`).join('')+`<span class="chip" style="background:#fdf6e3">Extras por solicitud: <b>${num(xtot)}</b>${xhoy?' (hoy: '+num(xhoy)+')':''}</span><span class="chip">Plan servicios 90 d: <b>99.361,00</b></span>`;
 // comparación semanal
 let comp='<tr><th>Semana</th><th class="r">Plan comidas</th><th class="r">Real</th><th class="r">Plan alojam.</th><th class="r">Real</th><th class="r">Plan transp.</th><th class="r">Real</th><th class="r">Plan caja</th><th class="r">Real</th><th class="r">Δ semana</th></tr>';
-for(let s=0;s<8;s++){const d1=s*7+1,d2=Math.min(51,s*7+7);
+for(let s=0;s<NSEM;s++){const d1=s*7+1,d2=Math.min(DUR,s*7+7);
 const rs={"Comidas":0,"Alojamiento":0,"Transporte":0,"Caja chica":0};
 S.serv.forEach(x=>{const d=dnum(x.f);if(d>=d1&&d<=d2&&rs[x.t]!==undefined)rs[x.t]+=x.c*x.p;});
-const pl=SPLAN["Comidas"][s]+SPLAN["Alojamiento"][s]+SPLAN["Transporte"][s]+SPLAN["Caja chica"][s];
+const pl=(SPLAN["Comidas"][s]||0)+(SPLAN["Alojamiento"][s]||0)+(SPLAN["Transporte"][s]||0)+(SPLAN["Caja chica"][s]||0);
 const re=rs["Comidas"]+rs["Alojamiento"]+rs["Transporte"]+rs["Caja chica"];
 const dv=re-pl;
-comp+=`<tr><td><b>S${s+1}</b> (${fch(d1)}–${fch(d2)})</td><td class="r">${num(SPLAN["Comidas"][s])}</td><td class="r">${rs["Comidas"]?num(rs["Comidas"]):'—'}</td><td class="r">${num(SPLAN["Alojamiento"][s])}</td><td class="r">${rs["Alojamiento"]?num(rs["Alojamiento"]):'—'}</td><td class="r">${num(SPLAN["Transporte"][s])}</td><td class="r">${rs["Transporte"]?num(rs["Transporte"]):'—'}</td><td class="r">${num(SPLAN["Caja chica"][s])}</td><td class="r">${rs["Caja chica"]?num(rs["Caja chica"]):'—'}</td><td class="r" style="font-weight:900;color:${re===0?'#8a96ad':dv>0?'#b03a2e':'#1e7e46'}">${re===0?'—':(dv>0?'+':'')+num(dv)}</td></tr>`;}
+comp+=`<tr><td><b>S${s+1}</b> (${fch(d1)}–${fch(d2)})</td><td class="r">${num((SPLAN["Comidas"][s]||0))}</td><td class="r">${rs["Comidas"]?num(rs["Comidas"]):'—'}</td><td class="r">${num((SPLAN["Alojamiento"][s]||0))}</td><td class="r">${rs["Alojamiento"]?num(rs["Alojamiento"]):'—'}</td><td class="r">${num((SPLAN["Transporte"][s]||0))}</td><td class="r">${rs["Transporte"]?num(rs["Transporte"]):'—'}</td><td class="r">${num((SPLAN["Caja chica"][s]||0))}</td><td class="r">${rs["Caja chica"]?num(rs["Caja chica"]):'—'}</td><td class="r" style="font-weight:900;color:${re===0?'#8a96ad':dv>0?'#b03a2e':'#1e7e46'}">${re===0?'—':(dv>0?'+':'')+num(dv)}</td></tr>`;}
 document.getElementById('svComp').innerHTML=comp;
 document.getElementById('sTot').textContent='real acumulado: '+num(tot);rendProv7();kpis();}
 // ---------- T8 proveedores ----------
@@ -811,6 +811,7 @@ function rendReps(){document.getElementById('rCount').textContent=S.reps.length+
 document.getElementById('rLista').innerHTML=S.reps.slice().reverse().map((r,i)=>{const idx=S.reps.length-1-i;
 const d=dnum(r.f);const pl=(d>=1&&d<=DUR)?planAt(d):null;const re=realPct(r.f);
 return `<div class="repcard"><b>${r.f}</b> (día ${d}) · Personal: ${r.pers||'—'} · Avances: ${(r.av||[]).length} · Fotos: ${(r.fotos||[]).length} · Real: <b>${re.toFixed(1)}%</b>${pl!==null?' vs plan '+pl.toFixed(1)+'%':''} <button class="btn sm" onclick="verRep(${idx},'JD')">🖨 PDF Junta Directiva (económico)</button> <button class="btn sm g" onclick="verRep(${idx},'OPS')">🖨 PDF Gcia. Operaciones (sin costos)</button> <button class="btn sm r" onclick="if(confirm('¿Eliminar?')){S.reps.splice(${idx},1);save();rendReps();curva();rendP();}">Eliminar</button></div>`}).join('')||'<p class="lead">Aún no hay reportes.</p>';kpis();}
+const NSEM=Math.ceil(DUR/7);
 function svgGantt(){
  const w=1000,rowH=22,left=212,right=22,top=58;
  const rows=P48.slice().sort(function(a,b){return a.a-b.a||a.b-b.b||a.n-b.n;});
@@ -1008,11 +1009,11 @@ S.serv.push({f:f,t:tipo,d:'[EXTRA · '+t+'] '+(m||'s/motivo')+(q?' — solicita:
 save();rendSv();['sxQ','sxM'].forEach(i=>document.getElementById(i).value='');
 alert('Solicitud extra registrada ✔ — quedó sumada a los servicios del '+f);}
 function provSemana(){const h=hoyDia();if(h<1||h>90)return null;
-const s=Math.min(13,Math.floor((h-1)/7)+1);const d1=(s-1)*7+1,d2=Math.min(51,s*7);
+const s=Math.min(NSEM,Math.floor((h-1)/7)+1);const d1=(s-1)*7+1,d2=Math.min(DUR,s*7);
 const f1=new Date(D0.getTime()+(d1-1)*864e5).toISOString().slice(0,10), f2=new Date(D0.getTime()+(d2-1)*864e5).toISOString().slice(0,10);
 let sal=0;S.pers.forEach(p=>{if(p.fi<=f2&&(!p.fo||p.fo>=f1)){const dias=(d2-d1+1);sal+= /Supervisor/.test(p.car)?200:p.tar*dias;}});
 let svReal=0;S.serv.forEach(x=>{const d=dnum(x.f);if(d>=d1&&d<=d2)svReal+=x.c*x.p;});
-const svPlan=SPLAN["Comidas"][s-1]+SPLAN["Alojamiento"][s-1]+SPLAN["Transporte"][s-1]+SPLAN["Caja chica"][s-1];
+const svPlan=(SPLAN["Comidas"][s-1]||0)+(SPLAN["Alojamiento"][s-1]||0)+(SPLAN["Transporte"][s-1]||0)+(SPLAN["Caja chica"][s-1]||0);
 return {s:s,f1:f1,f2:f2,sal:sal,svReal:svReal,svPlan:svPlan,tot:sal+(svReal||svPlan)};}
 function rendProv7(){const pv=provSemana();const el7=document.getElementById('svProv7'),elP=document.getElementById('perNeed');
 if(!pv){if(el7)el7.innerHTML='Fuera de la ventana de obra (17-ago → 14-nov).';return;}
@@ -1020,12 +1021,12 @@ const txt=`<b>💰 Provisión para la nómina de la semana en curso (S${pv.s} ·
 if(el7)el7.innerHTML=txt;
 if(elP){const need=needPersonal();
 elP.innerHTML=`<b>📌 Necesidad de personal HOY (semana S${need.s} del plan · próxima S${Math.min(13,need.s+1)}):</b> ${need.rows.filter(r=>r.gap>0).map(r=>`<b>${r.car}</b>: faltan ${r.gap} (plan ${r.plan} / activos ${r.act})`).join(' · ')||'<span class="ok-r">cuadrilla completa según plan ✔</span>'} ${need.exceso.length?' · <span style="color:var(--gold)">Excedente: '+need.exceso.join(', ')+'</span>':''} — usa el botón "Solicitud de necesidad de personal" para el documento formal.`;}}
-function needPersonal(){const h=Math.min(51,Math.max(1,hoyDia()));const s=Math.min(13,Math.floor((h-1)/7)+1);
+function needPersonal(){const h=Math.min(DUR,Math.max(1,hoyDia()));const s=Math.min(NSEM,Math.floor((h-1)/7)+1);
 const f=new Date().toISOString().slice(0,10);
 const act=S.pers.filter(p=>p.fi<=f&&(!p.fo||p.fo>=f));
 const rows=[];const exceso=[];
-Object.keys(CREW).forEach(car=>{const plan=CREW[car][s-1];const a=act.filter(p=>p.car===car).length;
-const planN=s<8?CREW[car][s]:plan;
+Object.keys(CREW).forEach(car=>{const plan=(CREW[car][s-1]||0);const a=act.filter(p=>p.car===car).length;
+const planN=s<8?(CREW[car][s]||0):plan;
 if(plan>0||a>0||planN>0){rows.push({car:car,plan:plan,planN:planN,act:a,gap:Math.max(0,plan-a)});
 if(a>plan&&a>planN)exceso.push(car+' +'+(a-Math.max(plan,planN)));}});
 return {s:s,rows:rows,exceso:exceso};}
@@ -1222,7 +1223,7 @@ save();rendProv();alert('✔ '+p.n+' registrado en tus proveedores (con nota en 
 // ---------- ESTIMADOR DE GASTOS por período (ajustado diario por avance real) ----------
 function fchISO(d){const x=new Date(D0.getTime()+(d-1)*864e5);return x.toISOString().slice(0,10);}
 function estHeadPlan(d){const wk=Math.min(13,Math.max(1,Math.ceil(d/7)));let n=0,sup=0;const by={};
-Object.keys(CREW).forEach(c=>{const q=CREW[c][wk-1]||0;if(!q)return;n+=q;if(esSup(c))sup+=q;by[c]=(by[c]||0)+q;});
+Object.keys(CREW).forEach(c=>{const q=(CREW[c][wk-1]||0)||0;if(!q)return;n+=q;if(esSup(c))sup+=q;by[c]=(by[c]||0)+q;});
 return{n:n,sup:sup,by:by};}
 function estDia(d,lag){const out={nom:0,srv:0,nomBy:{},srvBy:{}};if(d<1||d>DUR)return out;
 const f=fchISO(d);const act=S.pers.filter(p=>p.fi<=f&&(!p.fo||p.fo>=f));const r=rates();
@@ -1257,16 +1258,16 @@ const m=dias*mq.tp;tot.MAQUINARIA+=m;
 for(let k=a;k<=b;k++)add('MAQUINARIA',k,mq.tp);
 det.MAQUINARIA.push({d:a,tx:mq.n+' — '+dias+' d ('+fch(a)+' → '+fch(b)+') × '+num(mq.tp)+'/d'+(sh?' · corrida +'+sh+' d por avance real':''),m:m});});
 let nomD=0,srvD=0;
-for(let d=Math.max(1,dA);d<=Math.min(51,dB);d++){const e=estDia(d,lag);
+for(let d=Math.max(1,dA);d<=Math.min(DUR,dB);d++){const e=estDia(d,lag);
 if(e.nom){tot.NOMINA+=e.nom;add('NOMINA',d,e.nom);nomD++;Object.keys(e.nomBy).forEach(k=>nomBy[k]=(nomBy[k]||0)+e.nomBy[k]);}
 if(e.srv){tot.SERVICIOS+=e.srv;add('SERVICIOS',d,e.srv);srvD++;Object.keys(e.srvBy).forEach(k=>srvBy[k]=(srvBy[k]||0)+e.srvBy[k]);}}
 if(nomD)det.NOMINA.push({d:Math.max(1,dA),tx:nomD+' días de nómina — '+(S.pers.length?'personal REAL registrado (o plan donde no haya)':'cuadrilla PLAN 11 cargos × 8 semanas')+' · desfase +'+lag+' d',m:tot.NOMINA});
 if(srvD)det.SERVICIOS.push({d:Math.max(1,dA),tx:srvD+' días de servicios de campamento (tarifario vigente)',m:tot.SERVICIOS});
 if(S.extras.length){const ds=S.extras.map(x=>dnum(x.f)).filter(d=>d>=1);const span=Math.max(1,(Math.max.apply(null,ds)-Math.min.apply(null,ds)+1)||1);
 const prom=S.extras.reduce((a,x)=>a+x.c*x.p,0)/span;
-const dias=Math.max(0,Math.min(51,dB)-Math.max(1,dA)+1);const m=prom*dias;
+const dias=Math.max(0,Math.min(DUR,dB)-Math.max(1,dA)+1);const m=prom*dias;
 if(m>0){tot.EXTRAS+=m;det.EXTRAS.push({d:Math.max(1,dA),tx:'Tendencia de extras: '+num(prom)+' USD/día × '+dias+' d (histórico registrado)',m:m});
-for(let k=Math.max(1,dA);k<=Math.min(51,dB);k++)add('EXTRAS',k,prom);}}
+for(let k=Math.max(1,dA);k<=Math.min(DUR,dB);k++)add('EXTRAS',k,prom);}}
 const gran=Object.values(tot).reduce((a,b)=>a+b,0);
 // libro de desembolsos (eventos ordenados con acumulado)
 const libro=[];det.PROCURA.forEach(x=>libro.push({d:x.d,cat:'PROCURA',tx:x.tx,m:x.m}));
@@ -1309,7 +1310,7 @@ let libro='<h5 style="margin:10px 0 3px">📒 Libro de desembolsos del período 
 let top='<h5 style="margin:8px 0 3px">🔝 Los 5 mayores desembolsos del período</h5><table>'+R.top5.map((x,i)=>'<tr><td style="width:24px">'+(i+1)+'</td><td style="width:76px">'+fch(x.d)+'</td><td>'+x.tx.slice(0,90)+'</td><td class="r" style="width:90px"><b>'+num(x.m)+'</b></td></tr>').join('')+'</table>';
 document.getElementById('estOut').innerHTML=R.curva+tb+brkTable(R.nomBy,'👷 Nómina — desglose por cargo')+brkTable(R.srvBy,'🍽 Servicios — desglose por componente')+top+libro;}
 function estQuick(n){const h=new Date();const f1=h.toISOString().slice(0,10);
-const f2=n==='fin'?fchISO(51):new Date(h.getTime()+n*864e5).toISOString().slice(0,10);
+const f2=n==='fin'?fchISO(DUR):new Date(h.getTime()+n*864e5).toISOString().slice(0,10);
 document.getElementById('estA').value=f1;document.getElementById('estB').value=f2;estRun();}
 function estDoc(){if(!window._lastEst){alert('Primero calcula una estimación.');return;}
 const{R,f1,f2}=window._lastEst;const hoyISO=new Date().toISOString().slice(0,10);
@@ -1617,7 +1618,7 @@ const dlp=document.getElementById('dlProv');if(dlp)dlp.innerHTML=S.prov.map(p=>'
 const last=S.reps[S.reps.length-1];
 document.getElementById('kAv').textContent=last?realPct(last.f).toFixed(1).replace('.',',')+'%':'0,0%';
 const dh=hoyDia();
-document.getElementById('kPlanHoy').textContent=(dh>=1&&dh<=51)?PLAN[dh-1].toFixed(1).replace('.',',')+'%':(dh<1?'pre-inicio':'100%');
+document.getElementById('kPlanHoy').textContent=(dh>=1&&dh<=DUR)?planAt(dh).toFixed(1).replace('.',',')+'%':(dh<1?'pre-inicio':'100%');
 let comp=0,m=0,priA=0;ITEMS.forEach(it=>{const e=(S.proc[it.id]||{}).e;if(e==='O'||e==='R'){comp++;m+=it.t;}if(priIt(it)[0]==='A')priA++;});
 document.getElementById('kProc').textContent=comp+'/60';
 document.getElementById('kMonto').textContent=num(m);
@@ -1634,8 +1635,7 @@ function impJSON(inp){const f=inp.files[0];if(!f)return;const r=new FileReader()
 ['proc','maq'].forEach(k=>S[k]=d[k]||{});['reps','extras','maqx','pers','prov','serv','tram','gastos','ali'].forEach(k=>S[k]=d[k]||[]);
 save();initAll();alert('Respaldo importado ✔');}catch(x){alert('Archivo inválido');}};r.readAsText(f);}
 // gantt hoy-line
-(function(){const dh=hoyDia();if(dh>=1&&dh<=51){const x=210+(dh-1)*((1000-210-20)/51);const l=document.getElementById('hoyline'),t=document.getElementById('hoytxt');
-if(l){l.setAttribute('x1',x);l.setAttribute('x2',x);t.setAttribute('x',x);t.textContent='HOY';}}})();
+
 
 // ---------- T14 aliados ----------
 const ALRUB={IZAJE:"Izaje / grúas y maniobras",METAL:"Fabricación metalmecánica / calderería",MECAN:"Mecanizado / torno / rectificado",SOLD:"Soldadura especializada / recargue (WPS-PQR)",BABB:"Babbitt / cojinetes de metal blanco",END:"END / inspección y calidad (PT-UT-VT)",ALIN:"Alineación láser / vibraciones / balanceo",MOTOR:"Motores eléctricos / rebobinado",LUBR:"Lubricación industrial / flushing",TRANS:"Transporte pesado / logística",ANDAM:"Andamios / acceso en altura"};
