@@ -377,7 +377,7 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <h3>Proveedores — registro, bitácora y solicitudes de pago (ADD-SP)<span class="right" id="prvTot"></span></h3>
 <div id="uniProvBar" style="display:none;background:linear-gradient(90deg,#0A2A4D,#12457c);border-radius:9px;padding:10px 14px;margin:0 0 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
 <span style="font-size:18pt">🏪</span><span style="color:#CFE0F2;font-size:8pt;line-height:1.45;flex:1"><b style="color:#FFC400">¿Buscas a quién comprarle?</b> El <b style="color:#fff">UNIVERSO DE PROVEEDORES</b> tiene 500+ suplidores verificados en los 24 estados (70 en Pto. Ordaz–San Félix) por rubro, con WhatsApp directo.</span>
-<a href="proveedores.html" style="background:#FFC400;color:#0A2A4D;font-weight:900;font-size:8pt;padding:8px 14px;border-radius:8px;text-decoration:none">ABRIR UNIVERSO →</a></div>
+<a href="proveedores.html" style="background:#FFC400;color:#0A2A4D;font-weight:900;font-size:8pt;padding:8px 14px;border-radius:8px;text-decoration:none">ABRIR UNIVERSO →</a><div style="flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;border-top:1px solid rgba(255,255,255,.15);padding-top:8px"><span style="color:#FFC400;font-size:7.4pt;font-weight:900">🔎 BUSCAR PROVEEDOR POR PRODUCTO:</span><input id="upQ" placeholder="vigas, cemento, electrodos, torno, grúa, cable…" style="flex:1;min-width:180px;padding:7px 10px;border:none;border-radius:7px;font-size:8pt" onkeydown="if(event.key==='Enter')buscarProv()"><select id="upE" style="padding:7px 9px;border:none;border-radius:7px;font-size:8pt"><option value="">Todo el país</option><option value="Bolívar">Bolívar</option><option value="Distrito Capital">Distrito Capital</option><option value="Miranda">Miranda</option><option value="Carabobo">Carabobo</option><option value="Anzoátegui">Anzoátegui</option><option value="Zulia">Zulia</option><option value="Lara">Lara</option><option value="Aragua">Aragua</option><option value="Monagas">Monagas</option></select><button onclick="buscarProv()" style="background:#0f7a35;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-weight:900;font-size:8pt;cursor:pointer">BUSCAR</button><button onclick="buscarProvItem()" style="background:#1650a7;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-weight:900;font-size:8pt;cursor:pointer" title="Toma un material del registro de procura y busca quién lo vende">📦 DESDE UN MATERIAL DEL PROYECTO</button></div></div><script>window.buscarProv=function(){var q=document.getElementById('upQ').value.trim(),e=document.getElementById('upE').value;window.open('proveedores.html?q='+encodeURIComponent(q)+(e?'&e='+encodeURIComponent(e):''),'_blank');};window.buscarProvItem=function(){var lista=(typeof ITEMS!=='undefined'?ITEMS:[]).map(function(i,k){return (k+1)+') '+i.d.slice(0,60);}).join('\n');var s=prompt('Escribe el N° del material del registro de procura para buscar quién lo vende:\n\n'+lista.slice(0,1500)+'\n…');if(!s)return; var it=ITEMS[parseInt(s)-1]; if(!it){alert('N° no válido');return;}var clave=it.d.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g,' ').split(/\s+/).filter(function(w){return w.length>3;}).slice(0,2).join(' ');var e=document.getElementById('upE').value;window.open('proveedores.html?q='+encodeURIComponent(clave)+(e?'&e='+encodeURIComponent(e):''),'_blank');};</script>
 <script>try{var _up=JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');if(!(_up.rol==='ADMIN'||(_up.perms&&_up.perms.prv))){document.getElementById('uniProvBar').style.display='none';}else{document.getElementById('uniProvBar').style.display='flex';}}catch(e){}</script>
 <div class="callout" style="border-left:4px solid #014695"><b>🔎 Buscador de proveedores — estudio de campo Venezuela (ago-2026):</b> empresas capaces de suministrar los materiales de la procura. Verde = ya les hemos comprado o cotizado (según tus documentos); azul = mayoristas nacionales; ámbar = minoristas de Puerto Ordaz. Busca por texto, por rubro o directamente <b>por renglón de la procura</b> (detecta el rubro solo). Con «➕ Registrar» pasa al registro formal con nota en bitácora.</div>
 <div class="frm">
@@ -448,7 +448,7 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <div class="g2">
 <div>
 <h5>1 · Datos del día</h5>
-<p>Fecha: <input type="date" id="rFecha"> &nbsp; Personal presente: <input type="number" id="rPers" min="0" style="width:64px"> <span style="font-size:7.4pt;color:var(--mid)">(en nómina activa: <span id="rPersReg">0</span>)</span></p>
+<p>Fecha del reporte: <input type="date" id="rFecha" onchange="cargarDia()"> <span id="rDiaInfo" style="font-size:7.4pt;color:var(--mid);font-weight:700"></span><br> &nbsp; Personal presente: <input type="number" id="rPers" min="0" style="width:64px"> <span style="font-size:7.4pt;color:var(--mid)">(en nómina activa: <span id="rPersReg">0</span>)</span></p>
 <p style="margin-top:5px">Actividades ejecutadas:<br><textarea id="rTexto" rows="3" style="width:100%" placeholder="Ej.: vaciado losa eje 2-3 (12 m³); armado tolva 60%…"></textarea></p>
 <p style="margin-top:5px">Novedades / restricciones:<br><textarea id="rNov" rows="2" style="width:100%" placeholder="Ej.: lluvia 2 h; falta oxígeno; espera de grúa…"></textarea></p>
 <h5>2 · Avance físico por partida (% acumulado)</h5>
@@ -648,13 +648,20 @@ localStorage.removeItem('mb102_ctrl2');localStorage.removeItem('mb102_ctrl1');lo
 function tab(b){document.querySelectorAll('.tb[data-t]').forEach(x=>x.classList.toggle('on',x===b));
 ['t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12','t13','t14'].forEach(t=>{const el=document.getElementById(t);
 if(t==='t4'){el.style.display=(b.dataset.t===t)?'':'none';}else el.classList.toggle('hide',b.dataset.t!==t);});if(b.dataset.t==='t13')rendGastos();}
+// ── HORIZONTE DINÁMICO: el plazo sale de la brecha real de las partidas ──
+const DUR=Math.max(PLAN.length,Math.max.apply(null,P48.map(function(p){return p.b;})));
+function planAt(d){ if(d<1)return 0; if(d>=DUR)return 100;
+ var x=(d-1)/(DUR-1)*(PLAN.length-1), i=Math.floor(x), fr=x-i;
+ var a=PLAN[Math.min(PLAN.length-1,i)], b=PLAN[Math.min(PLAN.length-1,i+1)];
+ return a+(b-a)*fr; }
+function ticksDUR(){ var n=Math.min(8,DUR), out=[]; for(var i=0;i<n;i++){out.push(Math.round(1+i*(DUR-1)/(n-1)));} return out; }
 function dnum(dstr){const d=new Date(dstr+'T12:00:00');return Math.floor((d-D0)/864e5)+1;}
 function hoyDia(){return Math.floor((new Date()-D0)/864e5)+1;}
 function fch(d){const x=new Date(D0.getTime()+(d-1)*864e5);const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];return String(x.getDate()).padStart(2,'0')+"-"+m[x.getMonth()];}
 // ---------- prioridades (radar de compra, ajustado por avance real) ----------
 const RADAR=15; // días de anticipación de la ORDEN DE COMPRA (logística + solicitudes de guía CVG Bauxilum)
 let _avC=null,_avT=0;function avCache(){const t=Date.now();if(!_avC||t-_avT>800){_avC=avanceMap();_avT=t;}return _avC;}
-function lagDias(){if(!S.reps.length)return 0;const r=S.reps[S.reps.length-1];const d=dnum(r.f);if(d<1||d>51)return 0;const rp=realPct(r.f);let pd=0;for(let k=1;k<=51;k++){if(PLAN[k-1]<=rp+0.001)pd=k;else break;}return Math.max(0,Math.min(30,d-pd));}
+function lagDias(){if(!S.reps.length)return 0;const r=S.reps[S.reps.length-1];const d=dnum(r.f);if(d<1||d>DUR)return 0;const rp=realPct(r.f);let pd=0;for(let k=1;k<=DUR;k++){if(planAt(k)<=rp+0.001)pd=k;else break;}return Math.max(0,Math.min(30,d-pd));}
 function needBr(b){const p=P48.find(x=>'P'+x.n===b.pp);if(!p)return b.ud;const av=avCache()[p.n]||0;if(av>=100)return 9999;if(av>0)return Math.min(b.ud,hoyDia());return b.ud+lagDias();}
 function priNeed(it){const brs=it.br&&it.br.length?it.br:[{pp:it.pp,c:it.c,ud:it.ud}];return Math.min.apply(null,brs.map(needBr));}
 function brBadges(it){const brs=it.br&&it.br.length?it.br:[{pp:it.pp,c:it.c,ud:it.ud}];return brs.map(b=>{const nd=needBr(b);return '<span class="chip" style="font-size:6.4pt;padding:1px 5px;margin:1px">'+b.pp+' ×'+b.c+(nd>=9999?' ✔':' · '+fch(nd))+'</span>'}).join('<br>');}
@@ -887,28 +894,51 @@ if(!n)return;curAv=curAv.filter(a=>a.n!==n);curAv.push({n:n,p:p});rendAv();}
 function rendAv(){document.getElementById('rAvList').innerHTML=curAv.map(a=>{const pt=P48.find(x=>x.n===a.n);return `<span class="chip">P${a.n} ${pt.t.slice(0,24)}: <b>${a.p}%</b> <a href="#" onclick="curAv=curAv.filter(x=>x.n!==${a.n});rendAv();return false" style="color:var(--red)">✕</a></span>`}).join(' ');}
 function addFotos(inp){[...inp.files].forEach(f=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const cv=document.createElement('canvas');const k=Math.min(1,700/Math.max(img.width,img.height));cv.width=img.width*k;cv.height=img.height*k;cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);curFotos.push(cv.toDataURL('image/jpeg',0.62));rendFotos();};img.src=e.target.result;};r.readAsDataURL(f);});inp.value='';}
 function rendFotos(){document.getElementById('rPrev').innerHTML=curFotos.map((f,i)=>`<span style="position:relative"><img src="${f}"><a href="#" onclick="curFotos.splice(${i},1);rendFotos();return false" style="position:absolute;top:0;right:2px;color:#b03a2e;font-weight:900">✕</a></span>`).join('');}
-function guardar(){const f=document.getElementById('rFecha').value;if(!f){alert('Indica la fecha');return;}
+
+// ── DIARIO: cargar el reporte del día elegido y avisar del contexto de la fecha ──
+window.cargarDia=function(){
+ var el=document.getElementById('rFecha'), inf=document.getElementById('rDiaInfo'); if(!el||!inf)return;
+ var f=el.value; if(!f){inf.innerHTML='';return;}
+ var d=dnum(f), hoy=new Date().toISOString().slice(0,10), est='';
+ if(f>hoy) est='<span style="color:#b03a2e">⚠ fecha futura</span> · ';
+ else if(f<hoy) est='<span style="color:#1650a7">📅 reporte retroactivo — el documento saldrá fechado '+f+'</span> · ';
+ else est='<span style="color:#0f7a35">● reporte de hoy</span> · ';
+ var rango=(d>=1&&d<=DUR)?('día '+d+' de '+DUR):('<span style="color:#b03a2e">fuera del plazo (día '+d+')</span>');
+ var ex=null; for(var i=0;i<S.reps.length;i++){ if(S.reps[i].f===f){ex=S.reps[i];break;} }
+ if(ex){
+  document.getElementById('rPers').value=ex.pers||'';
+  document.getElementById('rTexto').value=ex.txt||'';
+  document.getElementById('rNov').value=ex.nov||'';
+  curAv=(ex.av||[]).slice(); curFotos=(ex.fotos||[]).slice();
+  if(typeof rendAv==='function')rendAv(); if(typeof rendFotos==='function')rendFotos();
+  inf.innerHTML=est+rango+' · <b style="color:#c79500">✎ ya existía un reporte de ese día: cargado para editar</b>';
+ } else inf.innerHTML=est+rango+' · sin reporte guardado aún';
+};
+function guardar(){const f=document.getElementById('rFecha').value;if(!f){alert('Indica la fecha del reporte');return;}
+const _hoy=new Date().toISOString().slice(0,10);
+if(f>_hoy&&!confirm('La fecha '+f+' es posterior a hoy. ¿Guardar de todos modos?'))return;
+if(S.reps.some(r=>r.f===f)&&!confirm('Ya existe un reporte del '+f+'.\n\n¿Reemplazarlo con lo que está en pantalla?'))return;
 S.reps=S.reps.filter(r=>r.f!==f);
 S.reps.push({f:f,pers:document.getElementById('rPers').value,txt:document.getElementById('rTexto').value,nov:document.getElementById('rNov').value,av:curAv.slice(),fotos:curFotos.slice()});
 S.reps.sort((a,b)=>a.f<b.f?-1:1);
 try{save();}catch(e){alert('⚠ Almacenamiento lleno (fotos). Exporta respaldo y usa menos fotos por reporte.');return;}
 curAv=[];curFotos=[];rendAv();rendFotos();document.getElementById('rTexto').value='';document.getElementById('rNov').value='';
-rendReps();curva();rendP();alert('Reporte guardado ✔');}
+rendReps();curva();rendP();document.getElementById('rFecha').value=f;cargarDia();alert('✔ Reporte del '+f+' guardado (día '+dnum(f)+' de '+DUR+').\n\nLos documentos que generes de este día saldrán fechados '+f+', no con la fecha de hoy.');}
 function rendReps(){document.getElementById('rCount').textContent=S.reps.length+' reportes';
 document.getElementById('rLista').innerHTML=S.reps.slice().reverse().map((r,i)=>{const idx=S.reps.length-1-i;
-const d=dnum(r.f);const pl=(d>=1&&d<=51)?PLAN[d-1]:null;const re=realPct(r.f);
+const d=dnum(r.f);const pl=(d>=1&&d<=DUR)?planAt(d):null;const re=realPct(r.f);
 return `<div class="repcard"><b>${r.f}</b> (día ${d}) · Personal: ${r.pers||'—'} · Avances: ${(r.av||[]).length} · Fotos: ${(r.fotos||[]).length} · Real: <b>${re.toFixed(1)}%</b>${pl!==null?' vs plan '+pl.toFixed(1)+'%':''} <button class="btn sm" onclick="verRep(${idx},'JD')">🖨 PDF Junta Directiva (económico)</button> <button class="btn sm g" onclick="verRep(${idx},'OPS')">🖨 PDF Gcia. Operaciones (sin costos)</button> <button class="btn sm r" onclick="if(confirm('¿Eliminar?')){S.reps.splice(${idx},1);save();rendReps();curva();rendP();}">Eliminar</button></div>`}).join('')||'<p class="lead">Aún no hay reportes.</p>';kpis();}
 function svgCurva(w,h,hasta){const pad=34;let pts='',rpts='';
-for(let d=1;d<=51;d++){pts+=(pad+(d-1)/50*(w-pad-8)).toFixed(1)+','+(h-16-(PLAN[d-1]/100*(h-30))).toFixed(1)+' ';}
+for(let d=1;d<=DUR;d++){pts+=(pad+(d-1)/(DUR-1)*(w-pad-8)).toFixed(1)+','+(h-16-(planAt(d)/100*(h-30))).toFixed(1)+' ';}
 const reps=S.reps.filter(r=>!hasta||r.f<=hasta);let rl=[];
-reps.forEach(r=>{const d=dnum(r.f);if(d>=1&&d<=51)rl.push([d,realPct(r.f)]);});
-rl.sort((a,b)=>a[0]-b[0]);rl.forEach(p=>{rpts+=(pad+(p[0]-1)/50*(w-pad-8)).toFixed(1)+','+(h-16-(p[1]/100*(h-30))).toFixed(1)+' ';});
+reps.forEach(r=>{const d=dnum(r.f);if(d>=1&&d<=DUR)rl.push([d,realPct(r.f)]);});
+rl.sort((a,b)=>a[0]-b[0]);rl.forEach(p=>{rpts+=(pad+(p[0]-1)/(DUR-1)*(w-pad-8)).toFixed(1)+','+(h-16-(p[1]/100*(h-30))).toFixed(1)+' ';});
 let g='';[0,25,50,75,100].forEach(v=>{const y=h-16-v/100*(h-30);g+=`<line x1="${pad}" y1="${y}" x2="${w-8}" y2="${y}" stroke="#dce2ec" stroke-width="0.6"/><text x="${pad-4}" y="${y+3}" font-size="7" fill="#8a96ad" text-anchor="end">${v}%</text>`;});
-[1,7,14,21,28,35,42,51].forEach(d=>{const x=pad+(d-1)/50*(w-pad-8);g+=`<text x="${x}" y="${h-3}" font-size="6.6" fill="#8a96ad" text-anchor="middle">${fch(d)}</text>`;});
-return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;background:#fff;border:1px solid #dce2ec;border-radius:4px">${g}<polyline points="${pts}" fill="none" stroke="#7FA8D9" stroke-width="2"/><polyline points="${rpts}" fill="none" stroke="#b03a2e" stroke-width="2.4"/>${rl.map(p=>`<circle cx="${(pad+(p[0]-1)/89*(w-pad-8)).toFixed(1)}" cy="${(h-16-(p[1]/100*(h-30))).toFixed(1)}" r="3" fill="#b03a2e"/>`).join('')}<text x="${pad+6}" y="14" font-size="8" fill="#7FA8D9" font-weight="bold">— PLAN</text><text x="${pad+66}" y="14" font-size="8" fill="#b03a2e" font-weight="bold">— REAL</text></svg>`;}
+ticksDUR().forEach(d=>{const x=pad+(d-1)/(DUR-1)*(w-pad-8);g+=`<text x="${x}" y="${h-3}" font-size="6.6" fill="#8a96ad" text-anchor="middle">${fch(d)}</text>`;});
+return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;background:#fff;border:1px solid #dce2ec;border-radius:4px">${g}<polyline points="${pts}" fill="none" stroke="#7FA8D9" stroke-width="2"/><polyline points="${rpts}" fill="none" stroke="#b03a2e" stroke-width="2.4"/>${rl.map(p=>`<circle cx="${(pad+(p[0]-1)/(DUR-1)*(w-pad-8)).toFixed(1)}" cy="${(h-16-(p[1]/100*(h-30))).toFixed(1)}" r="3" fill="#b03a2e"/>`).join('')}<text x="${pad+6}" y="14" font-size="8" fill="#7FA8D9" font-weight="bold">— PLAN</text><text x="${pad+66}" y="14" font-size="8" fill="#b03a2e" font-weight="bold">— REAL</text></svg>`;}
 function curva(){document.getElementById('curva').innerHTML=svgCurva(500,230,null);
 const last=S.reps[S.reps.length-1];
-if(last){const d=dnum(last.f),re=realPct(last.f),pl=(d>=1&&d<=51)?PLAN[d-1]:0,dv=re-pl;
+if(last){const d=dnum(last.f),re=realPct(last.f),pl=(d>=1&&d<=DUR)?planAt(d):0,dv=re-pl;
 document.getElementById('desv').className='callout '+(dv>=-2?'grn':'red');
 document.getElementById('desv').innerHTML=`<b>Al ${last.f} (día ${d}):</b> real <b>${re.toFixed(1)}%</b> vs plan <b>${pl.toFixed(1)}%</b> → desviación <b>${dv>=0?'+':''}${dv.toFixed(1)} pts</b>. ${dv<-2?'⚠ Retraso: revisar ruta crítica y OCs.':'Dentro del plan.'}`;}
 // pendientes hoy
@@ -918,7 +948,7 @@ allMaq().forEach(m=>{const pr=priMaq(m);if(pr[0]==='A')pend.push('🏗 '+m.n+' �
 P48.forEach(p=>{if(h>=p.a&&h<=p.b){const av=avanceMap()[p.n]||0;const exp=Math.round((h-p.a+1)/(p.b-p.a+1)*100);if(av<exp-15)pend.push('📋 P'+p.n+' '+p.t+' — avance '+av+'% vs esperado ≈'+exp+'%');}});
 document.getElementById('hoyPend').innerHTML=pend.length?pend.slice(0,14).map(x=>`<div style="border-left:3px solid var(--red);padding-left:6px;margin:3px 0">${x}</div>`).join('')+(pend.length>14?`<div style="color:var(--mid)">…y ${pend.length-14} más</div>`:''):'<span class="ok-r">Sin pendientes críticos detectados hoy ✔</span>';}
 function verRep(i,modo){modo=modo||'JD';const eco=(modo==='JD');
-const r=S.reps[i];const d=dnum(r.f);const re=realPct(r.f);const pl=(d>=1&&d<=51)?PLAN[d-1]:0;
+const r=S.reps[i];window.DOCFECHA=r.f;const d=dnum(r.f);const re=realPct(r.f);const pl=(d>=1&&d<=DUR)?planAt(d):0;
 const av=(r.av||[]).map(a=>{const p=P48.find(x=>x.n===a.n);return `<tr><td class="c">P${a.n}</td><td>${p.t}</td><td class="r">${a.p}%</td></tr>`}).join('');
 const activos=S.pers.filter(p=>p.fi<=r.f&&(!p.fo||p.fo>=r.f));
 const perRows=activos.map((p,k)=>`<tr><td class="c">${k+1}</td><td>${p.no} ${p.ap}</td><td>${p.ci}</td><td>${p.car}</td>${eco?'<td class="r">'+num(p.tar)+'</td>':''}</tr>`).join('');
@@ -931,7 +961,7 @@ const dest=eco?'Uso interno de la Junta Directiva de SUMINISTROS ADDISON, C.A. �
 const kpi=eco?`<span class="k">Personal: ${r.pers||activos.length}</span><span class="k">Real: ${re.toFixed(1)}%</span><span class="k">Plan: ${pl.toFixed(1)}%</span><span class="k">Desv.: ${(re-pl)>=0?'+':''}${(re-pl).toFixed(1)} pts</span><span class="k">Servicios día: ${num(svDia.reduce((a,s)=>a+s.c*s.p,0))}</span>`
 :`<span class="k">Personal: ${r.pers||activos.length}</span><span class="k">Avance físico: ${re.toFixed(1)}%</span><span class="k">Programado: ${pl.toFixed(1)}%</span>`;
 const nc='ADD-RD-'+r.f.replaceAll('-','')+'-'+(eco?'JD':'OPS');
-const body=`<div class="dest" style="background:${eco?'#faf0ee':'#eef7f1'};border-left:4px solid ${eco?'#b03a2e':'#1e7e46'}">${dest}</div>
+const body=`<table style="margin:0 0 8px"><tr><td class="lbl">FECHA DEL REPORTE:</td><td><b style="font-size:9.4pt">${r.f}</b> &nbsp;·&nbsp; día ${d} de ${DUR} del plazo${r.f!==new Date().toISOString().slice(0,10)?' &nbsp;·&nbsp; <span style=\"color:#b03a2e;font-weight:700\">REPORTE RETROACTIVO — documento emitido el '+new Date().toISOString().slice(0,10)+'</span>':''}</td></tr></table><div class="dest" style="background:${eco?'#faf0ee':'#eef7f1'};border-left:4px solid ${eco?'#b03a2e':'#1e7e46'}">${dest}</div>
 <p style="margin:6px 0">${kpi}</p>
 <h2>Actividades ejecutadas</h2><p style="font-size:8.8pt">${(r.txt||'—').replace(/\n/g,'<br>')}</p>
 <h2>Novedades</h2><p style="font-size:8.8pt">${(r.nov||'—').replace(/\n/g,'<br>')}</p>
@@ -942,7 +972,7 @@ const body=`<div class="dest" style="background:${eco?'#faf0ee':'#eef7f1'};borde
 ${xDia?'<h2>Compras no presupuestadas del día</h2><table><tr><th>Descripción</th><th>Causa</th><th class="r" style="width:70px">USD</th></tr>'+xDia+'</table>':''}
 <h2>Curva de avance físico (real vs programado)</h2>${svgCurva(640,230,r.f)}
 <h2>Registro fotográfico (${(r.fotos||[]).length})</h2>${(r.fotos||[]).map(f=>`<img class="foto" src="${f}">`).join('')||'—'}`;
-docWin(tit,'Molino de Bolas MB-32-102 · Área 32 · C.V.G. BAUXILUM · '+r.f+' — día '+d+' de 51 · '+(eco?'CONFIDENCIAL':'Copia: Suptcia. Mtto. Lado Rojo I'),body,true,nc);}
+docWin(tit,'Molino de Bolas MB-32-102 · Área 32 · C.V.G. BAUXILUM · '+r.f+' — día '+d+' de '+DUR+' · '+(eco?'CONFIDENCIAL':'Copia: Suptcia. Mtto. Lado Rojo I'),body,true,nc);}
 
 // ---------- tarifario y servicios diarios ----------
 function rates(){return Object.assign({},RATES_DEF,S.rates||{});}
@@ -1032,7 +1062,7 @@ function membrete(nctrl){return `<table style="border:none;margin:0 0 4px"><tr>
 <td style="border:none;vertical-align:top"><b style="font-size:10.5pt">SUMINISTROS ADDISON, C.A.</b><br>
 <span style="color:#014695;font-size:8.2pt;font-weight:700">Gerencia de Planificación de Proyectos — Puerto Ordaz</span><br>
 <span style="color:#8a96ad;font-size:7.6pt">Maturín, Estado Monagas · Venezuela · RIF J-40254910-5</span></td>
-<td style="border:none;text-align:right;vertical-align:top;font-size:8pt;color:#3E5E80"><b>${nctrl||''}</b>${nctrl?' · Rev. 0<br>':''}${new Date().toISOString().slice(0,10)}</td></tr></table>
+<td style="border:none;text-align:right;vertical-align:top;font-size:8pt;color:#3E5E80"><b>${nctrl||''}</b>${nctrl?' · Rev. 0<br>':''}${window.DOCFECHA||new Date().toISOString().slice(0,10)}${window.DOCFECHA?'<br><span style="font-size:6.6pt;color:#8a96ad;font-weight:600">FECHA DEL REPORTE'+'<br>emitido el '+new Date().toISOString().slice(0,10)+'</span>':''}</td></tr></table>
 <div style="border-top:3px solid #0A2A4D;margin-bottom:10px"></div>`;}
 function numALetras(n){n=Math.round(n*100)/100;const ent=Math.floor(n),cen=Math.round((n-ent)*100);
 const U=['','UN','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE','DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE','VEINTE'];
@@ -1078,7 +1108,7 @@ ${membrete(nctrl)}
 <h1>${titulo}</h1><div class="sb">${sub}</div>
 ${body}${fir}
 <p class="fn">SUMINISTROS ADDISON, C.A. · RIF J-40254910-5 · ${titulo} · Proyecto Acondicionamiento del Molino de Bolas MB-32-102 — Área 32 (C.V.G. BAUXILUM) · Documento generado por el Centro de Control del Proyecto.</p>
-<script>window.print();<\/script></body></html>`);}
+<script>window.print();<\/script></body></html>`);window.DOCFECHA=null;}
 
 // ---------- T11 trámites / guías ----------
 let curTi=[];
@@ -1216,7 +1246,7 @@ function fchISO(d){const x=new Date(D0.getTime()+(d-1)*864e5);return x.toISOStri
 function estHeadPlan(d){const wk=Math.min(13,Math.max(1,Math.ceil(d/7)));let n=0,sup=0;const by={};
 Object.keys(CREW).forEach(c=>{const q=CREW[c][wk-1]||0;if(!q)return;n+=q;if(esSup(c))sup+=q;by[c]=(by[c]||0)+q;});
 return{n:n,sup:sup,by:by};}
-function estDia(d,lag){const out={nom:0,srv:0,nomBy:{},srvBy:{}};if(d<1||d>90)return out;
+function estDia(d,lag){const out={nom:0,srv:0,nomBy:{},srvBy:{}};if(d<1||d>DUR)return out;
 const f=fchISO(d);const act=S.pers.filter(p=>p.fi<=f&&(!p.fo||p.fo>=f));const r=rates();
 let n,sup;
 if(act.length){n=act.length;sup=act.filter(p=>esSup(p.car)).length;
@@ -1730,7 +1760,7 @@ document.getElementById('trF').value=new Date().toISOString().slice(0,10);
 document.getElementById('tiPick').innerHTML='<option value="">— procura/maquinaria —</option>'+
 '<optgroup label="Maquinaria">'+allMaq().map(m=>`<option value="MQ:${m.id}">${m.n}</option>`).join('')+'</optgroup>'+
 '<optgroup label="Procura (103)">'+ITEMS.map(it=>`<option value="IT:${it.id}">${it.id} · ${it.d}</option>`).join('')+'</optgroup>';}
-document.getElementById('rFecha').value=new Date().toISOString().slice(0,10);
+document.getElementById('rFecha').value=new Date().toISOString().slice(0,10);if(typeof cargarDia==='function')cargarDia();
 document.getElementById('svF').value=new Date().toISOString().slice(0,10);
 document.getElementById('xF').value=new Date().toISOString().slice(0,10);
 document.getElementById('rPart').innerHTML='<option value="">— partida —</option>'+P48.map(p=>`<option value="${p.n}">P${p.n} · ${p.t}</option>`).join('');
