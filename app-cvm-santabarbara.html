@@ -373,6 +373,7 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <h5>Curva operacional — real vs plan</h5>
 <div id="curva"></div>
 <div id="desv" class="callout" style="margin-top:6px">Sin datos reales aún.</div>
+<h5>Contraste real vs plan por reporte</h5><div id="tabContraste" style="font-size:8pt"></div>
 <h5>Pendientes de HOY detectados por la app</h5>
 <div id="hoyPend" style="font-size:8.2pt"></div>
 </div>
@@ -933,6 +934,7 @@ window.cargarDia=function(){
   if(typeof rendAv==='function')rendAv(); if(typeof rendFotos==='function')rendFotos();
   inf.innerHTML=est+rango+' · <b style="color:#c79500">✎ ya existía un reporte de ese día: cargado para editar</b>';
  } else inf.innerHTML=est+rango+' · sin reporte guardado aún';
+ if(typeof curva==='function')curva();
 };
 function guardar(){const f=document.getElementById('rFecha').value;if(!f){alert('Indica la fecha del reporte');return;}
 const _hoy=new Date().toISOString().slice(0,10);
@@ -948,15 +950,66 @@ function rendReps(){document.getElementById('rCount').textContent=S.reps.length+
 document.getElementById('rLista').innerHTML=S.reps.slice().reverse().map((r,i)=>{const idx=S.reps.length-1-i;
 const d=dnum(r.f);const pl=(d>=1&&d<=DUR)?planAt(d):null;const re=realPct(r.f);
 return `<div class="repcard"><b>${r.f}</b> (día ${d}) · Personal: ${r.pers||'—'} · Avances: ${(r.av||[]).length} · Fotos: ${(r.fotos||[]).length} · Real: <b>${re.toFixed(1)}%</b>${pl!==null?' vs plan '+pl.toFixed(1)+'%':''} <button class="btn sm" onclick="verRep(${idx},'JD')">🖨 PDF Junta Directiva (económico)</button> <button class="btn sm g" onclick="verRep(${idx},'OPS')">🖨 PDF Gcia. Operaciones (sin costos)</button> <button class="btn sm r" onclick="if(confirm('¿Eliminar?')){S.reps.splice(${idx},1);save();rendReps();curva();rendP();}">Eliminar</button></div>`}).join('')||'<p class="lead">Aún no hay reportes.</p>';kpis();}
-function svgCurva(w,h,hasta){const pad=34;let pts='',rpts='';
-for(let d=1;d<=DUR;d++){pts+=(pad+(d-1)/(DUR-1)*(w-pad-8)).toFixed(1)+','+(h-16-(planAt(d)/100*(h-30))).toFixed(1)+' ';}
-const reps=S.reps.filter(r=>!hasta||r.f<=hasta);let rl=[];
-reps.forEach(r=>{const d=dnum(r.f);if(d>=1&&d<=DUR)rl.push([d,realPct(r.f)]);});
-rl.sort((a,b)=>a[0]-b[0]);rl.forEach(p=>{rpts+=(pad+(p[0]-1)/(DUR-1)*(w-pad-8)).toFixed(1)+','+(h-16-(p[1]/100*(h-30))).toFixed(1)+' ';});
-let g='';[0,25,50,75,100].forEach(v=>{const y=h-16-v/100*(h-30);g+=`<line x1="${pad}" y1="${y}" x2="${w-8}" y2="${y}" stroke="#dce2ec" stroke-width="0.6"/><text x="${pad-4}" y="${y+3}" font-size="7" fill="#8a96ad" text-anchor="end">${v}%</text>`;});
-ticksDUR().forEach(d=>{const x=pad+(d-1)/(DUR-1)*(w-pad-8);g+=`<text x="${x}" y="${h-3}" font-size="6.6" fill="#8a96ad" text-anchor="middle">${fch(d)}</text>`;});
-return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;background:#fff;border:1px solid #dce2ec;border-radius:4px">${g}<polyline points="${pts}" fill="none" stroke="#7FA8D9" stroke-width="2"/><polyline points="${rpts}" fill="none" stroke="#b03a2e" stroke-width="2.4"/>${rl.map(p=>`<circle cx="${(pad+(p[0]-1)/(DUR-1)*(w-pad-8)).toFixed(1)}" cy="${(h-16-(p[1]/100*(h-30))).toFixed(1)}" r="3" fill="#b03a2e"/>`).join('')}<text x="${pad+6}" y="14" font-size="8" fill="#7FA8D9" font-weight="bold">— PLAN</text><text x="${pad+66}" y="14" font-size="8" fill="#b03a2e" font-weight="bold">— REAL</text></svg>`;}
-function curva(){document.getElementById('curva').innerHTML=svgCurva(500,230,null);
+function svgCurva(w,h,hasta){const pad=40,padB=30,padT=24;
+const X=function(d){return pad+(d-1)/(DUR-1)*(w-pad-12);};
+const Y=function(v){return h-padB-(v/100*(h-padB-padT));};
+let pts='',rpts='';
+for(let d=1;d<=DUR;d++){pts+=X(d).toFixed(1)+','+Y(planAt(d)).toFixed(1)+' ';}
+const reps=S.reps.filter(function(r){return !hasta||r.f<=hasta;});
+let rl=[];
+reps.forEach(function(r){const d=dnum(r.f);if(d>=1&&d<=DUR)rl.push([d,realPct(r.f)]);});
+rl.sort(function(a,b){return a[0]-b[0];});
+rl.forEach(function(p){rpts+=X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)+' ';});
+let g='';
+[0,25,50,75,100].forEach(function(v){const y=Y(v);g+='<line x1="'+pad+'" y1="'+y+'" x2="'+(w-12)+'" y2="'+y+'" stroke="#dce2ec" stroke-width="0.6"/><text x="'+(pad-4)+'" y="'+(y+3)+'" font-size="7" fill="#8a96ad" text-anchor="end">'+v+'%</text>';});
+ticksDUR().forEach(function(d){const x=X(d);g+='<text x="'+x+'" y="'+(h-padB+13)+'" font-size="6.6" fill="#8a96ad" text-anchor="middle">'+fch(d)+'</text>';});
+// ÁREA DE CONTRASTE (brecha real vs plan)
+let area='';
+if(rl.length>0){const up=[],dn=[];
+ rl.forEach(function(p){up.push(X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1));});
+ for(let i=rl.length-1;i>=0;i--){dn.push(X(rl[i][0]).toFixed(1)+','+Y(planAt(rl[i][0])).toFixed(1));}
+ const ul=rl[rl.length-1], dvv=ul[1]-planAt(ul[0]);
+ if(rl.length>1)area='<polygon points="'+up.concat(dn).join(' ')+'" fill="'+(dvv>=0?'#0f7a35':'#b03a2e')+'" opacity="0.16"/>';}
+// línea vertical del día del reporte
+let vline='';
+if(hasta){const dh=dnum(hasta); if(dh>=1&&dh<=DUR){const x=X(dh);
+ vline='<line x1="'+x+'" y1="'+(padT-2)+'" x2="'+x+'" y2="'+(h-padB)+'" stroke="#0A2A4D" stroke-dasharray="3,3" stroke-width="1"/>'+
+ '<text x="'+x+'" y="'+(padT-5)+'" font-size="6.8" fill="#0A2A4D" text-anchor="middle" font-weight="bold">'+hasta+' · día '+dh+'</text>';}}
+// etiquetas del contraste en el último punto real
+let lab='';
+if(rl.length>0){const u=rl[rl.length-1],pv=planAt(u[0]),dv=u[1]-pv;
+ const x=X(u[0]),y=Y(u[1]),yp=Y(pv),xt=Math.min(w-96,x+8);
+ lab='<line x1="'+x+'" y1="'+y+'" x2="'+x+'" y2="'+yp+'" stroke="'+(dv>=0?'#0f7a35':'#b03a2e')+'" stroke-width="1.4" stroke-dasharray="2,2"/>'+
+ '<circle cx="'+x+'" cy="'+yp+'" r="3.4" fill="#3E7FBF" stroke="#fff" stroke-width="1"/>'+
+ '<circle cx="'+x+'" cy="'+y+'" r="4.2" fill="#b03a2e" stroke="#fff" stroke-width="1.2"/>'+
+ '<text x="'+xt+'" y="'+(y-5)+'" font-size="7.6" font-weight="bold" fill="#b03a2e">REAL '+u[1].toFixed(1)+'%</text>'+
+ '<text x="'+xt+'" y="'+(yp+(yp<y?-5:12))+'" font-size="7.6" font-weight="bold" fill="#3E7FBF">PLAN '+pv.toFixed(1)+'%</text>'+
+ '<rect x="'+(xt-2)+'" y="'+((y+yp)/2-8)+'" width="74" height="13" rx="3" fill="'+(dv>=0?'#0f7a35':'#b03a2e')+'"/>'+
+ '<text x="'+(xt+2)+'" y="'+((y+yp)/2+2)+'" font-size="7.6" font-weight="bold" fill="#fff">'+(dv>=0?'ADELANTO +':'RETRASO ')+dv.toFixed(1)+' pts</text>';}
+// leyenda
+const leg='<rect x="'+pad+'" y="1" width="'+(w-pad-12)+'" height="16" fill="#F7FAFD" stroke="#dce2ec" stroke-width="0.6" rx="3"/>'+
+'<line x1="'+(pad+8)+'" y1="9" x2="'+(pad+26)+'" y2="9" stroke="#7FA8D9" stroke-width="2.6"/><text x="'+(pad+30)+'" y="12" font-size="7.2" font-weight="bold" fill="#3E5E80">PLAN programado</text>'+
+'<line x1="'+(pad+118)+'" y1="9" x2="'+(pad+136)+'" y2="9" stroke="#b03a2e" stroke-width="2.8"/><text x="'+(pad+140)+'" y="12" font-size="7.2" font-weight="bold" fill="#b03a2e">REAL ejecutado</text>'+
+'<rect x="'+(pad+224)+'" y="4.5" width="13" height="9" fill="#0f7a35" opacity="0.25"/><text x="'+(pad+241)+'" y="12" font-size="7.2" font-weight="bold" fill="#5b6b7f">brecha</text>';
+const aviso=rl.length?'':'<text x="'+(w/2)+'" y="'+(h/2)+'" font-size="8" fill="#b03a2e" text-anchor="middle" font-weight="bold">Sin curva real todavía — registra el % de avance por partida al guardar el reporte</text>';
+const uni=rl.length===1?'<text x="'+(w/2)+'" y="'+(h-padB+24)+'" font-size="6.8" fill="#8a96ad" text-anchor="middle">Con un solo reporte la curva real es un punto; con dos o más se traza la línea y la brecha.</text>':'';
+return '<svg viewBox="0 0 '+w+' '+(h+(uni?10:0))+'" style="width:100%;height:auto;background:#fff;border:1px solid #dce2ec;border-radius:4px">'+g+area+vline+
+'<polyline points="'+pts+'" fill="none" stroke="#7FA8D9" stroke-width="2"/>'+
+'<polyline points="'+rpts+'" fill="none" stroke="#b03a2e" stroke-width="2.6"/>'+
+rl.map(function(p){return '<circle cx="'+X(p[0]).toFixed(1)+'" cy="'+Y(p[1]).toFixed(1)+'" r="2.8" fill="#b03a2e"/>';}).join('')+
+lab+leg+aviso+uni+'</svg>';}
+function tablaContraste(hasta){
+ const reps=S.reps.filter(function(r){return !hasta||r.f<=hasta;}).slice().sort(function(a,b){return a.f<b.f?-1:1;});
+ if(!reps.length)return '<p style="font-size:8.4pt;color:#b03a2e"><b>Aún no hay reportes con avance registrado</b>, por eso la curva real no contrasta contra el plan. Carga el % de avance por partida en el reporte del día.</p>';
+ let filas='';
+ reps.slice(-12).forEach(function(r){const d=dnum(r.f),re=realPct(r.f),pl=(d>=1&&d<=DUR)?planAt(d):0,dv=re-pl;
+  filas+='<tr><td>'+r.f+'</td><td class="c">'+d+'</td><td class="r">'+re.toFixed(1)+'%</td><td class="r">'+pl.toFixed(1)+'%</td>'+
+  '<td class="r" style="color:'+(dv>=0?'#0f7a35':'#b03a2e')+';font-weight:800">'+(dv>=0?'+':'')+dv.toFixed(1)+' pts</td>'+
+  '<td class="c" style="font-weight:800;color:'+(dv>=-2?'#0f7a35':'#b03a2e')+'">'+(dv>=2?'ADELANTADO':dv>=-2?'EN LÍNEA':'RETRASADO')+'</td></tr>';});
+ return '<table><tr><th>Fecha del reporte</th><th class="c">Día</th><th class="r">REAL</th><th class="r">PLAN</th><th class="r">Desviación</th><th class="c">Estado</th></tr>'+filas+'</table>';}
+function curva(){var _fr=(document.getElementById('rFecha')||{}).value||null;
+document.getElementById('curva').innerHTML=svgCurva(500,240,_fr);
+var _tc=document.getElementById('tabContraste'); if(_tc)_tc.innerHTML=tablaContraste(_fr);
 const last=S.reps[S.reps.length-1];
 if(last){const d=dnum(last.f),re=realPct(last.f),pl=(d>=1&&d<=DUR)?planAt(d):0,dv=re-pl;
 document.getElementById('desv').className='callout '+(dv>=-2?'grn':'red');
@@ -992,11 +1045,12 @@ ${sect('04','PERSONAL EN OBRA',activos.length+' activos')}<table><tr><th style="
 ${sect('05','SERVICIOS DEL DÍA',svDia.length+' renglones')}<table><tr><th>Tipo</th><th>Detalle</th>${eco?'<th class="r" style="width:70px">USD</th>':''}</tr>${svRows||'<tr><td colspan=3>—</td></tr>'}</table>
 ${sect('06','MAQUINARIA Y EQUIPOS EN OBRA',maqObra.length+' en sitio')}<p style="font-size:8.6pt">${maqObra.map(m=>m.n).join(' · ')||'—'}</p>
 ${xDia?sect('07','COMPRAS NO PRESUPUESTADAS DEL DÍA','')+'<table><tr><th>Descripción</th><th>Causa</th><th class="r" style="width:70px">USD</th></tr>'+xDia+'</table>':''}
-${sect(xDia?'08':'07','REGISTRO FOTOGRÁFICO',(r.fotos||[]).length+' imágenes')}${fotos}`;
+${sect(xDia?'08':'07','CONTRASTE REAL VS PLAN','curva de avance y desviación acumulada')}${svgCurva(660,240,r.f)}${tablaContraste(r.f)}
+${sect(xDia?'09':'08','REGISTRO FOTOGRÁFICO',(r.fotos||[]).length+' imágenes')}${fotos}`;
 docWin(tit,'Sistema CIP/CIL · Planta Santa Bárbara (CVM)',body,true,nc,'RD',{portada:{
 subline:r.f+' — día '+d+' de '+DUR+' · '+(eco?'CONFIDENCIAL — JUNTA DIRECTIVA':'Copia: Gerencia General de Operaciones (sin información económica)'),
-hero:svgCurva(660,220,r.f),heroCap:'CURVA DE AVANCE FÍSICO — REAL VS PROGRAMADO AL '+r.f,
-info:[['N.º de reporte',nc],['Fecha',r.f+' (día '+d+')'],['Cliente','C.V.M. — Planta Santa Bárbara'],['Avance real',re.toFixed(1)+'% (plan '+pl.toFixed(1)+'%)']]}});}
+hero:svgCurva(660,240,r.f),heroCap:'CURVA DE AVANCE FÍSICO — REAL VS PROGRAMADO AL '+r.f,
+info:[['N.º de reporte',nc],['Fecha',r.f+' (día '+d+')'],['Cliente','C.V.M. — Planta Santa Bárbara'],['Avance real',re.toFixed(1)+'% (plan '+pl.toFixed(1)+'%)'],['Desviación',((re-pl)>=0?'+':'')+(re-pl).toFixed(1)+' pts — '+((re-pl)>=2?'ADELANTADO':(re-pl)>=-2?'EN LÍNEA':'RETRASADO')]]}});}
 
 // ---------- tarifario y servicios diarios ----------
 function rates(){return Object.assign({},RATES_DEF,S.rates||{});}
