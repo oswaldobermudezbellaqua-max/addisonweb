@@ -1,5 +1,10 @@
-const C='addison-v102';const A=['./','./index.html','./empresas.html','./app-cvm-santabarbara.html','./app-bauxilum-mb32.html','./app-bauxilum-agua.html','./planos-bauxilum.html','./proveedores.html','./manual.html','./addison-cloud.js','./cc.html','./app-agua-control.html','./app-motores-control.html','./app-bauxilum-p33.html','./p33-informe.html','./p33-estimado.html','./p33-plan.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const C='addison-v104';const A=['./','./index.html','./empresas.html','./app-cvm-santabarbara.html','./app-bauxilum-mb32.html','./app-bauxilum-agua.html','./planos-bauxilum.html','./proveedores.html','./manual.html','./addison-cloud.js','./cc.html','./app-agua-control.html','./app-motores-control.html','./app-bauxilum-p33.html','./p33-informe.html','./p33-estimado.html','./p33-plan.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;
-e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(n=>{const cp=n.clone();caches.open(C).then(c=>c.put(e.request,cp));return n;}).catch(()=>caches.match('./index.html'))));});
+const u=new URL(e.request.url);
+// La NUBE (Supabase) y cualquier origen externo van SIEMPRE a la red: jamás se sirven desde caché.
+if(u.origin!==self.location.origin||u.hostname.endsWith('supabase.co')){e.respondWith(fetch(e.request));return;}
+e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(n=>{if(n&&n.ok&&n.type==='basic'){const cp=n.clone();caches.open(C).then(c=>c.put(e.request,cp));}return n;}).catch(()=>caches.match('./index.html'))));});
+// Limpieza: borrar cualquier respuesta de la nube que haya quedado cacheada por versiones anteriores
+self.addEventListener('activate',e=>{e.waitUntil(caches.open(C).then(c=>c.keys().then(ks=>Promise.all(ks.filter(k=>new URL(k.url).origin!==self.location.origin).map(k=>c.delete(k))))));});

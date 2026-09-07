@@ -1,6 +1,6 @@
 /* ============================================================
    ADDISON CLOUD — motor de sincronización en tiempo real (Supabase)
-   Datos públicos por diseño (anon/publishable key). Rev.1 · ago-2026
+   Datos públicos por diseño (anon/publishable key). Rev.3 · 06-sep-2026 (hash de contenido, pendientes persistentes, fotos fuera del estado)
    ============================================================ */
 (function(){
   const URL = "https://agbubxdymzuslepjybef.supabase.co";
@@ -15,7 +15,7 @@
 
   // ---- API REST mínima sobre Supabase ----
   async function sel(table, query){
-    const r = await fetch(REST+table+(query?('?'+query):''), {headers:HDR});
+    const r = await fetch(REST+table+(query?('?'+query):''), {headers:HDR, cache:'no-store'});
     if(!r.ok) throw new Error('sel '+table+' '+r.status);
     return r.json();
   }
@@ -71,6 +71,32 @@
   // Combina el estado de la nube (rem) con el local (loc) sin perder registros de ninguno:
   // listas → unión sin duplicados; mapas → registro por registro (gana el editor local);
   // valores simples → gana el local (es la intención del que está guardando).
+  function keyOf(name, x){
+    if(!x||typeof x!=='object') return null;
+    if(x.id!==undefined&&x.id!==null&&x.id!=='') return 'id:'+x.id;
+    if(name==='reps'&&x.f) return 'f:'+x.f;
+    return null;
+  }
+  function sinFotos(x){ const o=Object.assign({},x); delete o.fotos; return JSON.stringify(o); }
+  function todasRef(x){ return Array.isArray(x.fotos)&&x.fotos.length>0&&x.fotos.every(function(f){return String(f).indexOf('foto')===0;}); }
+  // Une dos listas: los registros con clave (reps→fecha, id) quedan UNA sola vez (gana el local,
+  // salvo que sólo difieran en fotos y una versión ya tenga las fotos en la nube); el resto, unión exacta.
+  function mergeList(name, r, l){
+    const seen={}, res=[], byKey={};
+    l.concat(r).forEach(function(x){
+      const key=keyOf(name,x);
+      if(key){
+        if(byKey[key]!==undefined){
+          const prev=res[byKey[key]];               // versión local (va primero)
+          if(sinFotos(prev)===sinFotos(x) && !todasRef(prev) && todasRef(x)) res[byKey[key]]=x;
+          return;
+        }
+        byKey[key]=res.length; res.push(x); return;
+      }
+      const s=JSON.stringify(x); if(!seen[s]){seen[s]=1;res.push(x);}
+    });
+    return res;
+  }
   function mergeStates(rem, loc){
     if(!rem) return loc; if(!loc) return rem;
     const out={}, keys={};
@@ -79,9 +105,7 @@
       const r=rem[k], l=loc[k];
       if(l===undefined){out[k]=r;return;} if(r===undefined){out[k]=l;return;}
       if(Array.isArray(r)&&Array.isArray(l)){
-        const seen={}, res=[];
-        l.concat(r).forEach(function(x){const s=JSON.stringify(x); if(!seen[s]){seen[s]=1;res.push(x);}});
-        out[k]=res;
+        out[k]=mergeList(k, r, l);
       }else if(r&&l&&typeof r==='object'&&typeof l==='object'){
         const o={}; Object.keys(r).forEach(function(kk){o[kk]=r[kk];});
         Object.keys(l).forEach(function(kk){
@@ -92,79 +116,162 @@
     });
     return out;
   }
+
+  // ============ FOTOS FUERA DEL ESTADO (tabla fotos) ============
+  // Las fotos de los reportes se guardan una por una en la tabla `fotos`; el estado del proyecto
+  // sólo conserva la referencia 'foto:ID'. Así el estado pesa KB en vez de MB y ninguna cuota se llena.
+  const FCACHE = {};
+  let FTAB = null;   // 'fotos' | 'respaldos' (se decide una vez por sesión)
+  async function tablaFotos(){
+    if(FTAB) return FTAB;
+    try{ const r=await fetch(REST+'fotos?select=id&limit=1',{headers:HDR,cache:'no-store'}); FTAB = r.ok ? 'fotos' : 'respaldos'; }
+    catch(e){ FTAB='respaldos'; }
+    return FTAB;
+  }
+  async function subirFoto(proyecto, rep, dataURL){
+    const tab = await tablaFotos();
+    const body = tab==='fotos' ? [{proyecto:proyecto, rep:rep||'', data:dataURL}]
+                               : [{proyecto:'fotos_'+proyecto, usuario:'foto', data:{rep:rep||'', img:dataURL}}];
+    const r = await fetch(REST+tab, {method:'POST', headers:Object.assign({},HDR,{Prefer:'return=representation'}), body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('subirFoto '+r.status);
+    const j = await r.json(); const id = j[0].id;
+    const ref = (tab==='fotos'?'foto:':'fotob:')+id; FCACHE[ref]=dataURL; return ref;
+  }
+  async function fotoData(ref){
+    if(!ref) return '';
+    ref=String(ref);
+    if(ref.indexOf('foto:')!==0 && ref.indexOf('fotob:')!==0) return ref;   // base64 antiguo
+    if(FCACHE[ref]) return FCACHE[ref];
+    try{
+      let d='';
+      if(ref.indexOf('foto:')===0){ const rows=await sel('fotos','id=eq.'+ref.slice(5)+'&select=data'); d=rows.length?rows[0].data:''; }
+      else { const rows=await sel('respaldos','id=eq.'+ref.slice(6)+'&select=data'); d=rows.length&&rows[0].data?rows[0].data.img:''; }
+      if(d) FCACHE[ref]=d; return d||'';
+    }catch(e){ return ''; }
+  }
+  function esRef(x){ x=String(x||''); return x.indexOf('foto:')===0||x.indexOf('fotob:')===0; }
+  // Migra las fotos base64 que aún vivan dentro del estado (reps[].fotos) a la tabla fotos.
+  async function migrarFotos(proyecto, S, onDone){
+    if(!online()||!S||!Array.isArray(S.reps)) return 0;
+    let n=0;
+    for(const r of S.reps){
+      if(!Array.isArray(r.fotos)) continue;
+      for(let i=0;i<r.fotos.length;i++){
+        const x=r.fotos[i];
+        if(typeof x==='string' && x.indexOf('data:')===0){
+          try{ r.fotos[i] = await subirFoto(proyecto, r.f, x); n++; }catch(e){ return n; }
+        }
+      }
+    }
+    if(n && onDone) onDone(n);
+    return n;
+  }
+  // Rellena <img data-foto="foto:ID"> dentro de un contenedor
+  function cargarImgs(root){
+    (root||document).querySelectorAll('img[data-foto]').forEach(function(img){
+      const ref=img.getAttribute('data-foto'); if(!ref) return;
+      fotoData(ref).then(function(d){ if(d) img.src=d; img.removeAttribute('data-foto'); });
+    });
+  }
   // ============ ESTADO DE PROYECTO EN TIEMPO REAL ============
   // cfg = { proyecto:'sb', storeKey:'sb_ctrl3', getS:()=>S, apply:(data)=>{...}, badge:true }
   function initProject(cfg){
-    let pushing=false, lastRemote=0, timer=null;
+    let pushing=false, lastHash='', timer=null, pending=false, retryAt=0;
+    const DK = cfg.storeKey+'_pend';              // bandera persistente: hay cambios locales sin subir
     const me = (function(){try{return (JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}').u)||'?';}catch(e){return '?';}})();
+    function hOf(d){ try{ return hsh(JSON.stringify(d)); }catch(e){ return ''; } }
+    function setPend(v){ pending=!!v; try{ if(v) localStorage.setItem(DK,'1'); else localStorage.removeItem(DK); }catch(e){} }
+    function hasPend(){ try{ return pending || localStorage.getItem(DK)==='1'; }catch(e){ return pending; } }
+    function saveLocal(d){ try{ localStorage.setItem(cfg.storeKey, JSON.stringify(d)); }catch(e){ /* cuota llena: la nube manda */ } }
 
     function setBadge(txt, color){
       let b=document.getElementById('adCloudBadge');
       if(!b){ b=document.createElement('div'); b.id='adCloudBadge';
         b.style.cssText='position:fixed;right:12px;bottom:12px;z-index:99999;font:800 8pt Segoe UI,Arial;padding:7px 13px;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.35);color:#fff';
         document.body.appendChild(b); }
-      b.style.background=color||'#0f7a35'; b.textContent=txt;
+      b.style.background=color||'#0f7a35'; b.textContent=txt; b.style.opacity='1';
     }
 
+    window.ADCloud.proyecto = cfg.proyecto;
     async function pull(initial){
       try{
         const rows = await sel('estados_proyecto','proyecto=eq.'+cfg.proyecto+'&select=data,actualizado,por');
         if(!rows.length) return;
-        const row=rows[0]; const ts=new Date(row.actualizado).getTime();
-        if(ts<=lastRemote && !initial) return;
-        lastRemote=ts;
-        if(row.data && Object.keys(row.data).length){
-          try{ localStorage.setItem(cfg.storeKey, JSON.stringify(row.data)); }catch(e){}
-          if(cfg.apply) cfg.apply(row.data);
-          if(!initial && row.por && row.por!==me) setBadge('🔄 Actualizado por '+row.por, '#1650a7');
+        const row=rows[0];
+        if(!(row.data && Object.keys(row.data).length)) return;
+        const h=hOf(row.data);
+        if(h===lastHash && !initial) return;           // la nube no cambió (se compara CONTENIDO, no relojes)
+        lastHash=h;
+        let data=row.data, huboLocal=false;
+        if(initial){
+          // AL ABRIR: si este equipo tiene cambios que no llegaron a la nube, se FUSIONAN; nunca se pisan.
+          let local=null; try{ local=JSON.parse(localStorage.getItem(cfg.storeKey)||'null'); }catch(e){}
+          if(hasPend() && local && typeof local==='object' && Object.keys(local).length){
+            const merged=mergeStates(row.data, local);
+            if(JSON.stringify(merged)!==JSON.stringify(row.data)){ data=merged; huboLocal=true; }
+          }
+        }else if(hasPend()){
+          // Hay un guardado local esperando subir: la nube se FUSIONA con él, no lo reemplaza.
+          data=mergeStates(row.data, cfg.getS());
         }
+        saveLocal(data);
+        if(cfg.apply) cfg.apply(data);
+        if(huboLocal){ setBadge('🔗 Se recuperaron cambios locales no subidos', '#1650a7'); push(); }
+        else if(!initial && row.por && row.por!==me) setBadge('🔄 Actualizado por '+row.por, '#1650a7');
       }catch(e){ /* offline: seguimos con datos locales */ }
     }
 
     async function doPush(){
-      if(!online()) { setBadge('⚠ Sin conexión — se guardó local', '#B26A00'); return; }
-      pushing=true;
+      if(!online()) { setBadge('⚠ Sin conexión — guardado local; se subirá al reconectar', '#B26A00'); return; }
+      pushing=true; clearTimeout(timer); timer=null;
       try{
         let data = cfg.getS();
-        // ANTI-APLASTAMIENTO: si la nube tiene cambios que este equipo aún no vio
-        // (otro usuario publicó, o este equipo abrió sin conexión), se FUSIONAN
-        // antes de publicar: nunca se pisa el trabajo de otro usuario.
+        // ANTI-APLASTAMIENTO: si la nube cambió desde la última vez que este equipo la vio
+        // (otro usuario publicó), se FUSIONA antes de publicar: nunca se pisa el trabajo de otro.
         try{
-          const rows = await sel('estados_proyecto','proyecto=eq.'+cfg.proyecto+'&select=data,actualizado');
-          if(rows.length){
-            const rts=new Date(rows[0].actualizado).getTime();
-            if(rts>lastRemote && rows[0].data && Object.keys(rows[0].data).length){
+          const rows = await sel('estados_proyecto','proyecto=eq.'+cfg.proyecto+'&select=data');
+          if(rows.length && rows[0].data && Object.keys(rows[0].data).length){
+            const h=hOf(rows[0].data);
+            if(h!==lastHash){
               data = mergeStates(rows[0].data, data);
-              try{ localStorage.setItem(cfg.storeKey, JSON.stringify(data)); }catch(e){}
+              saveLocal(data);
               if(cfg.apply) cfg.apply(data);
               setBadge('🔗 Fusionado con cambios de otros usuarios', '#1650a7');
             }
-            lastRemote=rts;
           }
         }catch(e){/* si no se pudo comparar, se publica igual */}
         await upsert('estados_proyecto',
           [{proyecto:cfg.proyecto, data:data, actualizado:new Date().toISOString(), por:me}], 'proyecto');
-        lastRemote=Date.now()+500;
+        lastHash=hOf(data);
+        setPend(false);
         setBadge('☁ Guardado y respaldado', '#0f7a35');
         snapshot(cfg.proyecto, data, me);
-      }catch(e){ setBadge('⚠ Error de nube — guardado local', '#B26A00'); }
+      }catch(e){ retryAt=Date.now()+8000; setBadge('⚠ Error de nube — guardado local, reintentando…', '#B26A00'); }
       pushing=false;
     }
-    function push(){ clearTimeout(timer); timer=setTimeout(doPush, 800); }
+    function push(){ setPend(true); clearTimeout(timer); timer=setTimeout(doPush, 800); }
     window.cloudPush = push;
 
-    // Sondeo de tiempo real (cada 6 s) — robusto y sencillo
-    async function loop(){ if(!pushing) await pull(false); setTimeout(loop, 6000); }
+    // Sondeo de tiempo real (cada 6 s) + reintento automático de lo pendiente
+    async function loop(){
+      if(!pushing){
+        if(hasPend() && !timer && online() && Date.now()>=retryAt) await doPush();
+        else await pull(false);
+      }
+      setTimeout(loop, 6000);
+    }
 
     // Arranque: traer lo de la nube ANTES de mostrar, luego escuchar
     (async function(){
       setBadge('☁ Sincronizando…', '#0A2A4D');
       await pull(true);
-      setBadge('☁ En la nube', '#0f7a35');
+      if(hasPend()){ push(); } else { setBadge('☁ En la nube', '#0f7a35'); }
       setTimeout(()=>{ const b=document.getElementById('adCloudBadge'); if(b) b.style.opacity='0.55'; }, 2500);
       loop();
+      // Migrar fotos base64 que sigan dentro del estado → tabla de fotos (aligera estado, respaldos y sondeo)
+      setTimeout(function(){ try{ migrarFotos(cfg.proyecto, cfg.getS(), function(n){ setBadge('📷 '+n+' fotos movidas a la nube', '#0f7a35'); try{ if(typeof window.save==='function') window.save(); }catch(e){} push(); }); }catch(e){} }, 4000);
     })();
-    window.addEventListener('online', ()=>{ setBadge('☁ Reconectado', '#0f7a35'); push(); });
+    window.addEventListener('online', ()=>{ setBadge('☁ Reconectado', '#0f7a35'); if(hasPend()) push(); });
     window.addEventListener('offline', ()=>setBadge('⚠ Sin conexión', '#B26A00'));
   }
 
@@ -217,7 +324,7 @@
     // Interceptar escrituras a localStorage con el prefijo del proyecto
     const _set = localStorage.setItem.bind(localStorage);
     const _rem = localStorage.removeItem.bind(localStorage);
-    localStorage.setItem = function(k,v){ _set(k,v); if(k&&k.indexOf(pref)===0) push(); };
+    localStorage.setItem = function(k,v){ try{ _set(k,v); }catch(e){} if(k&&k.indexOf(pref)===0) push(); };
     localStorage.removeItem = function(k){ _rem(k); if(k&&k.indexOf(pref)===0) push(); };
 
     async function loop(){ if(!pushing) await pull(false); setTimeout(loop, 6000); }
@@ -226,5 +333,5 @@
     window.addEventListener('offline', ()=>setBadge('⚠ Sin conexión','#B26A00'));
   }
 
-  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup, mergeStates };
+  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup, mergeStates, subirFoto, fotoData, esRef, migrarFotos, cargarImgs, proyecto:null };
 })();
