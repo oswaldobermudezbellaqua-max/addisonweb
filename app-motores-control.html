@@ -101,7 +101,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--lb)}
   <button class="tb" data-t="t11" onclick="tab(this)">📨 TRÁMITES / GUÍAS</button>
   <button class="tb" data-t="t12" onclick="tab(this)">💰 ESTIMADOR</button>
   <button class="tb" data-t="t13" onclick="tab(this)">💸 GASTOS</button><button class="tb" data-t="t14" onclick="tab(this)">⚙ MOTORES</button>
-  <button class="tb s" onclick="expJSON()">💾 Respaldo</button>
+  <button class="tb" data-t="t15" onclick="tab(this)">🧾 CAJA CHICA</button>
+<button class="tb s" onclick="expJSON()">💾 Respaldo</button>
   <button class="tb s" onclick="document.getElementById('impfile').click()">📂 Importar</button>
   <button class="tb r" id="btnReset" style="background:#b03a2e;display:none" onclick="resetApp()">🧹 Reiniciar de fábrica</button>
   <input type="file" id="impfile" class="hide" accept=".json" onchange="impJSON(this)">
@@ -464,7 +465,7 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <div class="lead">Registra aquí <b>cada gasto en el momento en que ocurre</b> (o impórtalos con un clic desde Procura comprada, Servicios y Extras). El cuadro te da totales por categoría, el <b>⚖ Plan vs Real</b> compara lo gastado contra lo que la planificación decía que ibas a gastar en ese rango (mismo motor del ESTIMADOR, ajustado por avance), y <b>🖨 ADD-GTO</b> emite la relación formal de gastos con acumulado y monto en letras.</div>
 <div class="frm"><b>+ Gasto:</b>
 <input type="date" id="gF">
-<select id="gCat"><option>PROCURA</option><option>NÓMINA</option><option>SERVICIOS</option><option>MAQUINARIA</option><option>EXTRAS</option><option>TRÁMITES/GUÍAS</option><option>OTROS</option></select>
+<select id="gCat"><option>PROCURA</option><option>CAJA CHICA</option><option>NÓMINA</option><option>SERVICIOS</option><option>MAQUINARIA</option><option>EXTRAS</option><option>TRÁMITES/GUÍAS</option><option>OTROS</option></select>
 <input id="gD" placeholder="Descripción del gasto…" style="min-width:210px;flex:1">
 <input type="number" id="gM" placeholder="Monto USD" style="width:90px" step="0.01">
 <input id="gProv" placeholder="Proveedor/beneficiario" style="width:150px">
@@ -475,7 +476,7 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 </div>
 <div class="frm">
 <input id="gQ" placeholder="Buscar…" style="min-width:150px" oninput="rendGastos()">
-<select id="gFc" onchange="rendGastos()"><option value="">— todas las categorías —</option><option>PROCURA</option><option>NÓMINA</option><option>SERVICIOS</option><option>MAQUINARIA</option><option>EXTRAS</option><option>TRÁMITES/GUÍAS</option><option>OTROS</option></select>
+<select id="gFc" onchange="rendGastos()"><option value="">— todas las categorías —</option><option>PROCURA</option><option>CAJA CHICA</option><option>NÓMINA</option><option>SERVICIOS</option><option>MAQUINARIA</option><option>EXTRAS</option><option>TRÁMITES/GUÍAS</option><option>OTROS</option></select>
 <b style="font-size:7.4pt">Rango:</b> <input type="date" id="gR1" onchange="rendGastos()"> <input type="date" id="gR2" onchange="rendGastos()">
 <button class="btn sm s" onclick="impGastos()">⇩ Importar desde módulos</button>
 <button class="btn sm" onclick="pvrRun()">⚖ Plan vs Real del rango</button>
@@ -505,6 +506,81 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <button class="btn" onclick="motAdd()">REGISTRAR</button>
 </div></div>
 <div id="motLista"></div>
+<!-- ==== t15 CAJA CHICA ==== -->
+<div class="page hide" id="t15">
+<h3>Caja chica — fondo fijo, vales y arqueo<span class="right" id="ccSaldoTop">—</span></h3>
+<div class="lead">Aquí se registra <b>cada bolívar y cada dólar que sale de la caja de la obra</b>. Funciona como fondo fijo: se abre con un monto, cada gasto lo descuenta y cuando baja del mínimo se pide <b>reposición</b>. Cualquier usuario del proyecto puede cargar su gasto (queda <b>PENDIENTE</b>); el administrador <b>aprueba o rechaza</b>, y solo lo aprobado descuenta saldo y pasa al módulo GASTOS. Todos ven el registro completo: quién cargó, cuándo, a qué partida y con qué recibo.</div>
+
+<div class="kpi" style="margin:10px 0">
+  <div class="kb"><div class="v b" id="ccKFondo">0,00</div><div class="l">Fondo entregado<br><span id="ccKFondoN">0 movimientos</span></div></div>
+  <div class="kb"><div class="v" id="ccKGast">0,00</div><div class="l">Gastado aprobado<br><span id="ccKGastN">0 vales</span></div></div>
+  <div class="kb"><div class="v" id="ccKPend">0,00</div><div class="l">Pendiente por aprobar<br><span id="ccKPendN">0 vales</span></div></div>
+  <div class="kb"><div class="v b" id="ccKSaldo">0,00</div><div class="l">SALDO DISPONIBLE<br><span id="ccKSaldoPct">—</span></div></div>
+  <div class="kb"><div class="v" id="ccKRitmo">0,00</div><div class="l">Consumo diario<br><span id="ccKDias">alcanza —</span></div></div>
+  <div class="kb"><div class="v" id="ccKTasa">—</div><div class="l">Tasa Bs/USD<br><span id="ccKTasaF">sin fijar</span></div></div>
+</div>
+
+<div id="ccAlerta"></div>
+
+<div class="frm" style="border-left:5px solid #0f7a35">
+  <b>💵 Fondo y reposiciones:</b>
+  <input type="date" id="ccRF">
+  <select id="ccRT"><option value="APERTURA">Apertura del fondo</option><option value="REPOSICION">Reposición</option><option value="DEVOLUCION">Devolución a administración</option></select>
+  <input type="number" id="ccRM" placeholder="Monto" style="width:100px" step="0.01">
+  <select id="ccRMon"><option value="USD">USD</option><option value="BS">Bs</option></select>
+  <input id="ccRQ" placeholder="Entregado a (responsable de caja)" style="width:190px">
+  <input id="ccRRef" placeholder="Ref. transferencia / recibo" style="width:150px">
+  <button class="btn g" onclick="ccAddFondo()">Registrar entrega</button>
+  <span style="font-size:7.2pt;color:#7d8ea3">Solo administradores.</span>
+</div>
+
+<div class="frm" style="border-left:5px solid #D9A11B">
+  <b>🧾 + Gasto de caja:</b>
+  <input type="date" id="ccF">
+  <select id="ccCat">
+    <option>ALIMENTACIÓN</option><option>TRANSPORTE / TAXI</option><option>COMBUSTIBLE</option><option>FERRETERÍA MENOR</option>
+    <option>HERRAMIENTA MENOR</option><option>EPP / SEGURIDAD</option><option>CONSUMIBLES DE SOLDADURA</option><option>PAPELERÍA / COPIAS</option>
+    <option>ASEO Y LIMPIEZA</option><option>BOTIQUÍN / MEDICINAS</option><option>FLETES Y ENCOMIENDAS</option><option>VIÁTICOS</option>
+    <option>TRÁMITES / PERMISOS</option><option>OTROS</option>
+  </select>
+  <input id="ccD" placeholder="¿En qué se gastó?…" style="min-width:210px;flex:1">
+  <input type="number" id="ccM" placeholder="Monto" style="width:95px" step="0.01">
+  <select id="ccMon" onchange="ccPrev()"><option value="BS">Bs</option><option value="USD">USD</option></select>
+  <input type="number" id="ccTasa" placeholder="Tasa Bs/USD" style="width:105px" step="0.01" oninput="ccPrev()">
+  <input id="ccBen" placeholder="Beneficiario / comercio" style="width:150px">
+  <input id="ccRec" placeholder="N° factura o recibo" style="width:120px">
+  <select id="ccPP"><option value="">— partida —</option></select>
+  <button class="btn" onclick="ccAdd()">Registrar gasto</button>
+  <span id="ccPrevTxt" style="font-size:7.4pt;color:#0A2A4D;font-weight:800"></span>
+</div>
+
+<div class="frm">
+  <input id="ccQ" placeholder="Buscar concepto, beneficiario, recibo…" style="min-width:180px" oninput="rendCaja()">
+  <select id="ccFe" onchange="rendCaja()"><option value="">— todos los estados —</option><option value="P">⏳ Pendientes</option><option value="A">✔ Aprobados</option><option value="R">✖ Rechazados</option></select>
+  <select id="ccFc" onchange="rendCaja()"><option value="">— todas las categorías —</option></select>
+  <select id="ccFu" onchange="rendCaja()"><option value="">— todos los responsables —</option></select>
+  <b style="font-size:7.4pt">Rango:</b>
+  <input type="date" id="ccR1" onchange="rendCaja()"><input type="date" id="ccR2" onchange="rendCaja()">
+  <button class="btn sm g" onclick="ccRelacion()">🖨 Relación / solicitud de reposición (ADD-CCH)</button>
+  <button class="btn sm s" onclick="ccArqueo()">⚖ Arqueo de caja</button>
+  <button class="btn sm s" onclick="ccCSV()">⇩ CSV</button>
+</div>
+
+<div class="chips" id="ccChips"></div>
+<div id="ccGraf"></div>
+
+<table><thead><tr>
+<th style="width:74px">Fecha</th><th style="width:118px">Categoría</th><th>Concepto</th><th style="width:120px">Beneficiario</th>
+<th style="width:70px">Partida</th><th style="width:80px">Recibo</th><th class="r" style="width:92px">Bs</th><th class="r" style="width:82px">USD</th>
+<th style="width:96px">Cargó</th><th style="width:118px">Estado</th><th style="width:120px"></th>
+</tr></thead><tbody id="ccBody"></tbody></table>
+
+<div class="g2" style="margin-top:12px">
+ <div class="card"><h4 style="margin:0 0 6px">📥 Movimientos del fondo</h4><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Entregado a</th><th>Ref.</th><th class="r">USD</th><th></th></tr></thead><tbody id="ccFondoBody"></tbody></table></div>
+ <div class="card"><h4 style="margin:0 0 6px">⚖ Arqueos realizados</h4><table><thead><tr><th>Fecha</th><th>Quién</th><th class="r">Saldo libro</th><th class="r">Efectivo contado</th><th class="r">Diferencia</th></tr></thead><tbody id="ccArqBody"></tbody></table></div>
+</div>
+</div>
+
 </div>
 <script>
 const ITEMS=[{"id": "1", "d": "Alambre magneto de cobre esmaltado clase F/H", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Alambre magneto de cobre esmaltado clase F/H — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "2", "d": "Papel y film aislante Nomex/Mylar", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Papel y film aislante Nomex/Mylar — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "3", "d": "Barniz dieléctrico de impregnación", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Barniz dieléctrico de impregnación — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "4", "d": "Cuñas y amarres para ranura", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Cuñas y amarres para ranura — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "5", "d": "Rodamientos (según motor)", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Rodamientos (según motor) — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "6", "d": "Guardagrasa y escudos", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Guardagrasa y escudos — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "7", "d": "Ventilador y tapas protectoras", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Ventilador y tapas protectoras — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "8", "d": "Resistencia de calefacción", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Resistencia de calefacción — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "9", "d": "Pletina de cobre (rangos altos)", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Pletina de cobre (rangos altos) — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "10", "d": "Pintura anticorrosiva y de acabado", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Pintura anticorrosiva y de acabado — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "11", "d": "Consumibles de limpieza y desengrase", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Consumibles de limpieza y desengrase — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}, {"id": "12", "d": "Material de identificación y embalaje", "u": "Gbl", "c": 1, "p": 0, "t": 0, "pp": "P1", "oc": "", "foc": "", "ud": 1, "lo": 0, "hi": 0, "pe": 0, "dd": "Material de identificación y embalaje — PRECIO POR DEFINIR: los materiales del contrato macro se cotizan y cargan al emitirse cada orden. Alcance según informe consolidado y oficio GEII-501/2026.", "br": [{"pp": "P1", "c": 1, "ud": 1}]}], P48=[{"n": 1, "s": "T", "f": "F1", "a": 1, "b": 80, "m": 55036.25, "t": "R1 · Reparación de motores ≤ 30 HP (25 und)", "alc": "Reparación de motores ≤ 30 HP (25 und) — P.U. US$ 2,201.45 × 25 unidades. Mantenimiento mayor completo con rebobinado, pruebas y balanceo. Precio base oficio GEII-501/2026. VENTANA REFERENCIAL: las fechas reales dependen de cada orden emitida bajo el contrato macro.", "pre": "", "pas": ["Recibir el motor ≤ 30 HP en planta, levantar acta de recepción con el custodio de área y registrar condición aparente y accesorios entregados.", "Verificar y transcribir datos de placa: HP, RPM, tensión, corriente, número de polos, marca, modelo, carcasa NEMA MG-1 y tipo de servicio.", "Ejecutar registro fotográfico del estado inicial, identificar la unidad con material de identificación y trasladar a taller en camioneta o carretilla hidráulica.", "Aplicar diagnóstico inicial en banco: megado del bobinado, índice de polarización según IEEE 43 y resistencia óhmica por fase para verificar balance.", "Inspeccionar rodamientos, juego axial y radial, estado del eje, chavetero y alojamientos de tapas, dejando constancia en el protocolo de diagnóstico.", "Desarmar el motor marcando tapas y posición, extraer el rotor y retirar el bobinado quemado registrando espiras, calibre, paso y tipo de conexión.", "Limpiar el estator con consumibles de limpieza y desengrase, quemar residuos de barniz y soplar ranuras hasta dejar el paquete magnético libre.", "Rebobinar el estator con alambre magneto de cobre esmaltado clase F/H respetando espiras, calibre y paso originales según el número de polos.", "Aislar ranura con papel y film aislante Nomex/Mylar, colocar cuñas y amarres para ranura y ejecutar el conexionado de puntas según polos.", "Impregnar por inmersión en barniz dieléctrico y hornear el estator, repitiendo el ciclo hasta lograr compactación y rigidez dieléctrica del bobinado.", "Revisar la masa magnética por chapas sueltas o puntos calientes, restituir aislamiento entre chapas y corregir rebabas en los dientes del núcleo.", "Reparar mecánicamente tapas, alojamientos, eje y base: metalizado o rectificado según desgaste, verificando concentricidad y ajuste de asientos.", "Montar rodamientos nuevos con calentador por inducción, instalar guardagrasa y escudos, y colocar ventilador y tapas protectoras del motor.", "Verificar continuidad y aislamiento de la resistencia de calefacción, reponerla si está abierta y dejar sus puntas rotuladas en la caja de bornes.", "Balancear dinámicamente el rotor según ISO 1940 en grado G 2,5, dejando el certificado con vibración residual medida en ambos planos.", "Armar el motor completo, aplicar pintura anticorrosiva y de acabado, y ejecutar pruebas eléctricas finales de aislamiento y corrida en vacío.", "Emitir protocolo de pruebas firmado con garantía, embalar con material de identificación y embalaje y transportar el motor de vuelta a planta."]}, {"n": 2, "s": "T", "f": "F1", "a": 1, "b": 85, "m": 159805.44, "t": "R2 · Reparación de motores > 30 y < 60 HP (24 und)", "alc": "Reparación de motores > 30 y < 60 HP (24 und) — P.U. US$ 6,658.56 × 24 unidades. Mantenimiento mayor completo con rebobinado, pruebas y balanceo. Precio base oficio GEII-501/2026. VENTANA REFERENCIAL: las fechas reales dependen de cada orden emitida bajo el contrato macro.", "pre": "", "pas": ["Recibir el motor entre 30 y 60 HP, levantar acta de recepción firmada con el custodio y anotar faltantes, golpes y accesorios acompañantes.", "Verificar placa del motor: HP, RPM, tensión, corriente nominal, polos, marca, carcasa y clase de aislamiento conforme a NEMA MG-1.", "Realizar registro fotográfico completo, identificar la unidad y trasladarla a taller usando montacargas por el peso y dimensiones del conjunto.", "Aplicar megado del bobinado y calcular índice de polarización según IEEE 43, complementando con resistencia óhmica por fase para detectar cortos.", "Inspeccionar rodamientos, holguras del eje, chavetero y alojamientos de tapas, y registrar hallazgos en el protocolo de diagnóstico inicial.", "Desarmar marcando tapas y posición angular, extraer el rotor y retirar el bobinado quemado registrando espiras, calibre, paso y conexión interna.", "Limpiar estator con consumibles de limpieza y desengrase, quemar barniz residual en horno y soplar ranuras dejando el paquete listo para aislar.", "Rebobinar con alambre magneto de cobre esmaltado clase F/H respetando espiras, calibre y paso, con distribución de bobinas según número de polos.", "Aislar ranura con papel y film aislante Nomex/Mylar, fijar con cuñas y amarres para ranura y ejecutar conexionado y amarre de cabezas de bobina.", "Impregnar por inmersión en barniz dieléctrico y hornear en ciclo controlado, repitiendo la operación hasta obtener compactación total del bobinado.", "Revisar núcleo y masa magnética, restituir aislamiento entre chapas, eliminar rebabas y verificar ausencia de puntos calientes por prueba de anillo.", "Reparar tapas, eje y base: rectificado o metalizado de asientos, corrección de roscas y verificación de concentricidad y perpendicularidad.", "Instalar rodamientos nuevos con calentador por inducción, montar guardagrasa y escudos, engrasar según especificación y colocar ventilador y tapas protectoras.", "Probar continuidad y aislamiento de la resistencia de calefacción, reponerla si está fuera de servicio y rotular sus puntas en la caja de conexiones.", "Balancear dinámicamente el rotor con ventilador montado según ISO 1940 grado G 2,5, emitiendo certificado con vibración residual por plano.", "Armar el motor, aplicar pintura anticorrosiva y de acabado y ejecutar pruebas finales de aislamiento, resistencia por fase y corrida en vacío.", "Entregar con protocolo firmado y garantía, embalar e identificar la unidad y transportarla a planta cumpliendo COVENIN 2237 y LOPCYMAT."]}, {"n": 3, "s": "T", "f": "F1", "a": 5, "b": 85, "m": 67772.16, "t": "R3 · Reparación de motores > 60 y < 120 HP (8 und)", "alc": "Reparación de motores > 60 y < 120 HP (8 und) — P.U. US$ 8,471.52 × 8 unidades. Mantenimiento mayor completo con rebobinado, pruebas y balanceo. Precio base oficio GEII-501/2026. VENTANA REFERENCIAL: las fechas reales dependen de cada orden emitida bajo el contrato macro.", "pre": "", "pas": ["Recibir el motor entre 60 y 120 HP en planta, levantar acta con el custodio de área y dejar constancia de condición, acoples y accesorios.", "Verificar placa: HP, RPM, tensión, corriente, polos, marca y carcasa, contrastando contra el registro histórico del equipo bajo NEMA MG-1.", "Efectuar registro fotográfico, identificar la unidad y trasladarla a taller con montacargas y eslingas certificadas cumpliendo COVENIN 2237 en izaje.", "Aplicar megado y determinar índice de polarización según IEEE 43, midiendo además resistencia óhmica por fase para verificar simetría del devanado.", "Inspeccionar rodamientos, juego interno, eje, chavetero y asientos de tapas, dejando el diagnóstico y las mediciones asentadas en protocolo.", "Desarmar marcando tapas, extraer el rotor con puente grúa y retirar el bobinado quemado registrando espiras, calibre, paso y esquema de conexión.", "Limpiar el estator con consumibles de limpieza y desengrase, hornear para quemar barniz residual y soplar ranuras hasta dejar el núcleo limpio.", "Rebobinar con alambre magneto de cobre esmaltado clase F/H según espiras, calibre y paso levantados, ordenando las bobinas por número de polos.", "Aislar ranura y fondo con papel y film aislante Nomex/Mylar, asegurar con cuñas y amarres para ranura y amarrar firmemente las cabezas de bobina.", "Impregnar por inmersión o VPI en barniz dieléctrico y hornear en ciclos sucesivos hasta lograr compactación mecánica y rigidez dieléctrica.", "Reparar núcleo y masa magnética: restituir aislamiento entre chapas, eliminar rebabas y comprobar el paquete por prueba de anillo o loop test.", "Reparar mecánicamente tapas, eje y base mediante metalizado, rectificado o encamisado de asientos, verificando concentricidad y alineación de alojamientos.", "Montar rodamientos nuevos con calentador por inducción, instalar guardagrasa y escudos, engrasar y colocar ventilador y tapas protectoras.", "Verificar y reponer si aplica la resistencia de calefacción, comprobando continuidad y aislamiento contra masa antes del armado final.", "Balancear dinámicamente el rotor según ISO 1940 en grado G 2,5, corrigiendo en dos planos y emitiendo certificado de vibración residual.", "Armar el motor, aplicar pintura anticorrosiva y de acabado y ejecutar pruebas eléctricas finales de aislamiento, resistencia y corrida en vacío.", "Entregar con protocolo firmado, garantía y embalaje identificado, transportando la unidad a planta con equipo de izaje y amarre adecuado."]}, {"n": 4, "s": "T", "f": "F1", "a": 5, "b": 90, "m": 348600.3, "t": "R4 · Reparación de motores 120 a 200 HP (29 und)", "alc": "Reparación de motores 120 a 200 HP (29 und) — P.U. US$ 12,020.70 × 29 unidades. Mantenimiento mayor completo con rebobinado, pruebas y balanceo. Precio base oficio GEII-501/2026. VENTANA REFERENCIAL: las fechas reales dependen de cada orden emitida bajo el contrato macro.", "pre": "", "pas": ["Recibir el motor de 120 a 200 HP, levantar acta de recepción con el custodio y registrar acoples, caja de bornes, RTD y accesorios entregados.", "Verificar placa del motor: HP, RPM, tensión, corriente, polos, marca, carcasa y clase térmica, contrastando con la data del área usuaria.", "Registrar fotográficamente el estado inicial, identificar la unidad y trasladarla a taller con montacargas o puente grúa usando eslingas certificadas.", "Aplicar megado y determinar índice de polarización según IEEE 43, además de resistencia óhmica por fase y prueba de alta tensión escalonada.", "Inspeccionar rodamientos, juego axial, eje, chavetero, asientos de tapas y estado de la caja de conexiones, asentando todo en el protocolo.", "Desarmar con puente grúa marcando tapas y posición, extraer el rotor y retirar el bobinado quemado registrando espiras, calibre, paso y conexión.", "Limpiar el estator con consumibles de limpieza y desengrase, hornear para eliminar barniz residual y soplar ranuras hasta dejar el núcleo libre.", "Rebobinar el estator empleando pletina de cobre conformada donde el diseño original lo exija, o alambre magneto clase F/H según calibre levantado.", "Aislar ranura con papel y film aislante Nomex/Mylar, colocar cuñas y amarres para ranura y ejecutar el conexionado de grupos según número de polos.", "Impregnar por VPI o inmersión en barniz dieléctrico y hornear en ciclos controlados hasta lograr compactación total y rigidez dieléctrica del devanado.", "Reparar núcleo y masa magnética, restituir aislamiento entre chapas y verificar el paquete mediante prueba de anillo detectando puntos calientes.", "Reparar mecánicamente tapas, eje y base con metalizado, rectificado o encamisado de asientos, verificando concentricidad, ajuste y perpendicularidad.", "Montar rodamientos nuevos con calentador por inducción, instalar guardagrasa y escudos, engrasar y colocar ventilador y tapas protectoras del motor.", "Verificar continuidad y aislamiento de la resistencia de calefacción, reponerla si aplica y rotular sus puntas independientes en la caja de bornes.", "Balancear dinámicamente el rotor según ISO 1940 en grado G 2,5, corrigiendo en dos planos con exigencia reforzada por la masa del rotor.", "Armar el motor con izaje mecánico, aplicar pintura anticorrosiva y de acabado y verificar entrehierro y giro libre antes de las pruebas.", "Ejecutar pruebas finales de aislamiento, índice de polarización, resistencia por fase y corrida en vacío midiendo corriente, vibración y temperatura.", "Entregar con protocolo firmado y garantía, embalar e izar con equipo certificado y transportar a planta en camión con amarre según COVENIN 200."]}, {"n": 5, "s": "T", "f": "F1", "a": 10, "b": 90, "m": 64764.68, "t": "R5 · Reparación de motores > 200 y < 300 HP (4 und)", "alc": "Reparación de motores > 200 y < 300 HP (4 und) — P.U. US$ 16,191.17 × 4 unidades. Mantenimiento mayor completo con rebobinado, pruebas y balanceo. Precio base oficio GEII-501/2026. VENTANA REFERENCIAL: las fechas reales dependen de cada orden emitida bajo el contrato macro.", "pre": "", "pas": ["Recibir el motor entre 200 y 300 HP, levantar acta con el custodio de área y registrar acoples, RTD, caja de bornes y accesorios.", "Verificar placa: HP, RPM, tensión, corriente, polos, marca, carcasa y clase de aislamiento, contrastando con el historial de mantenimiento del equipo.", "Registrar fotográficamente la condición inicial, identificar la unidad y trasladarla a taller con puente grúa o montacargas y eslingas certificadas.", "Aplicar megado, índice de polarización según IEEE 43, resistencia óhmica por fase y prueba de alta tensión DC escalonada al devanado.", "Inspeccionar rodamientos, juego axial y radial, eje, chavetero, asientos de tapas y sistema de lubricación, dejando registro en el protocolo.", "Desarmar con puente grúa marcando tapas y posición angular, extraer el rotor sobre soportes y retirar el bobinado registrando espiras, calibre y paso.", "Limpiar el estator con consumibles de limpieza y desengrase, hornear para quemar barniz residual y soplar ranuras dejando el paquete apto para aislar.", "Rebobinar el estator con pletina de cobre conformada según sección original, o alambre magneto clase F/H cuando el diseño de ranura lo requiera.", "Aislar ranura y fondo con papel y film aislante Nomex/Mylar, asegurar con cuñas y amarres para ranura y amarrar cabezas con anillos de soporte.", "Impregnar por VPI en barniz dieléctrico y hornear en ciclos controlados, repitiendo hasta obtener compactación mecánica y rigidez dieléctrica homogénea.", "Reparar núcleo y masa magnética restituyendo aislamiento entre chapas, eliminando rebabas y validando el paquete por prueba de anillo antes de bobinar.", "Reparar mecánicamente tapas, eje y base con metalizado, rectificado o encamisado, verificando concentricidad, ajustes de asiento y planitud de la base.", "Montar rodamientos nuevos con calentador por inducción, instalar guardagrasa y escudos, engrasar según especificación y colocar ventilador y tapas protectoras.", "Verificar continuidad y aislamiento de la resistencia de calefacción, reponerla si está fuera de servicio y rotular sus puntas en la caja de bornes.", "Balancear dinámicamente el rotor según ISO 1940 en grado G 2,5, corrigiendo en dos planos con tolerancia estricta por la masa y velocidad periférica.", "Armar el motor con izaje mecánico, verificar entrehierro y giro libre, y aplicar pintura anticorrosiva y de acabado sobre superficie preparada.", "Ejecutar pruebas finales de aislamiento, índice de polarización, resistencia por fase y corrida prolongada en vacío registrando corriente, vibración y temperatura.", "Entregar con protocolo firmado y garantía, embalar e izar con equipo certificado y transportar a planta en transporte especial con amarre normalizado."]}, {"n": 6, "s": "T", "f": "F1", "a": 10, "b": 90, "m": 876167.52, "t": "R6 · Reparación de motores 300 a 1500 HP (23 und)", "alc": "Reparación de motores 300 a 1500 HP (23 und) — P.U. US$ 38,094.24 × 23 unidades. Mantenimiento mayor completo con rebobinado, pruebas y balanceo. Precio base oficio GEII-501/2026. VENTANA REFERENCIAL: las fechas reales dependen de cada orden emitida bajo el contrato macro.", "pre": "", "pas": ["Recibir el motor de 300 a 1500 HP en planta, levantar acta con el custodio y registrar acoples, RTD, cajas de bornes y accesorios desmontados.", "Verificar placa: HP, RPM, tensión, corriente, polos, marca, carcasa, clase térmica y tipo de enfriamiento, contrastando con la data del área.", "Registrar fotográficamente el estado inicial, identificar la unidad y trasladarla a taller con puente grúa y transporte especial por peso y dimensiones.", "Aplicar megado, índice de polarización según IEEE 43, resistencia óhmica por fase y prueba de alta tensión DC escalonada al devanado de media tensión.", "Inspeccionar rodamientos o cojinetes, juego axial, eje, chavetero, asientos de tapas y sistema de lubricación, asentando mediciones en el protocolo.", "Desarmar con puente grúa marcando tapas y posición angular, extraer el rotor con viga de izaje y retirar el bobinado registrando espiras, calibre y paso.", "Limpiar el estator con consumibles de limpieza y desengrase, hornear en ciclo controlado para quemar barniz residual y soplar ranuras del paquete.", "Rebobinar el estator con pletina de cobre conformada en bobinas preformadas según sección y paso originales, respetando el número de polos del diseño.", "Aislar ranura, fondo y separadores con papel y film aislante Nomex/Mylar, fijar con cuñas y amarres para ranura y arriostrar cabezas con anillos.", "Impregnar por VPI en barniz dieléctrico y hornear en ciclos sucesivos hasta lograr compactación mecánica total y rigidez dieléctrica del sistema aislante.", "Reparar núcleo y masa magnética restituyendo aislamiento entre chapas, eliminando rebabas y validando el paquete mediante prueba de anillo con termografía.", "Reparar mecánicamente tapas, eje y base mediante metalizado, rectificado o encamisado de asientos, verificando concentricidad, ajustes y planitud de apoyo.", "Montar rodamientos o cojinetes nuevos con calentador por inducción, instalar guardagrasa y escudos, engrasar y colocar ventilador y tapas protectoras.", "Verificar continuidad y aislamiento de la resistencia de calefacción, reponerla si aplica y rotular sus puntas independientes en la caja de conexiones.", "Balancear dinámicamente el rotor según ISO 1940 en grado G 2,5, corrigiendo en dos planos con máxima exigencia por masa, longitud y velocidad periférica.", "Armar el motor con puente grúa, verificar entrehierro en cuatro puntos y giro libre, y aplicar pintura anticorrosiva y de acabado.", "Ejecutar pruebas finales de aislamiento, índice de polarización, resistencia por fase y corrida en vacío prolongada registrando corriente, vibración y temperatura de cojinetes.", "Entregar con protocolo firmado y garantía, embalar e izar con equipo certificado y transportar a planta en transporte especial cumpliendo COVENIN 200 y LOPCYMAT."]}], PLAN=[0.16, 0.33, 0.49, 0.65, 1.13, 1.6, 2.08, 2.55, 3.03, 4.24, 5.45, 6.67, 7.88, 9.09, 10.31, 11.52, 12.73, 13.94, 15.16, 16.37, 17.58, 18.8, 20.01, 21.22, 22.44, 23.65, 24.86, 26.08, 27.29, 28.5, 29.72, 30.93, 32.14, 33.36, 34.57, 35.78, 37.0, 38.21, 39.42, 40.64, 41.85, 43.06, 44.28, 45.49, 46.7, 47.92, 49.13, 50.34, 51.56, 52.77, 53.98, 55.2, 56.41, 57.62, 58.84, 60.05, 61.26, 62.48, 63.69, 64.9, 66.12, 67.33, 68.54, 69.76, 70.97, 72.18, 73.4, 74.61, 75.82, 77.04, 78.25, 79.46, 80.68, 81.89, 83.1, 84.32, 85.53, 86.74, 87.96, 89.17, 90.34, 91.51, 92.68, 93.85, 95.02, 96.01, 97.01, 98.01, 99.0, 100.0], MAQ=[], SPLAN={"Comidas": [400, 400, 400, 400, 400, 1500, 1500, 1500, 1500, 1200, 700, 700, 300], "Alojamiento": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Transporte": [400, 400, 400, 400, 400, 560, 560, 560, 560, 560, 560, 560, 300], "Caja chica": [300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 300, 150]}, CARGOS={"Ingeniero Residente": 100, "Supervisor General": 80, "Fabricador": 70, "Soldador Certificado": 70, "Mecánico": 70, "Lubricador": 60, "Instrumentista": 60, "Electricista": 60, "Rigger": 40, "Ayudante": 35, "Chofer": 40, "Otro": 0}, CREW={"Ingeniero Residente": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "Supervisor General": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "Fabricador": [2, 2, 2, 2, 2, 3, 3, 3, 3, 2, 0, 0, 0], "Soldador Certificado": [2, 2, 2, 2, 2, 3, 3, 3, 3, 2, 0, 0, 0], "Mecánico": [0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 2, 2], "Lubricador": [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0], "Instrumentista": [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0], "Electricista": [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0], "Rigger": [0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 0, 0, 0], "Ayudante": [2, 2, 2, 2, 2, 8, 8, 8, 8, 6, 4, 4, 2], "Chofer": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]};
@@ -514,14 +590,266 @@ const CREWTX=n=>n<=3?"Ing. Residente + Ing. Civil":n<=9?"Cuadrilla civil: Maestr
 const EQP=n=>n<=3?"Topografía y oficina técnica":n<=9?"Rana, vibrador, Pitman":n==11?"GRÚA 30t, andamios 200 m³, 2 soldadoras":n==12?"Grúa, taladro magnético":n==13?"Polipasto 3 t":n<=18?"SAE 250/400, roscadora, oxicorte":n<=20?"Grúa, andamios 150 m³, torres":n<=22?"Airless, andamios 150 m³":n<=32?"Roscadora, SAE 250":n<=40?"Herr. certificada, megger":"Instrumentos de calibración";
 const num=v=>v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const S={proc:{},reps:[],extras:[],maq:{},maqx:[],pers:[],prov:[],serv:[]};
-try{Object.assign(S,JSON.parse(localStorage.getItem('mot_ctrl1')||'{}'));}catch(e){}
+try{Object.assign(S,JSON.parse(localStorage.getItem('mot_ctrl1')||'{}'));
+if(!S.caja)S.caja={tasa:0,tasaF:'',fondo:[],mov:[],arq:[]};}catch(e){}
 ['proc','maq'].forEach(k=>S[k]=S[k]||{});['reps','extras','maqx','pers','prov','serv','tram','gastos'].forEach(k=>S[k]=S[k]||[]);
 function save(){try{localStorage.setItem('mot_ctrl1',JSON.stringify(S));}catch(e){console.warn('localStorage lleno — se sincroniza sólo en la nube');}kpis();}
 function resetApp(){var _ss={};try{_ss=JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');}catch(e){}if((_ss.u||'')!=='admin'){alert('⛔ Solo la cuenta administradora principal (admin) puede reiniciar de fábrica.');return;}if(confirm('⚠ Esto BORRA todos los datos cargados en esta aplicación (procura, reportes, personal, trámites, fotos…) y la deja como nueva.\n\n¿Deseas continuar? Exporta un respaldo antes si quieres conservar algo.')){
 localStorage.removeItem('mot_ctrl1');localStorage.removeItem('mot_ctrl0');localStorage.removeItem('mot_ctrl_x');location.reload();}}
+const CCTAB='t15';
+/* ================= CAJA CHICA — fondo fijo, vales, aprobación y arqueo (v105) ================= */
+function ccSess(){try{return JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');}catch(e){return {};}}
+function ccYo(){const s=ccSess();return (s.u||'?');}
+function ccEsAdmin(){const s=ccSess();return s.rol==='ADMIN';}
+function ccPuedeEditar(){const s=ccSess();return s.rol==='ADMIN'||!!(s.perms&&s.perms.edit);}
+function ccInit(){ if(!S.caja) S.caja={tasa:0,tasaF:'',fondo:[],mov:[],arq:[]};
+  ['fondo','mov','arq'].forEach(k=>{if(!Array.isArray(S.caja[k]))S.caja[k]=[];});
+  if(typeof S.caja.tasa!=='number')S.caja.tasa=0; }
+function ccUSD(x){ return x.mon==='USD' ? (+x.m||0) : ((+x.tasa>0)?(+x.m||0)/(+x.tasa):0); }
+function ccBS(x){ return x.mon==='BS' ? (+x.m||0) : ((+x.tasa>0)?(+x.m||0)*(+x.tasa):0); }
+function ccFondoTot(){ ccInit(); return S.caja.fondo.reduce((a,x)=>a+(x.t==='DEVOLUCION'?-ccUSD(x):ccUSD(x)),0); }
+function ccGastTot(){ ccInit(); return S.caja.mov.filter(x=>x.est==='A').reduce((a,x)=>a+ccUSD(x),0); }
+function ccPendTot(){ ccInit(); return S.caja.mov.filter(x=>x.est==='P').reduce((a,x)=>a+ccUSD(x),0); }
+function ccSaldo(){ return ccFondoTot()-ccGastTot(); }
+function ccTasaHoy(){ ccInit(); const t=parseFloat((document.getElementById('ccTasa')||{}).value)||0; return t>0?t:(S.caja.tasa||0); }
+
+/* ---- previsualización del monto mientras se escribe ---- */
+function ccPrev(){ const el=document.getElementById('ccPrevTxt'); if(!el)return;
+  const m=parseFloat((document.getElementById('ccM')||{}).value)||0, mon=(document.getElementById('ccMon')||{}).value||'BS', ta=ccTasaHoy();
+  if(!m){el.textContent='';return;}
+  if(mon==='USD'){ el.textContent='≈ '+(ta>0?num(m*ta)+' Bs':'fija la tasa para ver el equivalente en Bs'); }
+  else { el.textContent = ta>0 ? ('≈ '+num(m/ta)+' USD') : '⚠ fija la tasa Bs/USD para convertir'; } }
+
+/* ---- entrega de fondo / reposición ---- */
+function ccAddFondo(){ ccInit();
+  if(!ccEsAdmin()){alert('Solo el administrador puede registrar entregas de fondo o reposiciones.');return;}
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const f=g('ccRF'), tp=g('ccRT'), m=parseFloat(g('ccRM'))||0, mon=g('ccRMon');
+  if(!f||!m){alert('Indica fecha y monto de la entrega.');return;}
+  const ta=ccTasaHoy(); if(mon==='BS'&&!(ta>0)){alert('Para registrar en Bs primero fija la tasa Bs/USD en el formulario de gasto.');return;}
+  S.caja.fondo.push({id:'F'+Date.now(),f:f,t:tp,m:m,mon:mon,tasa:mon==='BS'?ta:0,q:g('ccRQ'),ref:g('ccRRef'),por:ccYo(),ts:new Date().toISOString()});
+  ['ccRM','ccRRef'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  save(); rendCaja(); alert('✔ '+({APERTURA:'Apertura de fondo',REPOSICION:'Reposición',DEVOLUCION:'Devolución'})[tp]+' registrada. Saldo disponible: '+num(ccSaldo())+' USD.'); }
+function ccDelFondo(i){ ccInit(); if(!ccEsAdmin()){alert('Solo el administrador puede eliminar movimientos del fondo.');return;}
+  if(confirm('¿Eliminar este movimiento del fondo?')){S.caja.fondo.splice(i,1);save();rendCaja();} }
+
+/* ---- alta de gasto ---- */
+function ccAdd(){ ccInit();
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const f=g('ccF'), d=g('ccD').trim(), m=parseFloat(g('ccM'))||0, mon=g('ccMon'), ta=ccTasaHoy();
+  if(!f||!d||!m){alert('Fecha, concepto y monto son obligatorios.');return;}
+  if(mon==='BS'&&!(ta>0)){alert('Escribe la tasa Bs/USD del día para poder convertir el gasto.');return;}
+  if(ta>0){S.caja.tasa=ta;S.caja.tasaF=f;}
+  const admin=ccEsAdmin();
+  const mv={id:'C'+Date.now(), f:f, cat:g('ccCat'), d:d, m:m, mon:mon, tasa:mon==='BS'?ta:(ta||0),
+            ben:g('ccBen'), rec:g('ccRec'), pp:g('ccPP'), por:ccYo(), ts:new Date().toISOString(),
+            est: admin?'A':'P', apr: admin?ccYo():'', fapr: admin?new Date().toISOString().slice(0,10):''};
+  const s=ccSaldo(); const u=ccUSD(mv);
+  if(mv.est==='A'&&u>s+0.001&&!confirm('Este gasto ('+num(u)+' USD) supera el saldo disponible ('+num(s)+' USD).\n\n¿Registrarlo igual? Quedará como sobregiro de caja.')) return;
+  S.caja.mov.push(mv);
+  if(mv.est==='A') ccAGastos(mv);
+  ['ccD','ccM','ccBen','ccRec'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  save(); rendCaja();
+  alert(admin ? ('✔ Gasto registrado y aprobado. Saldo: '+num(ccSaldo())+' USD.')
+              : ('✔ Gasto enviado. Queda PENDIENTE hasta que el administrador lo apruebe — todos pueden verlo en el registro.')); }
+
+/* ---- aprobación ---- */
+function ccAprob(id,ok){ ccInit();
+  if(!ccEsAdmin()){alert('Solo el administrador aprueba o rechaza gastos de caja chica.');return;}
+  const mv=S.caja.mov.find(x=>x.id===id); if(!mv)return;
+  if(ok){ const u=ccUSD(mv), s=ccSaldo();
+    if(u>s+0.001&&!confirm('Aprobar '+num(u)+' USD deja la caja en sobregiro (saldo '+num(s)+' USD). ¿Continuar?'))return;
+    mv.est='A'; mv.apr=ccYo(); mv.fapr=new Date().toISOString().slice(0,10); ccAGastos(mv); }
+  else { const mot=prompt('Motivo del rechazo (lo verá quien cargó el gasto):','Falta recibo'); if(mot===null)return;
+    mv.est='R'; mv.apr=ccYo(); mv.fapr=new Date().toISOString().slice(0,10); mv.mot=mot; ccDeGastos(mv); }
+  save(); rendCaja(); }
+function ccDel(id){ ccInit(); const i=S.caja.mov.findIndex(x=>x.id===id); if(i<0)return; const mv=S.caja.mov[i];
+  if(!ccEsAdmin()&&!(mv.por===ccYo()&&mv.est==='P')){alert('Solo puedes eliminar tus propios gastos mientras estén pendientes. El administrador puede eliminar cualquiera.');return;}
+  if(!confirm('¿Eliminar este gasto del registro de caja chica?'))return;
+  ccDeGastos(mv); S.caja.mov.splice(i,1); save(); rendCaja(); }
+
+/* ---- enlace con el módulo GASTOS (solo lo aprobado) ---- */
+function ccAGastos(mv){ try{ if(!Array.isArray(S.gastos))S.gastos=[];
+  if(S.gastos.some(x=>x.src==='CAJA'&&x.key===mv.id))return;
+  S.gastos.push({f:mv.f,cat:'CAJA CHICA',d:mv.cat+' · '+mv.d,m:ccUSD(mv),prov:mv.ben||'',via:'Efectivo (caja chica)',ref:mv.rec||'',pp:mv.pp||'',src:'CAJA',key:mv.id});
+ }catch(e){} }
+function ccDeGastos(mv){ try{ if(!Array.isArray(S.gastos))return;
+  const i=S.gastos.findIndex(x=>x.src==='CAJA'&&x.key===mv.id); if(i>=0)S.gastos.splice(i,1); }catch(e){} }
+
+/* ---- arqueo ---- */
+function ccArqueo(){ ccInit();
+  if(!ccPuedeEditar()){alert('Solo administradores o usuarios con permiso de edición registran arqueos.');return;}
+  const s=ccSaldo(), ta=ccTasaHoy();
+  const efU=parseFloat(prompt('ARQUEO DE CAJA\n\nSaldo según el libro: '+num(s)+' USD\n\n¿Cuánto efectivo hay en DÓLARES?','0'));
+  if(isNaN(efU))return;
+  const efB=parseFloat(prompt('¿Cuánto efectivo hay en BOLÍVARES?'+(ta>0?' (tasa '+num(ta)+')':''),'0'));
+  if(isNaN(efB))return;
+  const real=efU+((ta>0)?efB/ta:0), dif=real-s;
+  S.caja.arq.push({f:new Date().toISOString().slice(0,10),por:ccYo(),libro:s,efU:efU,efB:efB,tasa:ta,real:real,dif:dif,ts:new Date().toISOString()});
+  save(); rendCaja();
+  alert('⚖ Arqueo registrado.\n\nLibro: '+num(s)+' USD\nContado: '+num(real)+' USD\nDiferencia: '+(dif>=0?'+':'')+num(dif)+' USD'+(Math.abs(dif)<0.5?'\n\n✔ Caja cuadrada.':(dif<0?'\n\n⚠ FALTANTE — revisa vales sin cargar.':'\n\n⚠ SOBRANTE — hay dinero no registrado.'))); }
+
+/* ---- filtros ---- */
+function ccFiltrada(){ ccInit();
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const q=g('ccQ').toLowerCase(), fe=g('ccFe'), fc=g('ccFc'), fu=g('ccFu'), r1=g('ccR1'), r2=g('ccR2');
+  return S.caja.mov.filter(x=>(!fe||x.est===fe)&&(!fc||x.cat===fc)&&(!fu||x.por===fu)&&(!r1||x.f>=r1)&&(!r2||x.f<=r2)
+    &&(!q||((x.d+' '+x.cat+' '+(x.ben||'')+' '+(x.rec||'')+' '+(x.por||'')).toLowerCase().indexOf(q)>=0)))
+    .sort((a,b)=>a.f===b.f?(a.ts<b.ts?1:-1):(a.f<b.f?1:-1)); }
+
+/* ---- gráfico: barras por categoría + evolución del saldo ---- */
+function ccGrafico(){ ccInit();
+  const ap=S.caja.mov.filter(x=>x.est==='A'); if(!ap.length&&!S.caja.fondo.length) return '';
+  const by={}; ap.forEach(x=>by[x.cat]=(by[x.cat]||0)+ccUSD(x));
+  const cats=Object.keys(by).sort((a,b)=>by[b]-by[a]).slice(0,8); const mx=Math.max(1,...cats.map(c=>by[c]));
+  const barras=cats.map((c,i)=>{const w=by[c]/mx*300;
+    return '<tr><td style="font-size:7.2pt;padding:2px 6px 2px 0;white-space:nowrap">'+c+'</td>'
+      +'<td style="width:320px;padding:2px 0"><div style="height:12px;width:'+w.toFixed(1)+'px;background:linear-gradient(90deg,#0A2A4D,#1650a7);border-radius:3px"></div></td>'
+      +'<td class="r" style="font-size:7.2pt;font-weight:800;padding:2px 0 2px 8px">'+num(by[c])+'</td></tr>';}).join('');
+  // evolución del saldo
+  const ev=[]; const todo=S.caja.fondo.map(x=>({f:x.f,v:(x.t==='DEVOLUCION'?-ccUSD(x):ccUSD(x))}))
+     .concat(ap.map(x=>({f:x.f,v:-ccUSD(x)}))).sort((a,b)=>a.f<b.f?-1:1);
+  let ac=0; todo.forEach(x=>{ac+=x.v;ev.push({f:x.f,s:ac});});
+  let linea='';
+  if(ev.length>1){ const W=560,H=90,mxs=Math.max(...ev.map(e=>e.s),1);
+    const pts=ev.map((e,i)=>[(i/(ev.length-1))*W, H-(e.s/mxs)*(H-14)-6]);
+    linea='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-width:640px">'
+      +'<polyline fill="none" stroke="#0f7a35" stroke-width="2" points="'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'"/>'
+      +pts.map(p=>'<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.4" fill="#0f7a35"/>').join('')
+      +'<text x="2" y="10" font-size="7.5" fill="#6d6e71" font-family="Helvetica">Evolución del saldo · máx '+num(mxs)+' USD</text></svg>'; }
+  return '<div class="g2" style="margin:10px 0">'
+    +'<div class="card"><h4 style="margin:0 0 6px">📊 En qué se va la caja (aprobado)</h4><table style="border:none">'+barras+'</table></div>'
+    +'<div class="card"><h4 style="margin:0 0 6px">📉 Saldo en el tiempo</h4>'+(linea||'<p style="font-size:7.6pt;color:#7d8ea3">Aún no hay suficientes movimientos.</p>')+'</div></div>'; }
+
+/* ---- render ---- */
+function rendCaja(){ ccInit();
+  const F=ccFondoTot(), G=ccGastTot(), P=ccPendTot(), Sa=F-G, pct=F>0?(Sa/F*100):0;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('ccKFondo',num(F)); set('ccKFondoN',S.caja.fondo.length+' movimiento'+(S.caja.fondo.length===1?'':'s'));
+  set('ccKGast',num(G)); set('ccKGastN',S.caja.mov.filter(x=>x.est==='A').length+' vales aprobados');
+  set('ccKPend',num(P)); set('ccKPendN',S.caja.mov.filter(x=>x.est==='P').length+' por aprobar');
+  set('ccKSaldo',num(Sa)); set('ccKSaldoPct',F>0?(pct.toFixed(0)+'% del fondo'):'sin fondo abierto');
+  set('ccSaldoTop','Saldo '+num(Sa)+' USD'+(S.caja.tasa>0?(' · '+num(Sa*S.caja.tasa)+' Bs'):''));
+  set('ccKTasa',S.caja.tasa>0?num(S.caja.tasa):'—'); set('ccKTasaF',S.caja.tasaF?('fijada '+S.caja.tasaF):'sin fijar');
+  // ritmo de consumo y autonomía
+  const ap=S.caja.mov.filter(x=>x.est==='A');
+  let ritmo=0,dias='—';
+  if(ap.length){ const fs=ap.map(x=>x.f).sort(); const d1=new Date(fs[0]+'T12:00:00'), d2=new Date(fs[fs.length-1]+'T12:00:00');
+    const n=Math.max(1,Math.round((d2-d1)/864e5)+1); ritmo=G/n; dias=ritmo>0?('alcanza '+Math.floor(Math.max(0,Sa)/ritmo)+' días más'):'alcanza —'; }
+  set('ccKRitmo',num(ritmo)); set('ccKDias',dias);
+  const kS=document.getElementById('ccKSaldo'); if(kS){kS.className='v '+(F<=0?'':(pct<15?'r':(pct<40?'':'b')));}
+  // alerta / semáforo
+  const al=document.getElementById('ccAlerta');
+  if(al){ let h='';
+    if(F<=0) h='<div class="callout"><b>Caja sin abrir.</b> El administrador debe registrar la <b>apertura del fondo</b> arriba para empezar a controlar los gastos en efectivo.</div>';
+    else if(Sa<0) h='<div class="callout red"><b>⚠ SOBREGIRO:</b> la caja está en '+num(Sa)+' USD. Hay gastos aprobados por encima del fondo entregado — solicita reposición inmediata.</div>';
+    else if(pct<15) h='<div class="callout red"><b>⛽ Reponer YA:</b> queda '+num(Sa)+' USD ('+pct.toFixed(0)+'% del fondo)'+(ritmo>0?' — al ritmo actual se agota en '+Math.floor(Sa/ritmo)+' días':'')+'. Usa 🖨 Relación para pedir la reposición.</div>';
+    else if(pct<40) h='<div class="callout"><b>Atención:</b> saldo en '+num(Sa)+' USD ('+pct.toFixed(0)+'%). Conviene preparar la solicitud de reposición.</div>';
+    else h='<div class="callout grn"><b>Caja sana:</b> '+num(Sa)+' USD disponibles ('+pct.toFixed(0)+'% del fondo)'+(ritmo>0?' · consumo '+num(ritmo)+' USD/día':'')+'.</div>';
+    if(P>0) h+='<div class="callout"><b>⏳ '+S.caja.mov.filter(x=>x.est==='P').length+' vale(s) por '+num(P)+' USD esperando aprobación'+(ccEsAdmin()?' — apruébalos o recházalos en la tabla.':' del administrador.')+'</b></div>';
+    al.innerHTML=h; }
+  // selects de filtro
+  const cats=[...new Set(S.caja.mov.map(x=>x.cat))].sort(), usr=[...new Set(S.caja.mov.map(x=>x.por))].sort();
+  const fill=(id,arr,lbl)=>{const e=document.getElementById(id);if(!e)return;const v=e.value;
+    e.innerHTML='<option value="">'+lbl+'</option>'+arr.map(x=>'<option>'+x+'</option>').join(''); e.value=v;};
+  fill('ccFc',cats,'— todas las categorías —'); fill('ccFu',usr,'— todos los responsables —');
+  // selector de partidas
+  const pp=document.getElementById('ccPP');
+  if(pp&&pp.options.length<2&&typeof P48!=='undefined'){ pp.innerHTML='<option value="">— partida —</option>'
+      +P48.map(p=>'<option value="'+(typeof codP==='function'?codP(p):('P'+p.n))+'">'+(typeof codP==='function'?codP(p):('P'+p.n))+' · '+p.t.slice(0,42)+'</option>').join(''); }
+  // fechas por defecto
+  const hoy=new Date().toISOString().slice(0,10);
+  ['ccF','ccRF'].forEach(i=>{const e=document.getElementById(i);if(e&&!e.value)e.value=hoy;});
+  const ta=document.getElementById('ccTasa'); if(ta&&!ta.value&&S.caja.tasa>0)ta.value=S.caja.tasa;
+  // chips resumen
+  const ch=document.getElementById('ccChips');
+  if(ch){ const lst=ccFiltrada(), tU=lst.filter(x=>x.est==='A').reduce((a,x)=>a+ccUSD(x),0);
+    ch.innerHTML='<span class="chip">'+lst.length+' registros en pantalla</span>'
+      +'<span class="chip" style="background:#0f7a35;color:#fff">Aprobado en filtro: <b>'+num(tU)+' USD</b></span>'
+      +(S.caja.tasa>0?'<span class="chip">≈ '+num(tU*S.caja.tasa)+' Bs</span>':'')
+      +'<span class="chip">Fondo '+num(F)+' · Gastado '+num(G)+' · Saldo <b>'+num(Sa)+'</b></span>'; }
+  // gráfico
+  const gr=document.getElementById('ccGraf'); if(gr)gr.innerHTML=ccGrafico();
+  // tabla de gastos
+  const tb=document.getElementById('ccBody');
+  if(tb){ const lst=ccFiltrada(); const adm=ccEsAdmin(), yo=ccYo();
+    tb.innerHTML = lst.length? lst.map(x=>{
+      const est = x.est==='A'?'<span class="chip" style="background:#0f7a35;color:#fff">✔ APROBADO</span><br><span style="font-size:6.6pt;color:#7d8ea3">'+(x.apr||'')+' '+(x.fapr||'')+'</span>'
+                 : x.est==='R'?'<span class="chip" style="background:#b03a2e;color:#fff">✖ RECHAZADO</span><br><span style="font-size:6.6pt;color:#7d8ea3">'+(x.mot||'')+'</span>'
+                 : '<span class="chip" style="background:#B26A00;color:#fff">⏳ PENDIENTE</span>';
+      const acc = (x.est==='P'&&adm) ? '<button class="btn sm g" onclick="ccAprob(\''+x.id+'\',true)">✔</button> <button class="btn sm r" onclick="ccAprob(\''+x.id+'\',false)">✖</button> ' : '';
+      const vale = '<button class="btn sm s" onclick="ccVale(\''+x.id+'\')">🖨</button> ';
+      const del = (adm||(x.por===yo&&x.est==='P')) ? '<button class="btn sm r" onclick="ccDel(\''+x.id+'\')">🗑</button>' : '';
+      return '<tr'+(x.est==='R'?' style="opacity:.55"':'')+'><td>'+x.f+'</td><td>'+x.cat+'</td><td>'+x.d+(x.pp?'':'')+'</td><td>'+(x.ben||'—')+'</td>'
+        +'<td>'+(x.pp||'—')+'</td><td>'+(x.rec||'—')+'</td><td class="r">'+(ccBS(x)?num(ccBS(x)):'—')+'</td><td class="r"><b>'+num(ccUSD(x))+'</b></td>'
+        +'<td style="font-size:7pt">'+(x.por||'—')+'<br><span style="color:#7d8ea3">'+String(x.ts||'').slice(11,16)+'</span></td><td>'+est+'</td><td>'+acc+vale+del+'</td></tr>';
+    }).join('') : '<tr><td colspan="11" style="text-align:center;color:#7d8ea3">Sin gastos registrados con estos filtros.</td></tr>'; }
+  // tabla de fondo
+  const fb=document.getElementById('ccFondoBody');
+  if(fb){ fb.innerHTML = S.caja.fondo.length? S.caja.fondo.map((x,i)=>'<tr><td>'+x.f+'</td><td>'+({APERTURA:'🟢 Apertura',REPOSICION:'🔁 Reposición',DEVOLUCION:'↩ Devolución'})[x.t]+'</td><td>'+(x.q||'—')+'</td><td>'+(x.ref||'—')+'</td><td class="r"><b>'+(x.t==='DEVOLUCION'?'−':'')+num(ccUSD(x))+'</b></td><td>'+(ccEsAdmin()?'<button class="btn sm r" onclick="ccDelFondo('+i+')">🗑</button>':'')+'</td></tr>').join('')
+      : '<tr><td colspan="6" style="text-align:center;color:#7d8ea3">La caja aún no ha sido abierta.</td></tr>'; }
+  // tabla de arqueos
+  const ab=document.getElementById('ccArqBody');
+  if(ab){ ab.innerHTML = S.caja.arq.length? S.caja.arq.slice().reverse().map(a=>'<tr><td>'+a.f+'</td><td>'+a.por+'</td><td class="r">'+num(a.libro)+'</td><td class="r">'+num(a.real)+'</td><td class="r" style="color:'+(Math.abs(a.dif)<0.5?'#0f7a35':'#b03a2e')+';font-weight:800">'+(a.dif>=0?'+':'')+num(a.dif)+'</td></tr>').join('')
+      : '<tr><td colspan="5" style="text-align:center;color:#7d8ea3">Sin arqueos registrados.</td></tr>'; }
+  // aviso de pendientes en la pestaña
+  const btn=document.querySelector('.tb[data-t="'+CCTAB+'"]');
+  if(btn){ const np=S.caja.mov.filter(x=>x.est==='P').length; btn.textContent='🧾 CAJA CHICA'+(np?' ('+np+')':''); btn.style.background=np?'#B26A00':''; btn.style.color=np?'#fff':''; }
+}
+
+/* ---- vale imprimible por gasto ---- */
+function ccVale(id){ ccInit(); const x=S.caja.mov.find(m=>m.id===id); if(!x)return;
+  const nc='ADD-CCH-'+x.f.replaceAll('-','')+'-'+String(S.caja.mov.filter(m=>m.f===x.f).findIndex(m=>m.id===id)+1).padStart(2,'0');
+  const body='<table>'
+   +'<tr><td class="lbl">FECHA DEL GASTO:</td><td><b>'+x.f+'</b></td></tr>'
+   +'<tr><td class="lbl">CONCEPTO:</td><td><b>'+x.d+'</b></td></tr>'
+   +'<tr><td class="lbl">CATEGORÍA:</td><td>'+x.cat+'</td></tr>'
+   +'<tr><td class="lbl">BENEFICIARIO:</td><td>'+(x.ben||'—')+'</td></tr>'
+   +'<tr><td class="lbl">FACTURA / RECIBO:</td><td>'+(x.rec||'sin soporte')+'</td></tr>'
+   +'<tr><td class="lbl">PARTIDA IMPUTADA:</td><td>'+(x.pp||'gasto general de obra')+'</td></tr>'
+   +'<tr><td class="lbl">MONTO:</td><td><b>'+(ccBS(x)?num(ccBS(x))+' Bs':'')+(ccBS(x)&&ccUSD(x)?' · ':'')+num(ccUSD(x))+' USD</b>'+(x.tasa>0?' <span style="color:#6d6e71">(tasa '+num(x.tasa)+' Bs/USD)</span>':'')+'</td></tr>'
+   +'<tr><td class="lbl">SON:</td><td>'+numALetras(ccUSD(x))+' DÓLARES AMERICANOS</td></tr>'
+   +'<tr><td class="lbl">CARGADO POR:</td><td>'+(x.por||'—')+' · '+String(x.ts||'').slice(0,16).replace('T',' ')+'</td></tr>'
+   +'<tr><td class="lbl">ESTADO:</td><td><b>'+({P:'PENDIENTE POR APROBAR',A:'APROBADO',R:'RECHAZADO'})[x.est]+'</b>'+(x.apr?(' · '+x.apr+' '+(x.fapr||'')):'')+(x.mot?(' · motivo: '+x.mot):'')+'</td></tr>'
+   +'<tr><td class="lbl">SALDO DE CAJA:</td><td>'+num(ccSaldo())+' USD disponibles tras los gastos aprobados</td></tr>'
+   +'</table>';
+  docWin('VALE DE CAJA CHICA','Gasto en efectivo de obra · '+x.f+' · '+num(ccUSD(x))+' USD',body,true,nc); }
+
+/* ---- relación / solicitud de reposición ---- */
+function ccRelacion(){ ccInit(); const lst=ccFiltrada().filter(x=>x.est==='A').sort((a,b)=>a.f<b.f?-1:1);
+  if(!lst.length){alert('No hay gastos aprobados en el filtro actual.');return;}
+  const tot=lst.reduce((a,x)=>a+ccUSD(x),0), F=ccFondoTot(), G=ccGastTot(), Sa=F-G;
+  const hoyISO=new Date().toISOString().slice(0,10);
+  const nc='ADD-CCH-REL-'+hoyISO.replaceAll('-','');
+  const by={}; lst.forEach(x=>by[x.cat]=(by[x.cat]||0)+ccUSD(x));
+  let acc=0;
+  const filas=lst.map((x,k)=>{acc+=ccUSD(x);
+    return '<tr><td class="c">'+(k+1)+'</td><td>'+x.f+'</td><td>'+x.cat+'</td><td>'+x.d+'</td><td>'+(x.ben||'—')+'</td><td>'+(x.rec||'—')+'</td><td>'+(x.pp||'—')+'</td><td class="r">'+(ccBS(x)?num(ccBS(x)):'—')+'</td><td class="r">'+num(ccUSD(x))+'</td><td class="r"><b>'+num(acc)+'</b></td></tr>';}).join('');
+  const resum=Object.keys(by).sort((a,b)=>by[b]-by[a]).map(c=>'<tr><td>'+c+'</td><td class="r">'+num(by[c])+'</td><td class="r">'+(by[c]/tot*100).toFixed(1)+'%</td></tr>').join('');
+  const body='<table>'
+   +'<tr><td class="lbl">PARA:</td><td><b>Gerencia de Administración — SUMINISTROS ADDISON, C.A.</b></td></tr>'
+   +'<tr><td class="lbl">DE:</td><td>Gerencia de Planificación de Proyectos — Puerto Ordaz</td></tr>'
+   +'<tr><td class="lbl">ASUNTO:</td><td><b>Relación de caja chica y solicitud de reposición</b></td></tr>'
+   +'<tr><td class="lbl">RESPONSABLE DE CAJA:</td><td>'+((S.caja.fondo.slice(-1)[0]||{}).q||'—')+'</td></tr>'
+   +'</table>'
+   +'<table style="margin-top:8px"><tr class="band"><td colspan="4">ESTADO DE LA CAJA</td></tr>'
+   +'<tr><th>Fondo entregado</th><th>Gastado aprobado</th><th>Saldo disponible</th><th>Reposición solicitada</th></tr>'
+   +'<tr><td class="r">'+num(F)+'</td><td class="r">'+num(G)+'</td><td class="r"><b>'+num(Sa)+'</b></td><td class="r"><b>'+num(Math.max(0,F-Sa))+' USD</b></td></tr></table>'
+   +'<table style="margin-top:8px"><tr class="band"><td colspan="10">DETALLE DE GASTOS APROBADOS ('+lst.length+')</td></tr>'
+   +'<tr><th>#</th><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Beneficiario</th><th>Recibo</th><th>Partida</th><th class="r">Bs</th><th class="r">USD</th><th class="r">Acum.</th></tr>'
+   +filas+'<tr><td colspan="8" class="r"><b>TOTAL</b></td><td class="r"><b>'+num(tot)+'</b></td><td></td></tr></table>'
+   +'<table style="margin-top:8px"><tr class="band"><td colspan="3">RESUMEN POR CATEGORÍA</td></tr><tr><th>Categoría</th><th class="r">USD</th><th class="r">%</th></tr>'+resum+'</table>'
+   +'<p style="margin-top:8px"><b>SON:</b> '+numALetras(tot)+' DÓLARES AMERICANOS'+(S.caja.tasa>0?(' (equivalentes a '+num(tot*S.caja.tasa)+' Bs a la tasa de '+num(S.caja.tasa)+' Bs/USD)'):'')+'.</p>';
+  docWin('RELACIÓN DE CAJA CHICA Y SOLICITUD DE REPOSICIÓN',lst.length+' gastos · '+num(tot)+' USD · saldo '+num(Sa)+' USD',body,true,nc); }
+
+/* ---- exportación ---- */
+function ccCSV(){ ccInit(); let c='Fecha;Categoria;Concepto;Beneficiario;Recibo;Partida;Moneda;Monto;Tasa;Bs;USD;Estado;Cargo;Aprobo;FechaAprob\n';
+  ccFiltrada().forEach(x=>{c+=[x.f,x.cat,'"'+x.d+'"','"'+(x.ben||'')+'"',x.rec||'',x.pp||'',x.mon,x.m,x.tasa||'',ccBS(x).toFixed(2),ccUSD(x).toFixed(2),({P:'PENDIENTE',A:'APROBADO',R:'RECHAZADO'})[x.est],x.por,x.apr||'',x.fapr||''].join(';')+'\n';});
+  dl(c,'caja_chica.csv'); }
+
 function tab(b){document.querySelectorAll('.tb[data-t]').forEach(x=>x.classList.toggle('on',x===b));
-['t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12','t13','t14'].forEach(t=>{const el=document.getElementById(t);
-if(t==='t4'){el.style.display=(b.dataset.t===t)?'':'none';}else el.classList.toggle('hide',b.dataset.t!==t);});if(b.dataset.t==='t13')rendGastos();}
+['t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12','t13','t14','t15'].forEach(t=>{const el=document.getElementById(t);
+if(t==='t4'){el.style.display=(b.dataset.t===t)?'':'none';}else el.classList.toggle('hide',b.dataset.t!==t);});if(b.dataset.t==='t13')rendGastos(); if(b.dataset.t==='t15')rendCaja();}
 // ── HORIZONTE DINÁMICO: el plazo sale de la brecha real de las partidas ──
 const DUR=Math.max(PLAN.length,Math.max.apply(null,P48.map(function(p){return p.b;})));
 function planAt(d){ if(d<1)return 0; if(d>=DUR)return 100;
@@ -1540,7 +1868,7 @@ save();initAll();alert('Respaldo importado ✔');}catch(x){alert('Archivo invál
 (function(){const dh=hoyDia();if(dh>=1&&dh<=90){const x=210+(dh-1)*((1000-210-20)/90);const l=document.getElementById('hoyline'),t=document.getElementById('hoytxt');
 if(l){l.setAttribute('x1',x);l.setAttribute('x2',x);t.setAttribute('x',x);t.textContent='HOY';}}})();
 // init
-function initAll(){rendP();rendProc();rendM();rendPer();rendSv();rendProv();rendX();rendReps();rendTram();rendTi();curva();loadRates();rendProv7();kpis();
+function initAll(){try{rendCaja();}catch(e){}rendP();rendProc();rendM();rendPer();rendSv();rendProv();rendX();rendReps();rendTram();rendTi();curva();loadRates();rendProv7();kpis();
 document.getElementById('trF').value=new Date().toISOString().slice(0,10);
 document.getElementById('tiPick').innerHTML='<option value="">— procura/maquinaria —</option>'+
 '<optgroup label="Maquinaria">'+allMaq().map(m=>`<option value="MQ:${m.id}">${m.n}</option>`).join('')+'</optgroup>'+

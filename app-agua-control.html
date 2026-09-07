@@ -101,7 +101,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--lb)}
   <button class="tb" data-t="t11" onclick="tab(this)">📨 TRÁMITES / GUÍAS</button>
   <button class="tb" data-t="t12" onclick="tab(this)">💰 ESTIMADOR</button>
   <button class="tb" data-t="t13" onclick="tab(this)">💸 GASTOS</button>
-  <button class="tb s" onclick="expJSON()">💾 Respaldo</button>
+  <button class="tb" data-t="t14" onclick="tab(this)">🧾 CAJA CHICA</button>
+<button class="tb s" onclick="expJSON()">💾 Respaldo</button>
   <button class="tb s" onclick="document.getElementById('impfile').click()">📂 Importar</button>
   <button class="tb r" id="btnReset" style="background:#b03a2e;display:none" onclick="resetApp()">🧹 Reiniciar de fábrica</button>
   <input type="file" id="impfile" class="hide" accept=".json" onchange="impJSON(this)">
@@ -258,7 +259,82 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <h3>Proveedores — registro, bitácora y solicitudes de pago (ADD-SP)<span class="right" id="prvTot"></span></h3>
 <div id="uniProvBar" style="display:none;background:linear-gradient(90deg,#0A2A4D,#12457c);border-radius:9px;padding:10px 14px;margin:0 0 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
 <span style="font-size:18pt">🏪</span><span style="color:#CFE0F2;font-size:8pt;line-height:1.45;flex:1"><b style="color:#FFC400">¿Buscas a quién comprarle?</b> El <b style="color:#fff">UNIVERSO DE PROVEEDORES</b> tiene 500+ suplidores verificados en los 24 estados (70 en Pto. Ordaz–San Félix) por rubro, con WhatsApp directo.</span>
-<a href="proveedores.html" style="background:#FFC400;color:#0A2A4D;font-weight:900;font-size:8pt;padding:8px 14px;border-radius:8px;text-decoration:none">ABRIR UNIVERSO →</a><div style="flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;border-top:1px solid rgba(255,255,255,.15);padding-top:8px"><span style="color:#FFC400;font-size:7.4pt;font-weight:900">🔎 BUSCAR PROVEEDOR POR PRODUCTO:</span><input id="upQ" placeholder="vigas, cemento, electrodos, torno, grúa, cable…" style="flex:1;min-width:180px;padding:7px 10px;border:none;border-radius:7px;font-size:8pt" onkeydown="if(event.key==='Enter')buscarProv()"><select id="upE" style="padding:7px 9px;border:none;border-radius:7px;font-size:8pt"><option value="">Todo el país</option><option value="Bolívar">Bolívar</option><option value="Distrito Capital">Distrito Capital</option><option value="Miranda">Miranda</option><option value="Carabobo">Carabobo</option><option value="Anzoátegui">Anzoátegui</option><option value="Zulia">Zulia</option><option value="Lara">Lara</option><option value="Aragua">Aragua</option><option value="Monagas">Monagas</option></select><button onclick="buscarProv()" style="background:#0f7a35;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-weight:900;font-size:8pt;cursor:pointer">BUSCAR</button><button onclick="buscarProvItem()" style="background:#1650a7;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-weight:900;font-size:8pt;cursor:pointer" title="Toma un material del registro de procura y busca quién lo vende">📦 DESDE UN MATERIAL DEL PROYECTO</button></div></div><script>window.buscarProv=function(){var q=document.getElementById('upQ').value.trim(),e=document.getElementById('upE').value;window.open('proveedores.html?q='+encodeURIComponent(q)+(e?'&e='+encodeURIComponent(e):''),'_blank');};window.buscarProvItem=function(){var lista=(typeof ITEMS!=='undefined'?ITEMS:[]).map(function(i,k){return (k+1)+') '+i.d.slice(0,60);}).join('\n');var s=prompt('Escribe el N° del material del registro de procura para buscar quién lo vende:\n\n'+lista.slice(0,1500)+'\n…');if(!s)return; var it=ITEMS[parseInt(s)-1]; if(!it){alert('N° no válido');return;}var clave=it.d.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g,' ').split(/\s+/).filter(function(w){return w.length>3;}).slice(0,2).join(' ');var e=document.getElementById('upE').value;window.open('proveedores.html?q='+encodeURIComponent(clave)+(e?'&e='+encodeURIComponent(e):''),'_blank');};</script>
+<a href="proveedores.html" style="background:#FFC400;color:#0A2A4D;font-weight:900;font-size:8pt;padding:8px 14px;border-radius:8px;text-decoration:none">ABRIR UNIVERSO →</a><div style="flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;border-top:1px solid rgba(255,255,255,.15);padding-top:8px"><span style="color:#FFC400;font-size:7.4pt;font-weight:900">🔎 BUSCAR PROVEEDOR POR PRODUCTO:</span><input id="upQ" placeholder="vigas, cemento, electrodos, torno, grúa, cable…" style="flex:1;min-width:180px;padding:7px 10px;border:none;border-radius:7px;font-size:8pt" onkeydown="if(event.key==='Enter')buscarProv()"><select id="upE" style="padding:7px 9px;border:none;border-radius:7px;font-size:8pt"><option value="">Todo el país</option><option value="Bolívar">Bolívar</option><option value="Distrito Capital">Distrito Capital</option><option value="Miranda">Miranda</option><option value="Carabobo">Carabobo</option><option value="Anzoátegui">Anzoátegui</option><option value="Zulia">Zulia</option><option value="Lara">Lara</option><option value="Aragua">Aragua</option><option value="Monagas">Monagas</option></select><button onclick="buscarProv()" style="background:#0f7a35;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-weight:900;font-size:8pt;cursor:pointer">BUSCAR</button><button onclick="buscarProvItem()" style="background:#1650a7;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-weight:900;font-size:8pt;cursor:pointer" title="Toma un material del registro de procura y busca quién lo vende">📦 DESDE UN MATERIAL DEL PROYECTO</button></div><!-- ==== t14 CAJA CHICA ==== -->
+<div class="page hide" id="t14">
+<h3>Caja chica — fondo fijo, vales y arqueo<span class="right" id="ccSaldoTop">—</span></h3>
+<div class="lead">Aquí se registra <b>cada bolívar y cada dólar que sale de la caja de la obra</b>. Funciona como fondo fijo: se abre con un monto, cada gasto lo descuenta y cuando baja del mínimo se pide <b>reposición</b>. Cualquier usuario del proyecto puede cargar su gasto (queda <b>PENDIENTE</b>); el administrador <b>aprueba o rechaza</b>, y solo lo aprobado descuenta saldo y pasa al módulo GASTOS. Todos ven el registro completo: quién cargó, cuándo, a qué partida y con qué recibo.</div>
+
+<div class="kpi" style="margin:10px 0">
+  <div class="kb"><div class="v b" id="ccKFondo">0,00</div><div class="l">Fondo entregado<br><span id="ccKFondoN">0 movimientos</span></div></div>
+  <div class="kb"><div class="v" id="ccKGast">0,00</div><div class="l">Gastado aprobado<br><span id="ccKGastN">0 vales</span></div></div>
+  <div class="kb"><div class="v" id="ccKPend">0,00</div><div class="l">Pendiente por aprobar<br><span id="ccKPendN">0 vales</span></div></div>
+  <div class="kb"><div class="v b" id="ccKSaldo">0,00</div><div class="l">SALDO DISPONIBLE<br><span id="ccKSaldoPct">—</span></div></div>
+  <div class="kb"><div class="v" id="ccKRitmo">0,00</div><div class="l">Consumo diario<br><span id="ccKDias">alcanza —</span></div></div>
+  <div class="kb"><div class="v" id="ccKTasa">—</div><div class="l">Tasa Bs/USD<br><span id="ccKTasaF">sin fijar</span></div></div>
+</div>
+
+<div id="ccAlerta"></div>
+
+<div class="frm" style="border-left:5px solid #0f7a35">
+  <b>💵 Fondo y reposiciones:</b>
+  <input type="date" id="ccRF">
+  <select id="ccRT"><option value="APERTURA">Apertura del fondo</option><option value="REPOSICION">Reposición</option><option value="DEVOLUCION">Devolución a administración</option></select>
+  <input type="number" id="ccRM" placeholder="Monto" style="width:100px" step="0.01">
+  <select id="ccRMon"><option value="USD">USD</option><option value="BS">Bs</option></select>
+  <input id="ccRQ" placeholder="Entregado a (responsable de caja)" style="width:190px">
+  <input id="ccRRef" placeholder="Ref. transferencia / recibo" style="width:150px">
+  <button class="btn g" onclick="ccAddFondo()">Registrar entrega</button>
+  <span style="font-size:7.2pt;color:#7d8ea3">Solo administradores.</span>
+</div>
+
+<div class="frm" style="border-left:5px solid #D9A11B">
+  <b>🧾 + Gasto de caja:</b>
+  <input type="date" id="ccF">
+  <select id="ccCat">
+    <option>ALIMENTACIÓN</option><option>TRANSPORTE / TAXI</option><option>COMBUSTIBLE</option><option>FERRETERÍA MENOR</option>
+    <option>HERRAMIENTA MENOR</option><option>EPP / SEGURIDAD</option><option>CONSUMIBLES DE SOLDADURA</option><option>PAPELERÍA / COPIAS</option>
+    <option>ASEO Y LIMPIEZA</option><option>BOTIQUÍN / MEDICINAS</option><option>FLETES Y ENCOMIENDAS</option><option>VIÁTICOS</option>
+    <option>TRÁMITES / PERMISOS</option><option>OTROS</option>
+  </select>
+  <input id="ccD" placeholder="¿En qué se gastó?…" style="min-width:210px;flex:1">
+  <input type="number" id="ccM" placeholder="Monto" style="width:95px" step="0.01">
+  <select id="ccMon" onchange="ccPrev()"><option value="BS">Bs</option><option value="USD">USD</option></select>
+  <input type="number" id="ccTasa" placeholder="Tasa Bs/USD" style="width:105px" step="0.01" oninput="ccPrev()">
+  <input id="ccBen" placeholder="Beneficiario / comercio" style="width:150px">
+  <input id="ccRec" placeholder="N° factura o recibo" style="width:120px">
+  <select id="ccPP"><option value="">— partida —</option></select>
+  <button class="btn" onclick="ccAdd()">Registrar gasto</button>
+  <span id="ccPrevTxt" style="font-size:7.4pt;color:#0A2A4D;font-weight:800"></span>
+</div>
+
+<div class="frm">
+  <input id="ccQ" placeholder="Buscar concepto, beneficiario, recibo…" style="min-width:180px" oninput="rendCaja()">
+  <select id="ccFe" onchange="rendCaja()"><option value="">— todos los estados —</option><option value="P">⏳ Pendientes</option><option value="A">✔ Aprobados</option><option value="R">✖ Rechazados</option></select>
+  <select id="ccFc" onchange="rendCaja()"><option value="">— todas las categorías —</option></select>
+  <select id="ccFu" onchange="rendCaja()"><option value="">— todos los responsables —</option></select>
+  <b style="font-size:7.4pt">Rango:</b>
+  <input type="date" id="ccR1" onchange="rendCaja()"><input type="date" id="ccR2" onchange="rendCaja()">
+  <button class="btn sm g" onclick="ccRelacion()">🖨 Relación / solicitud de reposición (ADD-CCH)</button>
+  <button class="btn sm s" onclick="ccArqueo()">⚖ Arqueo de caja</button>
+  <button class="btn sm s" onclick="ccCSV()">⇩ CSV</button>
+</div>
+
+<div class="chips" id="ccChips"></div>
+<div id="ccGraf"></div>
+
+<table><thead><tr>
+<th style="width:74px">Fecha</th><th style="width:118px">Categoría</th><th>Concepto</th><th style="width:120px">Beneficiario</th>
+<th style="width:70px">Partida</th><th style="width:80px">Recibo</th><th class="r" style="width:92px">Bs</th><th class="r" style="width:82px">USD</th>
+<th style="width:96px">Cargó</th><th style="width:118px">Estado</th><th style="width:120px"></th>
+</tr></thead><tbody id="ccBody"></tbody></table>
+
+<div class="g2" style="margin-top:12px">
+ <div class="card"><h4 style="margin:0 0 6px">📥 Movimientos del fondo</h4><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Entregado a</th><th>Ref.</th><th class="r">USD</th><th></th></tr></thead><tbody id="ccFondoBody"></tbody></table></div>
+ <div class="card"><h4 style="margin:0 0 6px">⚖ Arqueos realizados</h4><table><thead><tr><th>Fecha</th><th>Quién</th><th class="r">Saldo libro</th><th class="r">Efectivo contado</th><th class="r">Diferencia</th></tr></thead><tbody id="ccArqBody"></tbody></table></div>
+</div>
+</div>
+
+</div><script>window.buscarProv=function(){var q=document.getElementById('upQ').value.trim(),e=document.getElementById('upE').value;window.open('proveedores.html?q='+encodeURIComponent(q)+(e?'&e='+encodeURIComponent(e):''),'_blank');};window.buscarProvItem=function(){var lista=(typeof ITEMS!=='undefined'?ITEMS:[]).map(function(i,k){return (k+1)+') '+i.d.slice(0,60);}).join('\n');var s=prompt('Escribe el N° del material del registro de procura para buscar quién lo vende:\n\n'+lista.slice(0,1500)+'\n…');if(!s)return; var it=ITEMS[parseInt(s)-1]; if(!it){alert('N° no válido');return;}var clave=it.d.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g,' ').split(/\s+/).filter(function(w){return w.length>3;}).slice(0,2).join(' ');var e=document.getElementById('upE').value;window.open('proveedores.html?q='+encodeURIComponent(clave)+(e?'&e='+encodeURIComponent(e):''),'_blank');};</script>
 <script>try{var _up=JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');if(!(_up.rol==='ADMIN'||(_up.perms&&_up.perms.prv))){document.getElementById('uniProvBar').style.display='none';}else{document.getElementById('uniProvBar').style.display='flex';}}catch(e){}</script>
 <div class="callout" style="border-left:4px solid #014695"><b>🔎 Buscador de proveedores — estudio de campo Venezuela (ago-2026):</b> empresas capaces de suministrar los materiales de la procura. Verde = ya les hemos comprado o cotizado (según tus documentos); azul = mayoristas nacionales; ámbar = minoristas de Puerto Ordaz. Busca por texto, por rubro o directamente <b>por renglón de la procura</b> (detecta el rubro solo). Con «➕ Registrar» pasa al registro formal con nota en bitácora.</div>
 <div class="frm">
@@ -464,7 +540,7 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <div class="lead">Registra aquí <b>cada gasto en el momento en que ocurre</b> (o impórtalos con un clic desde Procura comprada, Servicios y Extras). El cuadro te da totales por categoría, el <b>⚖ Plan vs Real</b> compara lo gastado contra lo que la planificación decía que ibas a gastar en ese rango (mismo motor del ESTIMADOR, ajustado por avance), y <b>🖨 ADD-GTO</b> emite la relación formal de gastos con acumulado y monto en letras.</div>
 <div class="frm"><b>+ Gasto:</b>
 <input type="date" id="gF">
-<select id="gCat"><option>PROCURA</option><option>NÓMINA</option><option>SERVICIOS</option><option>MAQUINARIA</option><option>EXTRAS</option><option>TRÁMITES/GUÍAS</option><option>OTROS</option></select>
+<select id="gCat"><option>PROCURA</option><option>CAJA CHICA</option><option>NÓMINA</option><option>SERVICIOS</option><option>MAQUINARIA</option><option>EXTRAS</option><option>TRÁMITES/GUÍAS</option><option>OTROS</option></select>
 <input id="gD" placeholder="Descripción del gasto…" style="min-width:210px;flex:1">
 <input type="number" id="gM" placeholder="Monto USD" style="width:90px" step="0.01">
 <input id="gProv" placeholder="Proveedor/beneficiario" style="width:150px">
@@ -475,7 +551,7 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 </div>
 <div class="frm">
 <input id="gQ" placeholder="Buscar…" style="min-width:150px" oninput="rendGastos()">
-<select id="gFc" onchange="rendGastos()"><option value="">— todas las categorías —</option><option>PROCURA</option><option>NÓMINA</option><option>SERVICIOS</option><option>MAQUINARIA</option><option>EXTRAS</option><option>TRÁMITES/GUÍAS</option><option>OTROS</option></select>
+<select id="gFc" onchange="rendGastos()"><option value="">— todas las categorías —</option><option>PROCURA</option><option>CAJA CHICA</option><option>NÓMINA</option><option>SERVICIOS</option><option>MAQUINARIA</option><option>EXTRAS</option><option>TRÁMITES/GUÍAS</option><option>OTROS</option></select>
 <b style="font-size:7.4pt">Rango:</b> <input type="date" id="gR1" onchange="rendGastos()"> <input type="date" id="gR2" onchange="rendGastos()">
 <button class="btn sm s" onclick="impGastos()">⇩ Importar desde módulos</button>
 <button class="btn sm" onclick="pvrRun()">⚖ Plan vs Real del rango</button>
@@ -494,14 +570,266 @@ const CREWTX=n=>n<=3?"Ing. Residente + Ing. Civil":n<=9?"Cuadrilla civil: Maestr
 const EQP=n=>n<=3?"Topografía y oficina técnica":n<=9?"Rana, vibrador, Pitman":n==11?"GRÚA 30t, andamios 200 m³, 2 soldadoras":n==12?"Grúa, taladro magnético":n==13?"Polipasto 3 t":n<=18?"SAE 250/400, roscadora, oxicorte":n<=20?"Grúa, andamios 150 m³, torres":n<=22?"Airless, andamios 150 m³":n<=32?"Roscadora, SAE 250":n<=40?"Herr. certificada, megger":"Instrumentos de calibración";
 const num=v=>v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const S={proc:{},reps:[],extras:[],maq:{},maqx:[],pers:[],prov:[],serv:[]};
-try{Object.assign(S,JSON.parse(localStorage.getItem('agua_ctrl1')||'{}'));}catch(e){}
+try{Object.assign(S,JSON.parse(localStorage.getItem('agua_ctrl1')||'{}'));
+if(!S.caja)S.caja={tasa:0,tasaF:'',fondo:[],mov:[],arq:[]};}catch(e){}
 ['proc','maq'].forEach(k=>S[k]=S[k]||{});['reps','extras','maqx','pers','prov','serv','tram','gastos'].forEach(k=>S[k]=S[k]||[]);
 function save(){try{localStorage.setItem('agua_ctrl1',JSON.stringify(S));}catch(e){console.warn('localStorage lleno — se sincroniza sólo en la nube');}kpis();}
 function resetApp(){var _ss={};try{_ss=JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');}catch(e){}if((_ss.u||'')!=='admin'){alert('⛔ Solo la cuenta administradora principal (admin) puede reiniciar de fábrica.');return;}if(confirm('⚠ Esto BORRA todos los datos cargados en esta aplicación (procura, reportes, personal, trámites, fotos…) y la deja como nueva.\n\n¿Deseas continuar? Exporta un respaldo antes si quieres conservar algo.')){
 localStorage.removeItem('agua_ctrl1');localStorage.removeItem('agua_ctrl0');localStorage.removeItem('agua_ctrl_x');location.reload();}}
+const CCTAB='t14';
+/* ================= CAJA CHICA — fondo fijo, vales, aprobación y arqueo (v105) ================= */
+function ccSess(){try{return JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}');}catch(e){return {};}}
+function ccYo(){const s=ccSess();return (s.u||'?');}
+function ccEsAdmin(){const s=ccSess();return s.rol==='ADMIN';}
+function ccPuedeEditar(){const s=ccSess();return s.rol==='ADMIN'||!!(s.perms&&s.perms.edit);}
+function ccInit(){ if(!S.caja) S.caja={tasa:0,tasaF:'',fondo:[],mov:[],arq:[]};
+  ['fondo','mov','arq'].forEach(k=>{if(!Array.isArray(S.caja[k]))S.caja[k]=[];});
+  if(typeof S.caja.tasa!=='number')S.caja.tasa=0; }
+function ccUSD(x){ return x.mon==='USD' ? (+x.m||0) : ((+x.tasa>0)?(+x.m||0)/(+x.tasa):0); }
+function ccBS(x){ return x.mon==='BS' ? (+x.m||0) : ((+x.tasa>0)?(+x.m||0)*(+x.tasa):0); }
+function ccFondoTot(){ ccInit(); return S.caja.fondo.reduce((a,x)=>a+(x.t==='DEVOLUCION'?-ccUSD(x):ccUSD(x)),0); }
+function ccGastTot(){ ccInit(); return S.caja.mov.filter(x=>x.est==='A').reduce((a,x)=>a+ccUSD(x),0); }
+function ccPendTot(){ ccInit(); return S.caja.mov.filter(x=>x.est==='P').reduce((a,x)=>a+ccUSD(x),0); }
+function ccSaldo(){ return ccFondoTot()-ccGastTot(); }
+function ccTasaHoy(){ ccInit(); const t=parseFloat((document.getElementById('ccTasa')||{}).value)||0; return t>0?t:(S.caja.tasa||0); }
+
+/* ---- previsualización del monto mientras se escribe ---- */
+function ccPrev(){ const el=document.getElementById('ccPrevTxt'); if(!el)return;
+  const m=parseFloat((document.getElementById('ccM')||{}).value)||0, mon=(document.getElementById('ccMon')||{}).value||'BS', ta=ccTasaHoy();
+  if(!m){el.textContent='';return;}
+  if(mon==='USD'){ el.textContent='≈ '+(ta>0?num(m*ta)+' Bs':'fija la tasa para ver el equivalente en Bs'); }
+  else { el.textContent = ta>0 ? ('≈ '+num(m/ta)+' USD') : '⚠ fija la tasa Bs/USD para convertir'; } }
+
+/* ---- entrega de fondo / reposición ---- */
+function ccAddFondo(){ ccInit();
+  if(!ccEsAdmin()){alert('Solo el administrador puede registrar entregas de fondo o reposiciones.');return;}
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const f=g('ccRF'), tp=g('ccRT'), m=parseFloat(g('ccRM'))||0, mon=g('ccRMon');
+  if(!f||!m){alert('Indica fecha y monto de la entrega.');return;}
+  const ta=ccTasaHoy(); if(mon==='BS'&&!(ta>0)){alert('Para registrar en Bs primero fija la tasa Bs/USD en el formulario de gasto.');return;}
+  S.caja.fondo.push({id:'F'+Date.now(),f:f,t:tp,m:m,mon:mon,tasa:mon==='BS'?ta:0,q:g('ccRQ'),ref:g('ccRRef'),por:ccYo(),ts:new Date().toISOString()});
+  ['ccRM','ccRRef'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  save(); rendCaja(); alert('✔ '+({APERTURA:'Apertura de fondo',REPOSICION:'Reposición',DEVOLUCION:'Devolución'})[tp]+' registrada. Saldo disponible: '+num(ccSaldo())+' USD.'); }
+function ccDelFondo(i){ ccInit(); if(!ccEsAdmin()){alert('Solo el administrador puede eliminar movimientos del fondo.');return;}
+  if(confirm('¿Eliminar este movimiento del fondo?')){S.caja.fondo.splice(i,1);save();rendCaja();} }
+
+/* ---- alta de gasto ---- */
+function ccAdd(){ ccInit();
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const f=g('ccF'), d=g('ccD').trim(), m=parseFloat(g('ccM'))||0, mon=g('ccMon'), ta=ccTasaHoy();
+  if(!f||!d||!m){alert('Fecha, concepto y monto son obligatorios.');return;}
+  if(mon==='BS'&&!(ta>0)){alert('Escribe la tasa Bs/USD del día para poder convertir el gasto.');return;}
+  if(ta>0){S.caja.tasa=ta;S.caja.tasaF=f;}
+  const admin=ccEsAdmin();
+  const mv={id:'C'+Date.now(), f:f, cat:g('ccCat'), d:d, m:m, mon:mon, tasa:mon==='BS'?ta:(ta||0),
+            ben:g('ccBen'), rec:g('ccRec'), pp:g('ccPP'), por:ccYo(), ts:new Date().toISOString(),
+            est: admin?'A':'P', apr: admin?ccYo():'', fapr: admin?new Date().toISOString().slice(0,10):''};
+  const s=ccSaldo(); const u=ccUSD(mv);
+  if(mv.est==='A'&&u>s+0.001&&!confirm('Este gasto ('+num(u)+' USD) supera el saldo disponible ('+num(s)+' USD).\n\n¿Registrarlo igual? Quedará como sobregiro de caja.')) return;
+  S.caja.mov.push(mv);
+  if(mv.est==='A') ccAGastos(mv);
+  ['ccD','ccM','ccBen','ccRec'].forEach(i=>{const e=document.getElementById(i);if(e)e.value='';});
+  save(); rendCaja();
+  alert(admin ? ('✔ Gasto registrado y aprobado. Saldo: '+num(ccSaldo())+' USD.')
+              : ('✔ Gasto enviado. Queda PENDIENTE hasta que el administrador lo apruebe — todos pueden verlo en el registro.')); }
+
+/* ---- aprobación ---- */
+function ccAprob(id,ok){ ccInit();
+  if(!ccEsAdmin()){alert('Solo el administrador aprueba o rechaza gastos de caja chica.');return;}
+  const mv=S.caja.mov.find(x=>x.id===id); if(!mv)return;
+  if(ok){ const u=ccUSD(mv), s=ccSaldo();
+    if(u>s+0.001&&!confirm('Aprobar '+num(u)+' USD deja la caja en sobregiro (saldo '+num(s)+' USD). ¿Continuar?'))return;
+    mv.est='A'; mv.apr=ccYo(); mv.fapr=new Date().toISOString().slice(0,10); ccAGastos(mv); }
+  else { const mot=prompt('Motivo del rechazo (lo verá quien cargó el gasto):','Falta recibo'); if(mot===null)return;
+    mv.est='R'; mv.apr=ccYo(); mv.fapr=new Date().toISOString().slice(0,10); mv.mot=mot; ccDeGastos(mv); }
+  save(); rendCaja(); }
+function ccDel(id){ ccInit(); const i=S.caja.mov.findIndex(x=>x.id===id); if(i<0)return; const mv=S.caja.mov[i];
+  if(!ccEsAdmin()&&!(mv.por===ccYo()&&mv.est==='P')){alert('Solo puedes eliminar tus propios gastos mientras estén pendientes. El administrador puede eliminar cualquiera.');return;}
+  if(!confirm('¿Eliminar este gasto del registro de caja chica?'))return;
+  ccDeGastos(mv); S.caja.mov.splice(i,1); save(); rendCaja(); }
+
+/* ---- enlace con el módulo GASTOS (solo lo aprobado) ---- */
+function ccAGastos(mv){ try{ if(!Array.isArray(S.gastos))S.gastos=[];
+  if(S.gastos.some(x=>x.src==='CAJA'&&x.key===mv.id))return;
+  S.gastos.push({f:mv.f,cat:'CAJA CHICA',d:mv.cat+' · '+mv.d,m:ccUSD(mv),prov:mv.ben||'',via:'Efectivo (caja chica)',ref:mv.rec||'',pp:mv.pp||'',src:'CAJA',key:mv.id});
+ }catch(e){} }
+function ccDeGastos(mv){ try{ if(!Array.isArray(S.gastos))return;
+  const i=S.gastos.findIndex(x=>x.src==='CAJA'&&x.key===mv.id); if(i>=0)S.gastos.splice(i,1); }catch(e){} }
+
+/* ---- arqueo ---- */
+function ccArqueo(){ ccInit();
+  if(!ccPuedeEditar()){alert('Solo administradores o usuarios con permiso de edición registran arqueos.');return;}
+  const s=ccSaldo(), ta=ccTasaHoy();
+  const efU=parseFloat(prompt('ARQUEO DE CAJA\n\nSaldo según el libro: '+num(s)+' USD\n\n¿Cuánto efectivo hay en DÓLARES?','0'));
+  if(isNaN(efU))return;
+  const efB=parseFloat(prompt('¿Cuánto efectivo hay en BOLÍVARES?'+(ta>0?' (tasa '+num(ta)+')':''),'0'));
+  if(isNaN(efB))return;
+  const real=efU+((ta>0)?efB/ta:0), dif=real-s;
+  S.caja.arq.push({f:new Date().toISOString().slice(0,10),por:ccYo(),libro:s,efU:efU,efB:efB,tasa:ta,real:real,dif:dif,ts:new Date().toISOString()});
+  save(); rendCaja();
+  alert('⚖ Arqueo registrado.\n\nLibro: '+num(s)+' USD\nContado: '+num(real)+' USD\nDiferencia: '+(dif>=0?'+':'')+num(dif)+' USD'+(Math.abs(dif)<0.5?'\n\n✔ Caja cuadrada.':(dif<0?'\n\n⚠ FALTANTE — revisa vales sin cargar.':'\n\n⚠ SOBRANTE — hay dinero no registrado.'))); }
+
+/* ---- filtros ---- */
+function ccFiltrada(){ ccInit();
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const q=g('ccQ').toLowerCase(), fe=g('ccFe'), fc=g('ccFc'), fu=g('ccFu'), r1=g('ccR1'), r2=g('ccR2');
+  return S.caja.mov.filter(x=>(!fe||x.est===fe)&&(!fc||x.cat===fc)&&(!fu||x.por===fu)&&(!r1||x.f>=r1)&&(!r2||x.f<=r2)
+    &&(!q||((x.d+' '+x.cat+' '+(x.ben||'')+' '+(x.rec||'')+' '+(x.por||'')).toLowerCase().indexOf(q)>=0)))
+    .sort((a,b)=>a.f===b.f?(a.ts<b.ts?1:-1):(a.f<b.f?1:-1)); }
+
+/* ---- gráfico: barras por categoría + evolución del saldo ---- */
+function ccGrafico(){ ccInit();
+  const ap=S.caja.mov.filter(x=>x.est==='A'); if(!ap.length&&!S.caja.fondo.length) return '';
+  const by={}; ap.forEach(x=>by[x.cat]=(by[x.cat]||0)+ccUSD(x));
+  const cats=Object.keys(by).sort((a,b)=>by[b]-by[a]).slice(0,8); const mx=Math.max(1,...cats.map(c=>by[c]));
+  const barras=cats.map((c,i)=>{const w=by[c]/mx*300;
+    return '<tr><td style="font-size:7.2pt;padding:2px 6px 2px 0;white-space:nowrap">'+c+'</td>'
+      +'<td style="width:320px;padding:2px 0"><div style="height:12px;width:'+w.toFixed(1)+'px;background:linear-gradient(90deg,#0A2A4D,#1650a7);border-radius:3px"></div></td>'
+      +'<td class="r" style="font-size:7.2pt;font-weight:800;padding:2px 0 2px 8px">'+num(by[c])+'</td></tr>';}).join('');
+  // evolución del saldo
+  const ev=[]; const todo=S.caja.fondo.map(x=>({f:x.f,v:(x.t==='DEVOLUCION'?-ccUSD(x):ccUSD(x))}))
+     .concat(ap.map(x=>({f:x.f,v:-ccUSD(x)}))).sort((a,b)=>a.f<b.f?-1:1);
+  let ac=0; todo.forEach(x=>{ac+=x.v;ev.push({f:x.f,s:ac});});
+  let linea='';
+  if(ev.length>1){ const W=560,H=90,mxs=Math.max(...ev.map(e=>e.s),1);
+    const pts=ev.map((e,i)=>[(i/(ev.length-1))*W, H-(e.s/mxs)*(H-14)-6]);
+    linea='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-width:640px">'
+      +'<polyline fill="none" stroke="#0f7a35" stroke-width="2" points="'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'"/>'
+      +pts.map(p=>'<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.4" fill="#0f7a35"/>').join('')
+      +'<text x="2" y="10" font-size="7.5" fill="#6d6e71" font-family="Helvetica">Evolución del saldo · máx '+num(mxs)+' USD</text></svg>'; }
+  return '<div class="g2" style="margin:10px 0">'
+    +'<div class="card"><h4 style="margin:0 0 6px">📊 En qué se va la caja (aprobado)</h4><table style="border:none">'+barras+'</table></div>'
+    +'<div class="card"><h4 style="margin:0 0 6px">📉 Saldo en el tiempo</h4>'+(linea||'<p style="font-size:7.6pt;color:#7d8ea3">Aún no hay suficientes movimientos.</p>')+'</div></div>'; }
+
+/* ---- render ---- */
+function rendCaja(){ ccInit();
+  const F=ccFondoTot(), G=ccGastTot(), P=ccPendTot(), Sa=F-G, pct=F>0?(Sa/F*100):0;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('ccKFondo',num(F)); set('ccKFondoN',S.caja.fondo.length+' movimiento'+(S.caja.fondo.length===1?'':'s'));
+  set('ccKGast',num(G)); set('ccKGastN',S.caja.mov.filter(x=>x.est==='A').length+' vales aprobados');
+  set('ccKPend',num(P)); set('ccKPendN',S.caja.mov.filter(x=>x.est==='P').length+' por aprobar');
+  set('ccKSaldo',num(Sa)); set('ccKSaldoPct',F>0?(pct.toFixed(0)+'% del fondo'):'sin fondo abierto');
+  set('ccSaldoTop','Saldo '+num(Sa)+' USD'+(S.caja.tasa>0?(' · '+num(Sa*S.caja.tasa)+' Bs'):''));
+  set('ccKTasa',S.caja.tasa>0?num(S.caja.tasa):'—'); set('ccKTasaF',S.caja.tasaF?('fijada '+S.caja.tasaF):'sin fijar');
+  // ritmo de consumo y autonomía
+  const ap=S.caja.mov.filter(x=>x.est==='A');
+  let ritmo=0,dias='—';
+  if(ap.length){ const fs=ap.map(x=>x.f).sort(); const d1=new Date(fs[0]+'T12:00:00'), d2=new Date(fs[fs.length-1]+'T12:00:00');
+    const n=Math.max(1,Math.round((d2-d1)/864e5)+1); ritmo=G/n; dias=ritmo>0?('alcanza '+Math.floor(Math.max(0,Sa)/ritmo)+' días más'):'alcanza —'; }
+  set('ccKRitmo',num(ritmo)); set('ccKDias',dias);
+  const kS=document.getElementById('ccKSaldo'); if(kS){kS.className='v '+(F<=0?'':(pct<15?'r':(pct<40?'':'b')));}
+  // alerta / semáforo
+  const al=document.getElementById('ccAlerta');
+  if(al){ let h='';
+    if(F<=0) h='<div class="callout"><b>Caja sin abrir.</b> El administrador debe registrar la <b>apertura del fondo</b> arriba para empezar a controlar los gastos en efectivo.</div>';
+    else if(Sa<0) h='<div class="callout red"><b>⚠ SOBREGIRO:</b> la caja está en '+num(Sa)+' USD. Hay gastos aprobados por encima del fondo entregado — solicita reposición inmediata.</div>';
+    else if(pct<15) h='<div class="callout red"><b>⛽ Reponer YA:</b> queda '+num(Sa)+' USD ('+pct.toFixed(0)+'% del fondo)'+(ritmo>0?' — al ritmo actual se agota en '+Math.floor(Sa/ritmo)+' días':'')+'. Usa 🖨 Relación para pedir la reposición.</div>';
+    else if(pct<40) h='<div class="callout"><b>Atención:</b> saldo en '+num(Sa)+' USD ('+pct.toFixed(0)+'%). Conviene preparar la solicitud de reposición.</div>';
+    else h='<div class="callout grn"><b>Caja sana:</b> '+num(Sa)+' USD disponibles ('+pct.toFixed(0)+'% del fondo)'+(ritmo>0?' · consumo '+num(ritmo)+' USD/día':'')+'.</div>';
+    if(P>0) h+='<div class="callout"><b>⏳ '+S.caja.mov.filter(x=>x.est==='P').length+' vale(s) por '+num(P)+' USD esperando aprobación'+(ccEsAdmin()?' — apruébalos o recházalos en la tabla.':' del administrador.')+'</b></div>';
+    al.innerHTML=h; }
+  // selects de filtro
+  const cats=[...new Set(S.caja.mov.map(x=>x.cat))].sort(), usr=[...new Set(S.caja.mov.map(x=>x.por))].sort();
+  const fill=(id,arr,lbl)=>{const e=document.getElementById(id);if(!e)return;const v=e.value;
+    e.innerHTML='<option value="">'+lbl+'</option>'+arr.map(x=>'<option>'+x+'</option>').join(''); e.value=v;};
+  fill('ccFc',cats,'— todas las categorías —'); fill('ccFu',usr,'— todos los responsables —');
+  // selector de partidas
+  const pp=document.getElementById('ccPP');
+  if(pp&&pp.options.length<2&&typeof P48!=='undefined'){ pp.innerHTML='<option value="">— partida —</option>'
+      +P48.map(p=>'<option value="'+(typeof codP==='function'?codP(p):('P'+p.n))+'">'+(typeof codP==='function'?codP(p):('P'+p.n))+' · '+p.t.slice(0,42)+'</option>').join(''); }
+  // fechas por defecto
+  const hoy=new Date().toISOString().slice(0,10);
+  ['ccF','ccRF'].forEach(i=>{const e=document.getElementById(i);if(e&&!e.value)e.value=hoy;});
+  const ta=document.getElementById('ccTasa'); if(ta&&!ta.value&&S.caja.tasa>0)ta.value=S.caja.tasa;
+  // chips resumen
+  const ch=document.getElementById('ccChips');
+  if(ch){ const lst=ccFiltrada(), tU=lst.filter(x=>x.est==='A').reduce((a,x)=>a+ccUSD(x),0);
+    ch.innerHTML='<span class="chip">'+lst.length+' registros en pantalla</span>'
+      +'<span class="chip" style="background:#0f7a35;color:#fff">Aprobado en filtro: <b>'+num(tU)+' USD</b></span>'
+      +(S.caja.tasa>0?'<span class="chip">≈ '+num(tU*S.caja.tasa)+' Bs</span>':'')
+      +'<span class="chip">Fondo '+num(F)+' · Gastado '+num(G)+' · Saldo <b>'+num(Sa)+'</b></span>'; }
+  // gráfico
+  const gr=document.getElementById('ccGraf'); if(gr)gr.innerHTML=ccGrafico();
+  // tabla de gastos
+  const tb=document.getElementById('ccBody');
+  if(tb){ const lst=ccFiltrada(); const adm=ccEsAdmin(), yo=ccYo();
+    tb.innerHTML = lst.length? lst.map(x=>{
+      const est = x.est==='A'?'<span class="chip" style="background:#0f7a35;color:#fff">✔ APROBADO</span><br><span style="font-size:6.6pt;color:#7d8ea3">'+(x.apr||'')+' '+(x.fapr||'')+'</span>'
+                 : x.est==='R'?'<span class="chip" style="background:#b03a2e;color:#fff">✖ RECHAZADO</span><br><span style="font-size:6.6pt;color:#7d8ea3">'+(x.mot||'')+'</span>'
+                 : '<span class="chip" style="background:#B26A00;color:#fff">⏳ PENDIENTE</span>';
+      const acc = (x.est==='P'&&adm) ? '<button class="btn sm g" onclick="ccAprob(\''+x.id+'\',true)">✔</button> <button class="btn sm r" onclick="ccAprob(\''+x.id+'\',false)">✖</button> ' : '';
+      const vale = '<button class="btn sm s" onclick="ccVale(\''+x.id+'\')">🖨</button> ';
+      const del = (adm||(x.por===yo&&x.est==='P')) ? '<button class="btn sm r" onclick="ccDel(\''+x.id+'\')">🗑</button>' : '';
+      return '<tr'+(x.est==='R'?' style="opacity:.55"':'')+'><td>'+x.f+'</td><td>'+x.cat+'</td><td>'+x.d+(x.pp?'':'')+'</td><td>'+(x.ben||'—')+'</td>'
+        +'<td>'+(x.pp||'—')+'</td><td>'+(x.rec||'—')+'</td><td class="r">'+(ccBS(x)?num(ccBS(x)):'—')+'</td><td class="r"><b>'+num(ccUSD(x))+'</b></td>'
+        +'<td style="font-size:7pt">'+(x.por||'—')+'<br><span style="color:#7d8ea3">'+String(x.ts||'').slice(11,16)+'</span></td><td>'+est+'</td><td>'+acc+vale+del+'</td></tr>';
+    }).join('') : '<tr><td colspan="11" style="text-align:center;color:#7d8ea3">Sin gastos registrados con estos filtros.</td></tr>'; }
+  // tabla de fondo
+  const fb=document.getElementById('ccFondoBody');
+  if(fb){ fb.innerHTML = S.caja.fondo.length? S.caja.fondo.map((x,i)=>'<tr><td>'+x.f+'</td><td>'+({APERTURA:'🟢 Apertura',REPOSICION:'🔁 Reposición',DEVOLUCION:'↩ Devolución'})[x.t]+'</td><td>'+(x.q||'—')+'</td><td>'+(x.ref||'—')+'</td><td class="r"><b>'+(x.t==='DEVOLUCION'?'−':'')+num(ccUSD(x))+'</b></td><td>'+(ccEsAdmin()?'<button class="btn sm r" onclick="ccDelFondo('+i+')">🗑</button>':'')+'</td></tr>').join('')
+      : '<tr><td colspan="6" style="text-align:center;color:#7d8ea3">La caja aún no ha sido abierta.</td></tr>'; }
+  // tabla de arqueos
+  const ab=document.getElementById('ccArqBody');
+  if(ab){ ab.innerHTML = S.caja.arq.length? S.caja.arq.slice().reverse().map(a=>'<tr><td>'+a.f+'</td><td>'+a.por+'</td><td class="r">'+num(a.libro)+'</td><td class="r">'+num(a.real)+'</td><td class="r" style="color:'+(Math.abs(a.dif)<0.5?'#0f7a35':'#b03a2e')+';font-weight:800">'+(a.dif>=0?'+':'')+num(a.dif)+'</td></tr>').join('')
+      : '<tr><td colspan="5" style="text-align:center;color:#7d8ea3">Sin arqueos registrados.</td></tr>'; }
+  // aviso de pendientes en la pestaña
+  const btn=document.querySelector('.tb[data-t="'+CCTAB+'"]');
+  if(btn){ const np=S.caja.mov.filter(x=>x.est==='P').length; btn.textContent='🧾 CAJA CHICA'+(np?' ('+np+')':''); btn.style.background=np?'#B26A00':''; btn.style.color=np?'#fff':''; }
+}
+
+/* ---- vale imprimible por gasto ---- */
+function ccVale(id){ ccInit(); const x=S.caja.mov.find(m=>m.id===id); if(!x)return;
+  const nc='ADD-CCH-'+x.f.replaceAll('-','')+'-'+String(S.caja.mov.filter(m=>m.f===x.f).findIndex(m=>m.id===id)+1).padStart(2,'0');
+  const body='<table>'
+   +'<tr><td class="lbl">FECHA DEL GASTO:</td><td><b>'+x.f+'</b></td></tr>'
+   +'<tr><td class="lbl">CONCEPTO:</td><td><b>'+x.d+'</b></td></tr>'
+   +'<tr><td class="lbl">CATEGORÍA:</td><td>'+x.cat+'</td></tr>'
+   +'<tr><td class="lbl">BENEFICIARIO:</td><td>'+(x.ben||'—')+'</td></tr>'
+   +'<tr><td class="lbl">FACTURA / RECIBO:</td><td>'+(x.rec||'sin soporte')+'</td></tr>'
+   +'<tr><td class="lbl">PARTIDA IMPUTADA:</td><td>'+(x.pp||'gasto general de obra')+'</td></tr>'
+   +'<tr><td class="lbl">MONTO:</td><td><b>'+(ccBS(x)?num(ccBS(x))+' Bs':'')+(ccBS(x)&&ccUSD(x)?' · ':'')+num(ccUSD(x))+' USD</b>'+(x.tasa>0?' <span style="color:#6d6e71">(tasa '+num(x.tasa)+' Bs/USD)</span>':'')+'</td></tr>'
+   +'<tr><td class="lbl">SON:</td><td>'+numALetras(ccUSD(x))+' DÓLARES AMERICANOS</td></tr>'
+   +'<tr><td class="lbl">CARGADO POR:</td><td>'+(x.por||'—')+' · '+String(x.ts||'').slice(0,16).replace('T',' ')+'</td></tr>'
+   +'<tr><td class="lbl">ESTADO:</td><td><b>'+({P:'PENDIENTE POR APROBAR',A:'APROBADO',R:'RECHAZADO'})[x.est]+'</b>'+(x.apr?(' · '+x.apr+' '+(x.fapr||'')):'')+(x.mot?(' · motivo: '+x.mot):'')+'</td></tr>'
+   +'<tr><td class="lbl">SALDO DE CAJA:</td><td>'+num(ccSaldo())+' USD disponibles tras los gastos aprobados</td></tr>'
+   +'</table>';
+  docWin('VALE DE CAJA CHICA','Gasto en efectivo de obra · '+x.f+' · '+num(ccUSD(x))+' USD',body,true,nc); }
+
+/* ---- relación / solicitud de reposición ---- */
+function ccRelacion(){ ccInit(); const lst=ccFiltrada().filter(x=>x.est==='A').sort((a,b)=>a.f<b.f?-1:1);
+  if(!lst.length){alert('No hay gastos aprobados en el filtro actual.');return;}
+  const tot=lst.reduce((a,x)=>a+ccUSD(x),0), F=ccFondoTot(), G=ccGastTot(), Sa=F-G;
+  const hoyISO=new Date().toISOString().slice(0,10);
+  const nc='ADD-CCH-REL-'+hoyISO.replaceAll('-','');
+  const by={}; lst.forEach(x=>by[x.cat]=(by[x.cat]||0)+ccUSD(x));
+  let acc=0;
+  const filas=lst.map((x,k)=>{acc+=ccUSD(x);
+    return '<tr><td class="c">'+(k+1)+'</td><td>'+x.f+'</td><td>'+x.cat+'</td><td>'+x.d+'</td><td>'+(x.ben||'—')+'</td><td>'+(x.rec||'—')+'</td><td>'+(x.pp||'—')+'</td><td class="r">'+(ccBS(x)?num(ccBS(x)):'—')+'</td><td class="r">'+num(ccUSD(x))+'</td><td class="r"><b>'+num(acc)+'</b></td></tr>';}).join('');
+  const resum=Object.keys(by).sort((a,b)=>by[b]-by[a]).map(c=>'<tr><td>'+c+'</td><td class="r">'+num(by[c])+'</td><td class="r">'+(by[c]/tot*100).toFixed(1)+'%</td></tr>').join('');
+  const body='<table>'
+   +'<tr><td class="lbl">PARA:</td><td><b>Gerencia de Administración — SUMINISTROS ADDISON, C.A.</b></td></tr>'
+   +'<tr><td class="lbl">DE:</td><td>Gerencia de Planificación de Proyectos — Puerto Ordaz</td></tr>'
+   +'<tr><td class="lbl">ASUNTO:</td><td><b>Relación de caja chica y solicitud de reposición</b></td></tr>'
+   +'<tr><td class="lbl">RESPONSABLE DE CAJA:</td><td>'+((S.caja.fondo.slice(-1)[0]||{}).q||'—')+'</td></tr>'
+   +'</table>'
+   +'<table style="margin-top:8px"><tr class="band"><td colspan="4">ESTADO DE LA CAJA</td></tr>'
+   +'<tr><th>Fondo entregado</th><th>Gastado aprobado</th><th>Saldo disponible</th><th>Reposición solicitada</th></tr>'
+   +'<tr><td class="r">'+num(F)+'</td><td class="r">'+num(G)+'</td><td class="r"><b>'+num(Sa)+'</b></td><td class="r"><b>'+num(Math.max(0,F-Sa))+' USD</b></td></tr></table>'
+   +'<table style="margin-top:8px"><tr class="band"><td colspan="10">DETALLE DE GASTOS APROBADOS ('+lst.length+')</td></tr>'
+   +'<tr><th>#</th><th>Fecha</th><th>Categoría</th><th>Concepto</th><th>Beneficiario</th><th>Recibo</th><th>Partida</th><th class="r">Bs</th><th class="r">USD</th><th class="r">Acum.</th></tr>'
+   +filas+'<tr><td colspan="8" class="r"><b>TOTAL</b></td><td class="r"><b>'+num(tot)+'</b></td><td></td></tr></table>'
+   +'<table style="margin-top:8px"><tr class="band"><td colspan="3">RESUMEN POR CATEGORÍA</td></tr><tr><th>Categoría</th><th class="r">USD</th><th class="r">%</th></tr>'+resum+'</table>'
+   +'<p style="margin-top:8px"><b>SON:</b> '+numALetras(tot)+' DÓLARES AMERICANOS'+(S.caja.tasa>0?(' (equivalentes a '+num(tot*S.caja.tasa)+' Bs a la tasa de '+num(S.caja.tasa)+' Bs/USD)'):'')+'.</p>';
+  docWin('RELACIÓN DE CAJA CHICA Y SOLICITUD DE REPOSICIÓN',lst.length+' gastos · '+num(tot)+' USD · saldo '+num(Sa)+' USD',body,true,nc); }
+
+/* ---- exportación ---- */
+function ccCSV(){ ccInit(); let c='Fecha;Categoria;Concepto;Beneficiario;Recibo;Partida;Moneda;Monto;Tasa;Bs;USD;Estado;Cargo;Aprobo;FechaAprob\n';
+  ccFiltrada().forEach(x=>{c+=[x.f,x.cat,'"'+x.d+'"','"'+(x.ben||'')+'"',x.rec||'',x.pp||'',x.mon,x.m,x.tasa||'',ccBS(x).toFixed(2),ccUSD(x).toFixed(2),({P:'PENDIENTE',A:'APROBADO',R:'RECHAZADO'})[x.est],x.por,x.apr||'',x.fapr||''].join(';')+'\n';});
+  dl(c,'caja_chica.csv'); }
+
 function tab(b){document.querySelectorAll('.tb[data-t]').forEach(x=>x.classList.toggle('on',x===b));
-['t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12','t13'].forEach(t=>{const el=document.getElementById(t);
-if(t==='t4'){el.style.display=(b.dataset.t===t)?'':'none';}else el.classList.toggle('hide',b.dataset.t!==t);});if(b.dataset.t==='t13')rendGastos();}
+['t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12','t13','t14'].forEach(t=>{const el=document.getElementById(t);
+if(t==='t4'){el.style.display=(b.dataset.t===t)?'':'none';}else el.classList.toggle('hide',b.dataset.t!==t);});if(b.dataset.t==='t13')rendGastos(); if(b.dataset.t==='t14')rendCaja();}
 // ── HORIZONTE DINÁMICO: el plazo sale de la brecha real de las partidas ──
 const DUR=Math.max(PLAN.length,Math.max.apply(null,P48.map(function(p){return p.b;})));
 function planAt(d){ if(d<1)return 0; if(d>=DUR)return 100;
@@ -1521,7 +1849,7 @@ save();initAll();alert('Respaldo importado ✔');}catch(x){alert('Archivo invál
 (function(){const dh=hoyDia();if(dh>=1&&dh<=70){const x=210+(dh-1)*((1000-210-20)/70);const l=document.getElementById('hoyline'),t=document.getElementById('hoytxt');
 if(l){l.setAttribute('x1',x);l.setAttribute('x2',x);t.setAttribute('x',x);t.textContent='HOY';}}})();
 // init
-function initAll(){rendP();rendProc();rendM();rendPer();rendSv();rendProv();rendX();rendReps();rendTram();rendTi();curva();loadRates();rendProv7();kpis();
+function initAll(){try{rendCaja();}catch(e){}rendP();rendProc();rendM();rendPer();rendSv();rendProv();rendX();rendReps();rendTram();rendTi();curva();loadRates();rendProv7();kpis();
 document.getElementById('trF').value=new Date().toISOString().slice(0,10);
 document.getElementById('tiPick').innerHTML='<option value="">— procura/maquinaria —</option>'+
 '<optgroup label="Maquinaria">'+allMaq().map(m=>`<option value="MQ:${m.id}">${m.n}</option>`).join('')+'</optgroup>'+

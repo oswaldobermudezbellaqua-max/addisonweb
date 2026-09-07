@@ -350,4 +350,21 @@ Revisión 0 — 29 de julio de 2026 · Documento PARA REVISIÓN.<br>
 Elaborado a partir del alcance contractual de 45 partidas y del archivo digitalizado de la Gerencia de Proyectos e Ingeniería.
 </footer>
 
-</div></body></html>
+</div><script>
+/* ADDISON · AUTO-ACTUALIZACIÓN — el mismo link muestra SIEMPRE la última versión (v104) */
+(function(){if(!('serviceWorker' in navigator))return;
+ var yaTenia=!!navigator.serviceWorker.controller, rec=false;
+ try{navigator.serviceWorker.register('sw.js').then(function(r){ r.update(); setInterval(function(){try{r.update();}catch(e){}}, 300000); });}catch(e){}
+ function hayBorrador(){try{return [].some.call(document.querySelectorAll('textarea,input[type=text],input[type=number]'),function(e){return e.value&&String(e.value).trim().length>2&&e.offsetParent!==null;});}catch(e){return false;}}
+ navigator.serviceWorker.addEventListener('controllerchange',function(){
+  if(rec)return; rec=true;
+  if(!yaTenia)return;                       // primera instalación: nada que recargar
+  if(!hayBorrador()){ location.reload(); return; }
+  var b=document.createElement('div'); b.textContent='🔄 Nueva versión lista — pulsa para actualizar';
+  b.style.cssText='position:fixed;left:12px;bottom:12px;z-index:99999;background:#1650a7;color:#fff;font:800 8pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35)';
+  b.onclick=function(){location.reload();}; document.body.appendChild(b);
+ });
+ window.addEventListener('focus',function(){ try{ navigator.serviceWorker.getRegistration().then(function(r){ if(r) r.update(); }); }catch(e){} });
+})();
+</script>
+</body></html>

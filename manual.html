@@ -173,6 +173,14 @@ kbd{background:#F2F5F9;border:1px solid #C9D6E6;border-radius:5px;padding:1px 7p
 <div class="paso"><span class="n">1</span><p>Elige la pestaña del proyecto: <b>🏭 MOLINO MB-32-102</b> o <b>💧 TRATAMIENTO DE AGUA</b>.</p></div>
 <div class="paso"><span class="n">2</span><p>Toca una partida (P1…P15 o 81.1…G.2) para desplegar sus planos: código, título, revisión y ruta exacta.</p></div>
 <div class="paso"><span class="n">3</span><p>Usa el <b>buscador</b> para saltar directo: por código («7-60512»), equipo («corona»), disciplina («tanques») o partida («66.4»).</p></div>
+<h2>🧾 CAJA CHICA — el efectivo de la obra, controlado (en los 4 proyectos)</h2>
+<p>Cada Centro de Control tiene la pestaña <b>🧾 CAJA CHICA</b>. Funciona como <b>fondo fijo</b>: la administración entrega un monto, cada gasto lo descuenta y cuando el saldo baja se pide reposición con un documento que la app genera sola.</p>
+<div class="paso"><span class="n">1</span><p><b>Abrir la caja</b> (solo administrador): fecha, monto, moneda y a quién se le entregó el dinero. Ese es el fondo.</p></div>
+<div class="paso"><span class="n">2</span><p><b>Cargar un gasto</b> (cualquier usuario del proyecto): fecha, categoría, concepto, monto en <b>Bs o USD</b> con la tasa del día, beneficiario, número de recibo y la partida a la que se imputa. Si lo carga un usuario normal queda <b>⏳ PENDIENTE</b>; si lo carga el administrador queda aprobado de una vez.</p></div>
+<div class="paso"><span class="n">3</span><p><b>Aprobar o rechazar</b> (solo administrador): botones ✔ y ✖ en cada fila. Al rechazar se pide el motivo, que queda visible para quien cargó el gasto. <b>Solo lo aprobado descuenta saldo</b> y pasa al módulo 💸 GASTOS como categoría CAJA CHICA, imputado a su partida.</p></div>
+<div class="paso"><span class="n">4</span><p><b>Reponer:</b> cuando el saldo baja del 40 % la app avisa; bajo el 15 % lo marca en rojo con los días que faltan para agotarse. El botón <b>🖨 Relación / solicitud de reposición (ADD-CCH)</b> emite el documento formal con el detalle, el resumen por categoría, el monto en letras y el monto exacto a reponer.</p></div>
+<div class="paso"><span class="n">5</span><p><b>Arqueo:</b> el botón ⚖ pregunta cuánto efectivo hay en dólares y en bolívares y lo compara con el saldo del libro; deja registrado el faltante o el sobrante con fecha y responsable.</p></div>
+<p><b>Todos ven todo:</b> la tabla muestra quién cargó cada gasto y a qué hora, quién lo aprobó, el recibo y la partida. Cada gasto tiene su <b>🖨 vale imprimible</b> (ADD-CCH) para firmar y archivar. El número entre paréntesis en la pestaña (🧾 CAJA CHICA (3)) indica los vales que esperan aprobación.</p>
 <h3>Leyenda de estados</h3>
 <table>
 <tr><th>ETIQUETA</th><th>SIGNIFICADO</th></tr>
@@ -226,4 +234,21 @@ kbd{background:#F2F5F9;border:1px solid #C9D6E6;border-radius:5px;padding:1px 7p
 
 </div>
 <div class="foot"><b style="color:var(--gold2)">SUMINISTROS ADDISON, C.A.</b> · RIF J-40254910-5 · Manual de uso del Centro de Control de Proyectos · Rev. 0 — agosto 2026</div>
+<script>
+/* ADDISON · AUTO-ACTUALIZACIÓN — el mismo link muestra SIEMPRE la última versión (v104) */
+(function(){if(!('serviceWorker' in navigator))return;
+ var yaTenia=!!navigator.serviceWorker.controller, rec=false;
+ try{navigator.serviceWorker.register('sw.js').then(function(r){ r.update(); setInterval(function(){try{r.update();}catch(e){}}, 300000); });}catch(e){}
+ function hayBorrador(){try{return [].some.call(document.querySelectorAll('textarea,input[type=text],input[type=number]'),function(e){return e.value&&String(e.value).trim().length>2&&e.offsetParent!==null;});}catch(e){return false;}}
+ navigator.serviceWorker.addEventListener('controllerchange',function(){
+  if(rec)return; rec=true;
+  if(!yaTenia)return;                       // primera instalación: nada que recargar
+  if(!hayBorrador()){ location.reload(); return; }
+  var b=document.createElement('div'); b.textContent='🔄 Nueva versión lista — pulsa para actualizar';
+  b.style.cssText='position:fixed;left:12px;bottom:12px;z-index:99999;background:#1650a7;color:#fff;font:800 8pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35)';
+  b.onclick=function(){location.reload();}; document.body.appendChild(b);
+ });
+ window.addEventListener('focus',function(){ try{ navigator.serviceWorker.getRegistration().then(function(r){ if(r) r.update(); }); }catch(e){} });
+})();
+</script>
 </body></html>
