@@ -5,6 +5,8 @@ self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;
 const u=new URL(e.request.url);
 // La NUBE (Supabase) y cualquier origen externo van SIEMPRE a la red: jamás se sirven desde caché.
 if(u.origin!==self.location.origin||u.hostname.endsWith('supabase.co')){e.respondWith(fetch(e.request));return;}
+// HTML: red primero (así el mismo link muestra siempre la última versión); si no hay red, caché.
+if(e.request.mode==='navigate'||(e.request.headers.get('accept')||'').indexOf('text/html')>=0){e.respondWith(fetch(e.request).then(n=>{if(n&&n.ok){const cp=n.clone();caches.open(C).then(c=>c.put(e.request,cp));}return n;}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))));return;}
 e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(n=>{if(n&&n.ok&&n.type==='basic'){const cp=n.clone();caches.open(C).then(c=>c.put(e.request,cp));}return n;}).catch(()=>caches.match('./index.html'))));});
 // Limpieza: borrar cualquier respuesta de la nube que haya quedado cacheada por versiones anteriores
 self.addEventListener('activate',e=>{e.waitUntil(caches.open(C).then(c=>c.keys().then(ks=>Promise.all(ks.filter(k=>new URL(k.url).origin!==self.location.origin).map(k=>c.delete(k))))));});
