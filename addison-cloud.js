@@ -1,6 +1,6 @@
 /* ============================================================
    ADDISON CLOUD — motor de sincronización en tiempo real (Supabase)
-   Datos públicos por diseño (anon/publishable key). Rev.3 · 06-sep-2026 (hash de contenido, pendientes persistentes, fotos fuera del estado)
+   Datos públicos por diseño (anon/publishable key). Rev.4 · 07-sep-2026 (hash de contenido, pendientes persistentes, fotos fuera del estado)
    ============================================================ */
 (function(){
   const URL = "https://agbubxdymzuslepjybef.supabase.co";
@@ -97,26 +97,34 @@
     });
     return res;
   }
-  function mergeStates(rem, loc){
-    if(!rem) return loc; if(!loc) return rem;
-    const out={}, keys={};
-    Object.keys(rem).forEach(function(k){keys[k]=1;}); Object.keys(loc).forEach(function(k){keys[k]=1;});
-    Object.keys(keys).forEach(function(k){
-      const r=rem[k], l=loc[k];
-      if(l===undefined){out[k]=r;return;} if(r===undefined){out[k]=l;return;}
-      if(Array.isArray(r)&&Array.isArray(l)){
-        out[k]=mergeList(k, r, l);
-      }else if(r&&l&&typeof r==='object'&&typeof l==='object'){
-        const o={}; Object.keys(r).forEach(function(kk){o[kk]=r[kk];});
-        Object.keys(l).forEach(function(kk){
-          o[kk]=(o[kk]&&l[kk]&&typeof o[kk]==='object'&&typeof l[kk]==='object'&&!Array.isArray(l[kk])&&!Array.isArray(o[kk]))?Object.assign({},o[kk],l[kk]):l[kk];
-        });
-        out[k]=o;
-      }else out[k]=l;
+  // Devuelve los nombres de las listas/mapas donde `nuevo` tendría MENOS registros que `viejo`.
+  const LISTAS=['reps','gastos','extras','pers','prov','serv','maqx','tram','sols','cots','ali'];
+  function perdidas(viejo, nuevo){
+    const out=[];
+    if(!viejo||!nuevo) return out;
+    LISTAS.forEach(function(k){
+      if(Array.isArray(viejo[k]) && (viejo[k].length > ((nuevo[k]||[]).length))) out.push(k+' '+((nuevo[k]||[]).length)+'/'+viejo[k].length);
+    });
+    ['mov','fondo','arq'].forEach(function(k){
+      const a=viejo.caja&&viejo.caja[k], b=nuevo.caja&&nuevo.caja[k];
+      if(Array.isArray(a) && a.length > ((b||[]).length)) out.push('caja.'+k+' '+((b||[]).length)+'/'+a.length);
     });
     return out;
   }
-
+  function mergeStates(rem, loc){ return mergeAny('', rem, loc); }
+  // Fusión recursiva: listas → unión por clave; objetos → clave por clave (entrando también
+  // en objetos anidados como `caja`, `proc` o `maq`); valores simples → gana el local.
+  function mergeAny(name, r, l){
+    if(l===undefined) return r; if(r===undefined) return l;
+    if(Array.isArray(r)&&Array.isArray(l)) return mergeList(name, r, l);
+    if(r&&l&&typeof r==='object'&&typeof l==='object'&&!Array.isArray(r)&&!Array.isArray(l)){
+      const out={}, keys={};
+      Object.keys(r).forEach(function(k){keys[k]=1;}); Object.keys(l).forEach(function(k){keys[k]=1;});
+      Object.keys(keys).forEach(function(k){ out[k]=mergeAny(k, r[k], l[k]); });
+      return out;
+    }
+    return l;
+  }
   // ============ FOTOS FUERA DEL ESTADO (tabla fotos) ============
   // Las fotos de los reportes se guardan una por una en la tabla `fotos`; el estado del proyecto
   // sólo conserva la referencia 'foto:ID'. Así el estado pesa KB en vez de MB y ninguna cuota se llena.
@@ -225,26 +233,51 @@
       if(!online()) { setBadge('⚠ Sin conexión — guardado local; se subirá al reconectar', '#B26A00'); return; }
       pushing=true; clearTimeout(timer); timer=null;
       try{
-        let data = cfg.getS();
-        // ANTI-APLASTAMIENTO: si la nube cambió desde la última vez que este equipo la vio
-        // (otro usuario publicó), se FUSIONA antes de publicar: nunca se pisa el trabajo de otro.
+        let data = cfg.getS(); let protegido=false;
+        // ¿La nube cambió desde la última vez que ESTE equipo la vio?
+        let desfasado=false, R=null;
         try{
           const rows = await sel('estados_proyecto','proyecto=eq.'+cfg.proyecto+'&select=data');
           if(rows.length && rows[0].data && Object.keys(rows[0].data).length){
-            const h=hOf(rows[0].data);
-            if(h!==lastHash){
-              data = mergeStates(rows[0].data, data);
-              saveLocal(data);
-              if(cfg.apply) cfg.apply(data);
-              setBadge('🔗 Fusionado con cambios de otros usuarios', '#1650a7');
+            R = rows[0].data; desfasado = (hOf(R) !== lastHash);
+          }
+        }catch(e){ /* si no se pudo comparar, se publica igual */ }
+
+        // CANDADO ANTI-BORRADO (se aplica en los dos casos):
+        // si lo que se va a publicar tiene menos registros que la nube, se fusiona y,
+        // si la merma es real y grande, se pide confirmación expresa antes de publicar.
+        if(R && !desfasado){
+          const faltan = perdidas(R, data);
+          const grande = faltan.some(function(s){ const n=s.split(' ')[1].split('/'); return (+n[1]-+n[0])>1; });
+          if(faltan.length && grande){
+            const ok = (typeof confirm==='function') && confirm('⚠ ATENCIÓN — posible pérdida de datos\n\nLo que este equipo va a publicar tiene MENOS registros que la nube:\n\n  · '+faltan.join('\n  · ')+'\n\n¿Confirmas que borraste eso a propósito?\n\nSi no estás seguro, pulsa Cancelar: se conservará todo.');
+            if(!ok){
+              data = mergeStates(R, data);
+              saveLocal(data); if(cfg.apply) cfg.apply(data);
+              setBadge('🛡 Se conservaron los registros de la nube', '#1650a7'); protegido=true;
             }
           }
-        }catch(e){/* si no se pudo comparar, se publica igual */}
+        }
+
+        if(desfasado && R){
+          // ANTI-APLASTAMIENTO: otro equipo publicó algo que aquí no se ha visto → se FUSIONA,
+          // nunca se pisa. Los borrados hechos con el estado desfasado no se propagan a propósito.
+          data = mergeStates(R, data);
+          // CANDADO: bajo ninguna circunstancia se publica con menos registros que la nube.
+          const faltan = perdidas(R, data);
+          if(faltan.length){
+            setBadge('🛡 Publicación detenida para no borrar datos ('+faltan.join(', ')+')', '#b03a2e');
+            pushing=false; retryAt=Date.now()+10000; return;
+          }
+          saveLocal(data); if(cfg.apply) cfg.apply(data);
+          setBadge('🔗 Fusionado con cambios de otros usuarios', '#1650a7');
+        }
+
         await upsert('estados_proyecto',
           [{proyecto:cfg.proyecto, data:data, actualizado:new Date().toISOString(), por:me}], 'proyecto');
         lastHash=hOf(data);
         setPend(false);
-        setBadge('☁ Guardado y respaldado', '#0f7a35');
+        setBadge(protegido?'🛡 Guardado — se conservaron los registros de la nube':'☁ Guardado y respaldado', protegido?'#1650a7':'#0f7a35');
         snapshot(cfg.proyecto, data, me);
       }catch(e){ retryAt=Date.now()+8000; setBadge('⚠ Error de nube — guardado local, reintentando…', '#B26A00'); }
       pushing=false;
@@ -333,5 +366,5 @@
     window.addEventListener('offline', ()=>setBadge('⚠ Sin conexión','#B26A00'));
   }
 
-  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup, mergeStates, subirFoto, fotoData, esRef, migrarFotos, cargarImgs, proyecto:null };
+  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup, mergeStates, perdidas, subirFoto, fotoData, esRef, migrarFotos, cargarImgs, proyecto:null };
 })();
