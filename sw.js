@@ -1,10 +1,10 @@
-const C='addison-v117';const A=['./','./index.html','./empresas.html','./app-cvm-santabarbara.html','./app-bauxilum-mb32.html','./app-bauxilum-agua.html','./planos-bauxilum.html','./proveedores.html','./manual.html','./addison-cloud.js','./cc.html','./app-agua-control.html','./app-motores-control.html','./app-bauxilum-p33.html','./app-cipresco-celda84.html','./app-cvm-vainitas.html','./p33-informe.html','./p33-estimado.html','./p33-plan.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const C='addison-v118';const A=['./','./index.html','./empresas.html','./app-cvm-santabarbara.html','./app-bauxilum-mb32.html','./app-bauxilum-agua.html','./planos-bauxilum.html','./proveedores.html','./manual.html','./addison-cloud.js','./cc.html','./app-agua-control.html','./app-motores-control.html','./app-bauxilum-p33.html','./app-cipresco-celda84.html','./app-cvm-vainitas.html','./p33-informe.html','./p33-estimado.html','./p33-plan.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;
 const u=new URL(e.request.url);
 // La NUBE (Supabase) y cualquier origen externo van SIEMPRE a la red: jamás se sirven desde caché.
-if(u.origin!==self.location.origin||u.hostname.endsWith('supabase.co')){e.respondWith(fetch(e.request));return;}
+if(u.origin!==self.location.origin||u.hostname.endsWith('supabase.co')||u.pathname.endsWith('/version.json')||u.pathname.endsWith('/addison-cloud.js')){e.respondWith(fetch(e.request));return;}
 // HTML: red primero (así el mismo link muestra siempre la última versión); si no hay red, caché.
 if(e.request.mode==='navigate'||(e.request.headers.get('accept')||'').indexOf('text/html')>=0){e.respondWith(fetch(e.request).then(n=>{if(n&&n.ok){const cp=n.clone();caches.open(C).then(c=>c.put(e.request,cp));}return n;}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))));return;}
 e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(n=>{if(n&&n.ok&&n.type==='basic'){const cp=n.clone();caches.open(C).then(c=>c.put(e.request,cp));}return n;}).catch(()=>caches.match('./index.html'))));});

@@ -1,6 +1,6 @@
 /* ============================================================
    ADDISON CLOUD — motor de sincronización en tiempo real (Supabase)
-   Datos públicos por diseño (anon/publishable key). Rev.4 · 07-sep-2026 (hash de contenido, pendientes persistentes, fotos fuera del estado)
+   Datos públicos por diseño (anon/publishable key). Rev.5 · 02-oct-2026 (escritura condicionada anti-colisión, hash canónico, sin publicaciones vacías)
    ============================================================ */
 (function(){
   const URL = "https://agbubxdymzuslepjybef.supabase.co";
@@ -12,6 +12,25 @@
   function hsh(s){let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))>>>0;}return 'h'+h.toString(36)+s.length;}
 
   function online(){ return navigator.onLine; }
+  // Serialización CANÓNICA (claves ordenadas): la nube (jsonb) reordena las claves, así que el hash
+  // debe depender solo del contenido, nunca del orden en que se crearon los campos.
+  function canon(v){
+    if(v===null||typeof v!=='object') return JSON.stringify(v===undefined?null:v);
+    if(Array.isArray(v)) return '['+v.map(canon).join(',')+']';
+    const ks=Object.keys(v).filter(function(k){return v[k]!==undefined;}).sort();
+    return '{'+ks.map(function(k){return JSON.stringify(k)+':'+canon(v[k]);}).join(',')+'}';
+  }
+  // Escritura CONDICIONADA: solo escribe si la fila sigue con el mismo 'actualizado' que leímos.
+  // Devuelve true si escribió; false si otro equipo escribió antes (colisión) → hay que releer y fusionar.
+  async function writeIf(table, key, keyVal, seenTs, obj){
+    if(!seenTs){ await upsert(table, [Object.assign({},obj)], key); return true; }
+    const q = key+'=eq.'+encodeURIComponent(keyVal)+'&actualizado=eq.'+encodeURIComponent(seenTs);
+    const h = Object.assign({}, HDR, {"Prefer":"return=representation"});
+    const r = await fetch(REST+table+'?'+q, {method:'PATCH', headers:h, body:JSON.stringify(obj)});
+    if(!r.ok) throw new Error('patch '+table+' '+r.status+' '+(await r.text()));
+    const rows = await r.json();
+    return Array.isArray(rows) && rows.length>0;
+  }
 
   // ---- API REST mínima sobre Supabase ----
   async function sel(table, query){
@@ -187,7 +206,7 @@
     let pushing=false, lastHash='', timer=null, pending=false, retryAt=0;
     const DK = cfg.storeKey+'_pend';              // bandera persistente: hay cambios locales sin subir
     const me = (function(){try{return (JSON.parse(sessionStorage.getItem('addison_sess')||localStorage.getItem('addison_sess')||'{}').u)||'?';}catch(e){return '?';}})();
-    function hOf(d){ try{ return hsh(JSON.stringify(d)); }catch(e){ return ''; } }
+    function hOf(d){ try{ return hsh(canon(d)); }catch(e){ return ''; } }
     function setPend(v){ pending=!!v; try{ if(v) localStorage.setItem(DK,'1'); else localStorage.removeItem(DK); }catch(e){} }
     function hasPend(){ try{ return pending || localStorage.getItem(DK)==='1'; }catch(e){ return pending; } }
     function saveLocal(d){ try{ localStorage.setItem(cfg.storeKey, JSON.stringify(d)); }catch(e){ /* cuota llena: la nube manda */ } }
@@ -233,52 +252,56 @@
       if(!online()) { setBadge('⚠ Sin conexión — guardado local; se subirá al reconectar', '#B26A00'); return; }
       pushing=true; clearTimeout(timer); timer=null;
       try{
-        let data = cfg.getS(); let protegido=false;
-        // ¿La nube cambió desde la última vez que ESTE equipo la vio?
-        let desfasado=false, R=null;
-        try{
-          const rows = await sel('estados_proyecto','proyecto=eq.'+cfg.proyecto+'&select=data');
-          if(rows.length && rows[0].data && Object.keys(rows[0].data).length){
-            R = rows[0].data; desfasado = (hOf(R) !== lastHash);
-          }
-        }catch(e){ /* si no se pudo comparar, se publica igual */ }
+        let protegido=false, escrito=false, intentos=0;
+        while(!escrito && intentos<4){
+          intentos++;
+          let data = cfg.getS();
+          // Se lee la nube COMPLETA (contenido + sello de tiempo) justo antes de escribir
+          let R=null, seenTs=null, desfasado=false;
+          try{
+            const rows = await sel('estados_proyecto','proyecto=eq.'+cfg.proyecto+'&select=data,actualizado');
+            if(rows.length){ seenTs=rows[0].actualizado; if(rows[0].data && Object.keys(rows[0].data).length){ R=rows[0].data; desfasado=(hOf(R)!==lastHash); } }
+          }catch(e){ /* si no se pudo leer, se intenta publicar igual */ }
 
-        // CANDADO ANTI-BORRADO (se aplica en los dos casos):
-        // si lo que se va a publicar tiene menos registros que la nube, se fusiona y,
-        // si la merma es real y grande, se pide confirmación expresa antes de publicar.
-        if(R && !desfasado){
-          const faltan = perdidas(R, data);
-          const grande = faltan.some(function(s){ const n=s.split(' ')[1].split('/'); return (+n[1]-+n[0])>1; });
-          if(faltan.length && grande){
-            const ok = (typeof confirm==='function') && confirm('⚠ ATENCIÓN — posible pérdida de datos\n\nLo que este equipo va a publicar tiene MENOS registros que la nube:\n\n  · '+faltan.join('\n  · ')+'\n\n¿Confirmas que borraste eso a propósito?\n\nSi no estás seguro, pulsa Cancelar: se conservará todo.');
-            if(!ok){
-              data = mergeStates(R, data);
-              saveLocal(data); if(cfg.apply) cfg.apply(data);
-              setBadge('🛡 Se conservaron los registros de la nube', '#1650a7'); protegido=true;
+          // CANDADO ANTI-BORRADO (estado al día): si lo que se publica tiene menos registros que la nube,
+          // se pide confirmación expresa si la merma es grande; si no se confirma, se fusiona.
+          if(R && !desfasado){
+            const faltan = perdidas(R, data);
+            const grande = faltan.some(function(x){ const n=x.split(' ')[1].split('/'); return (+n[1]-+n[0])>1; });
+            if(faltan.length && grande){
+              const ok = (typeof confirm==='function') && confirm('⚠ ATENCIÓN — posible pérdida de datos\n\nLo que este equipo va a publicar tiene MENOS registros que la nube:\n\n  · '+faltan.join('\n  · ')+'\n\n¿Confirmas que borraste eso a propósito?\n\nSi no estás seguro, pulsa Cancelar: se conservará todo.');
+              if(!ok){ data = mergeStates(R, data); saveLocal(data); if(cfg.apply) cfg.apply(data); protegido=true; }
             }
           }
-        }
-
-        if(desfasado && R){
-          // ANTI-APLASTAMIENTO: otro equipo publicó algo que aquí no se ha visto → se FUSIONA,
-          // nunca se pisa. Los borrados hechos con el estado desfasado no se propagan a propósito.
-          data = mergeStates(R, data);
-          // CANDADO: bajo ninguna circunstancia se publica con menos registros que la nube.
-          const faltan = perdidas(R, data);
-          if(faltan.length){
-            setBadge('🛡 Publicación detenida para no borrar datos ('+faltan.join(', ')+')', '#b03a2e');
-            pushing=false; retryAt=Date.now()+10000; return;
+          // ANTI-APLASTAMIENTO (estado desfasado): otro equipo publicó algo que aquí no se vio → se FUSIONA.
+          if(R && desfasado){
+            data = mergeStates(R, data);
+            const faltan = perdidas(R, data);
+            if(faltan.length){
+              setBadge('🛡 Publicación detenida para no borrar datos ('+faltan.join(', ')+')', '#b03a2e');
+              pushing=false; retryAt=Date.now()+10000; return;
+            }
+            saveLocal(data); if(cfg.apply) cfg.apply(data);
+            setBadge('🔗 Fusionado con cambios de otros usuarios', '#1650a7');
           }
-          saveLocal(data); if(cfg.apply) cfg.apply(data);
-          setBadge('🔗 Fusionado con cambios de otros usuarios', '#1650a7');
-        }
+          // SIN CAMBIOS REALES: no se publica nada (evita que un equipo "repita" un estado viejo)
+          if(R && hOf(R)===hOf(data)){ lastHash=hOf(R); setPend(false); setBadge('☁ En la nube', '#0f7a35'); pushing=false; return; }
 
-        await upsert('estados_proyecto',
-          [{proyecto:cfg.proyecto, data:data, actualizado:new Date().toISOString(), por:me}], 'proyecto');
-        lastHash=hOf(data);
-        setPend(false);
-        setBadge(protegido?'🛡 Guardado — se conservaron los registros de la nube':'☁ Guardado y respaldado', protegido?'#1650a7':'#0f7a35');
-        snapshot(cfg.proyecto, data, me);
+          // ESCRITURA CONDICIONADA: solo si nadie escribió entre la lectura y ahora. Si hubo colisión,
+          // se vuelve a leer, fusionar y escribir (hasta 4 intentos). Nunca se pisa lo del otro equipo.
+          escrito = await writeIf('estados_proyecto','proyecto',cfg.proyecto,seenTs,
+            {proyecto:cfg.proyecto, data:data, actualizado:new Date().toISOString(), por:me});
+          if(escrito){
+            lastHash=hOf(data); setPend(false);
+            setBadge(protegido?'🛡 Guardado — se conservaron los registros de la nube':'☁ Guardado y respaldado', protegido?'#1650a7':'#0f7a35');
+            snapshot(cfg.proyecto, data, me);
+          }else{
+            lastHash='';   // fuerza la fusión con lo recién publicado por el otro equipo
+            setBadge('🔁 Otro equipo guardó al mismo tiempo — fusionando…', '#1650a7');
+            await new Promise(function(r){ setTimeout(r, 400+Math.random()*600); });
+          }
+        }
+        if(!escrito){ retryAt=Date.now()+6000; setBadge('⚠ Nube ocupada — se reintenta en unos segundos', '#B26A00'); }
       }catch(e){ retryAt=Date.now()+8000; setBadge('⚠ Error de nube — guardado local, reintentando…', '#B26A00'); }
       pushing=false;
     }
@@ -366,5 +389,5 @@
     window.addEventListener('offline', ()=>setBadge('⚠ Sin conexión','#B26A00'));
   }
 
-  window.ADCloud = { hsh, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup, mergeStates, perdidas, subirFoto, fotoData, esRef, migrarFotos, cargarImgs, proyecto:null };
+  window.ADCloud = { hsh, canon, login, listUsers, createUser, deleteUser, initProject, initMirror, online, listBackups, getBackup, mergeStates, perdidas, subirFoto, fotoData, esRef, migrarFotos, cargarImgs, proyecto:null };
 })();

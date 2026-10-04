@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="es"><head><script src="addison-cloud.js"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("vainitas")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=118;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("vainitas")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Centro de Control — Galpones de Arenas · Planta Las Vainitas (CVM) · SUMINISTROS ADDISON, C.A.</title>
 <style>
 :root{--navy:#0A2A4D;--blue:#014695;--lb:#7FA8D9;--steel:#3E5E80;--mid:#8a96ad;--light:#F2F5F9;--line:#dce2ec;--green:#1e7e46;--red:#b03a2e;--gold:#c79500}
@@ -423,11 +423,11 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <div class="g2">
 <div>
 <h5>1 · Datos del día</h5>
-<p>Fecha del reporte: <input type="date" id="rFecha" onchange="cargarDia()"> <span id="rDiaInfo" style="font-size:7.4pt;color:var(--mid);font-weight:700"></span><br> &nbsp; Personal presente: <input type="number" id="rPers" min="0" style="width:64px"> <span style="font-size:7.4pt;color:var(--mid)">(en nómina activa: <span id="rPersReg">0</span>)</span></p>
+<p>Fecha del reporte: <input type="date" id="rFecha" onchange="rendPartSel();cargarDia()"> <span id="rDiaInfo" style="font-size:7.4pt;color:var(--mid);font-weight:700"></span><br> &nbsp; Personal presente: <input type="number" id="rPers" min="0" style="width:64px"> <span style="font-size:7.4pt;color:var(--mid)">(en nómina activa: <span id="rPersReg">0</span>)</span></p>
 <p style="margin-top:5px">Actividades ejecutadas:<br><textarea id="rTexto" rows="3" style="width:100%" placeholder="Ej.: vaciado losa eje 2-3 (12 m³); armado tolva 60%…"></textarea></p>
 <p style="margin-top:5px">Novedades / restricciones:<br><textarea id="rNov" rows="2" style="width:100%" placeholder="Ej.: lluvia 2 h; falta oxígeno; espera de grúa…"></textarea></p>
 <h5>2 · Avance físico por partida (% acumulado)</h5>
-<p><select id="rPart"></select> <input type="number" id="rPct" min="0" max="100" style="width:58px" placeholder="%"> <button class="btn sm" onclick="addAv()">+ Añadir</button></p>
+<p><select id="rPart" onchange="avInfo()"></select> <input type="number" id="rPct" min="0" max="100" style="width:58px" placeholder="%"> <button class="btn sm" onclick="addAv()">+ Añadir</button></p><div id="rAvInfo"></div>
 <div id="rAvList" style="font-size:8pt;margin:5px 0"></div>
 <h5>3 · Registro fotográfico</h5>
 <p><input type="file" id="rFotos" accept="image/*" multiple onchange="addFotos(this)"></p>
@@ -873,7 +873,7 @@ function ccCSV(){ ccInit(); let c='Fecha;Categoria;Concepto;Beneficiario;Recibo;
   ccFiltrada().forEach(x=>{c+=[x.f,x.cat,'"'+x.d+'"','"'+(x.ben||'')+'"',x.rec||'',x.pp||'',x.mon,x.m,x.tasa||'',ccBS(x).toFixed(2),ccUSD(x).toFixed(2),({P:'PENDIENTE',A:'APROBADO',R:'RECHAZADO'})[x.est],x.por,x.apr||'',x.fapr||''].join(';')+'\n';});
   dl(c,'caja_chica.csv'); }
 
-function tab(b){document.querySelectorAll('.tb[data-t]').forEach(x=>x.classList.toggle('on',x===b));
+function tab(b){document.querySelectorAll('.tb[data-t]').forEach(x=>x.classList.toggle('on',x===b));if(typeof rendPartSel==='function')setTimeout(rendPartSel,0);
 ['t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12','t13','t14','t15'].forEach(t=>{const el=document.getElementById(t);
 if(t==='t4'){el.style.display=(b.dataset.t===t)?'':'none';}else el.classList.toggle('hide',b.dataset.t!==t);});if(b.dataset.t==='t13')rendGastos(); if(b.dataset.t==='t15')rendCaja();}
 // ── HORIZONTE DINÁMICO: el plazo sale de la brecha real de las partidas ──
@@ -1117,9 +1117,22 @@ S.extras.forEach(x=>{c+=[x.f,'"'+x.d+'"',x.u,x.c,x.p,(x.c*x.p).toFixed(2),x.pa,'
 dl(c,'extras_no_presupuestados.csv');}
 // ---------- T10 diario ----------
 let curAv=[],curFotos=[];
+
+// ── AVANCE ACUMULADO EN EL DIARIO: al elegir la partida se muestra lo que ya lleva (sin mirar reportes viejos) ──
+function avAntes(f){const mm={};S.reps.filter(r=>!f||r.f<f).sort((a,b)=>a.f<b.f?-1:1).forEach(r=>{(r.av||[]).forEach(a=>mm[a.n]=a.p);});return mm;}
+function avUltimo(n,f){let u=null;S.reps.filter(r=>!f||r.f<f).sort((a,b)=>a.f<b.f?-1:1).forEach(r=>{(r.av||[]).forEach(a=>{if(a.n===n)u=r.f;});});return u;}
+function rendPartSel(){const sel=document.getElementById('rPart');if(!sel)return;const cur=sel.value;const f=(document.getElementById('rFecha')||{}).value||'';const mm=avAntes(f);
+sel.innerHTML='<option value="">— partida —</option>'+P48.slice().sort((a,b)=>a.n-b.n).map(p=>{const c=(typeof codP==='function')?codP(p):('P'+p.n);const v=mm[p.n]||0;const tt=(p.t.indexOf(c+' ')===0||p.t.indexOf(c+'·')===0)?p.t:(c+' · '+p.t);return `<option value="${p.n}">${tt.slice(0,52)} — lleva ${v}%${v>=100?' ✔':''}</option>`;}).join('');
+if(cur)sel.value=cur;avInfo();}
+function avInfo(){const sel=document.getElementById('rPart'),box=document.getElementById('rAvInfo'),inp=document.getElementById('rPct');if(!sel||!box)return;const n=parseInt(sel.value);
+if(!n){box.innerHTML='';return;}const f=(document.getElementById('rFecha')||{}).value||'';const mm=avAntes(f);const v=mm[n]||0;const u=avUltimo(n,f);const p=P48.find(x=>x.n===n);
+let plan='';try{const d=f?dnum(f):hoyDia();if(p&&d>=p.a){plan=' · plan a esta fecha ≈ <b>'+Math.round(Math.min(100,(d-p.a+1)/(p.b-p.a+1)*100))+'%</b>';}else if(p){plan=' · plan: inicia el día '+p.a+' ('+fch(p.a)+')';}}catch(e){}
+const enRep=curAv.find(a=>a.n===n);
+box.innerHTML='<span style="display:inline-block;background:'+(v>=100?'#e6f3ea':'#FFF8E7')+';border:1px solid '+(v>=100?'#1e7e46':'#D9A11B')+';border-radius:8px;padding:5px 10px;margin-top:4px;font-size:8.2pt">📈 <b>'+((typeof codP==='function'&&p)?codP(p):('P'+n))+'</b> lleva <b style="font-size:10pt;color:#0A2A4D">'+v+'%</b> acumulado'+(u?' (último reporte '+u+')':' (sin reportes previos)')+plan+(enRep?' · en este reporte: <b>'+enRep.p+'%</b>':'')+'<br><span style="color:#8a96ad">Escribe el % ACUMULADO al cierre de hoy (no el del día): debe ser ≥ '+v+'%.</span></span>';
+if(inp&&!inp.value&&!enRep){inp.value=v||'';inp.min=0;}inp.placeholder='≥ '+v+'%';}
 function addAv(){const n=parseInt(document.getElementById('rPart').value),p=Math.min(100,Math.max(0,parseFloat(document.getElementById('rPct').value)||0));
-if(!n)return;curAv=curAv.filter(a=>a.n!==n);curAv.push({n:n,p:p});rendAv();}
-function rendAv(){document.getElementById('rAvList').innerHTML=curAv.map(a=>{const pt=P48.find(x=>x.n===a.n);return `<span class="chip">P${a.n} ${pt.t.slice(0,24)}: <b>${a.p}%</b> <a href="#" onclick="curAv=curAv.filter(x=>x.n!==${a.n});rendAv();return false" style="color:var(--red)">✕</a></span>`}).join(' ');}
+if(!n)return;{const f0=(document.getElementById('rFecha')||{}).value||'';const v0=avAntes(f0)[n]||0;if(p<v0&&!confirm('⚠ Esta partida ya lleva '+v0+'% acumulado y estás registrando '+p+'%.\n\nEl avance se reporta ACUMULADO (lo que lleva la partida al cierre de hoy).\n\n¿Seguro que quieres registrar un retroceso?'))return;}curAv=curAv.filter(a=>a.n!==n);curAv.push({n:n,p:p});rendAv();}
+function rendAv(){if(typeof avInfo==='function')setTimeout(avInfo,0);document.getElementById('rAvList').innerHTML=curAv.map(a=>{const pt=P48.find(x=>x.n===a.n);return `<span class="chip">P${a.n} ${pt.t.slice(0,24)}: <b>${a.p}%</b> <a href="#" onclick="curAv=curAv.filter(x=>x.n!==${a.n});rendAv();return false" style="color:var(--red)">✕</a></span>`}).join(' ');}
 function addFotos(inp){[...inp.files].forEach(f=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const cv=document.createElement('canvas');const k=Math.min(1,640/Math.max(img.width,img.height));cv.width=img.width*k;cv.height=img.height*k;cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);const du=cv.toDataURL('image/jpeg',0.6);const fecha=(document.getElementById('rFecha')||{}).value||'';if(window.ADCloud&&ADCloud.online()&&ADCloud.proyecto){ADCloud.subirFoto(ADCloud.proyecto,fecha,du).then(ref=>{curFotos.push(ref);rendFotos();}).catch(()=>{curFotos.push(du);rendFotos();});}else{curFotos.push(du);rendFotos();}};img.src=e.target.result;};r.readAsDataURL(f);});inp.value='';}
 function rendFotos(){document.getElementById('rPrev').innerHTML=curFotos.map((f,i)=>`<span style="position:relative"><img ${(window.ADCloud&&ADCloud.esRef(f))?'data-foto="'+f+'" src=""':'src="'+f+'"'}><a href="#" onclick="curFotos.splice(${i},1);rendFotos();return false" style="position:absolute;top:0;right:2px;color:#b03a2e;font-weight:900">✕</a></span>`).join('');if(window.ADCloud)ADCloud.cargarImgs(document.getElementById('rPrev'));}
 
@@ -2074,7 +2087,7 @@ document.getElementById('tiPick').innerHTML='<option value="">— procura/maquin
 document.getElementById('rFecha').value=new Date().toISOString().slice(0,10);if(typeof cargarDia==='function')cargarDia();
 document.getElementById('svF').value=new Date().toISOString().slice(0,10);
 document.getElementById('xF').value=new Date().toISOString().slice(0,10);
-document.getElementById('rPart').innerHTML='<option value="">— partida —</option>'+P48.map(p=>`<option value="${p.n}">P${p.n} · ${p.t}</option>`).join('');
+document.getElementById('rPart').innerHTML='<option value="">— partida —</option>';setTimeout(function(){try{rendPartSel();}catch(e){}},300);
 document.getElementById('xPart').innerHTML='<option value="">— partida —</option><option value="General">General / obra</option>'+P48.map(p=>`<option value="P${p.n}">P${p.n} · ${p.t}</option>`).join('');
 document.getElementById('pCar').innerHTML='<option value="">— cargo —</option>'+Object.keys(CARGOS).map(c=>`<option>${c}</option>`).join('');
 initAll();
