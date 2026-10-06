@@ -239,7 +239,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--lb)}
 <input id="pTel" placeholder="Teléfono" style="width:100px">
 <input type="date" id="pIn" title="Fecha de entrada"><input type="date" id="pOut" title="Fecha de salida (vacío = activo)">
 <input id="pNota" placeholder="Notas (EPP, certificaciones…)" style="min-width:150px">
-<button class="btn" onclick="addPer()">Registrar</button></div>
+<button class="btn" id="pBtn" onclick="addPer()">Registrar</button> <button class="btn sm s" id="pCancel" style="display:none" onclick="cancelEditPer()">Cancelar</button></div><div id="pEditInfo" class="callout" style="display:none;margin:6px 0"></div>
 <div class="chips" id="perChips"></div>
 <div class="lead noprint"><b>Generar nómina de pago:</b> <input type="date" id="nomA"> a <input type="date" id="nomB"> <button class="btn sm g" onclick="genNom()">🖨 Generar nómina del período</button> <button class="btn sm" onclick="repPer()">🖨 Reporte de personal</button> <button class="btn sm g" onclick="solPer()">🖨 Solicitud de necesidad de personal (hoy)</button> <button class="btn sm s" onclick="expCSVPer()">⬇ CSV personal</button></div>
 <div class="callout" id="perNeed"></div>
@@ -1145,10 +1145,14 @@ kpis();}
 function updM(id,k,v){S.maq[id]=S.maq[id]||{};S.maq[id][k]=v;save();rendM();}
 function delMx(id){if(confirm('¿Eliminar equipo extra?')){S.maqx=S.maqx.filter(m=>m.id!==id);delete S.maq[id];save();rendM();}}
 // ---------- T6 personal ----------
+let perEdit=-1;
+function editPer(i){const p=S.pers[i];if(!p)return;perEdit=i;const v=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val==null?'':val;};v('pNom',p.no);v('pApe',p.ap);v('pCI',p.ci);v('pCar',p.car);v('pTar',p.tar);v('pBan',p.ban);v('pCta',p.cta);v('pTipo',p.tc||'Corriente');v('pTel',p.tel);v('pIn',p.fi);v('pOut',p.fo);v('pNota',p.nota);document.getElementById('pBtn').textContent='💾 Guardar cambios';document.getElementById('pCancel').style.display='';const inf=document.getElementById('pEditInfo');inf.style.display='';inf.innerHTML='✎ Editando a <b>'+p.no+' '+p.ap+'</b> (C.I. '+p.ci+'). Corrige los campos del formulario y pulsa <b>Guardar cambios</b>; el registro se actualiza sin borrarlo ni perder su historial.';try{document.getElementById('pNom').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('pNom').focus();}catch(e){}}
+function cancelEditPer(){perEdit=-1;document.getElementById('pBtn').textContent='Registrar';document.getElementById('pCancel').style.display='none';document.getElementById('pEditInfo').style.display='none';['pNom','pApe','pCI','pTar','pBan','pCta','pTel','pIn','pOut','pNota'].forEach(i=>document.getElementById(i).value='');}
 function addPer(){const g=id=>document.getElementById(id).value;
 if(!g('pNom')||!g('pApe')||!g('pCI')||!g('pCar')||!g('pIn')){alert('Completa: nombre, apellido, cédula, cargo y fecha de entrada');return;}
-S.pers.push({no:g('pNom'),ap:g('pApe'),ci:g('pCI'),car:g('pCar'),tar:parseFloat(g('pTar'))||CARGOS[g('pCar')]||0,
-ban:g('pBan'),cta:g('pCta'),tc:g('pTipo'),tel:g('pTel'),fi:g('pIn'),fo:g('pOut'),nota:g('pNota')});
+const _rec={no:g('pNom'),ap:g('pApe'),ci:g('pCI'),car:g('pCar'),tar:parseFloat(g('pTar'))||CARGOS[g('pCar')]||0,
+ban:g('pBan'),cta:g('pCta'),tc:g('pTipo'),tel:g('pTel'),fi:g('pIn'),fo:g('pOut'),nota:g('pNota')};
+if(typeof perEdit==='number'&&perEdit>=0&&S.pers[perEdit]){Object.assign(S.pers[perEdit],_rec);perEdit=-1;document.getElementById('pBtn').textContent='Registrar';document.getElementById('pCancel').style.display='none';document.getElementById('pEditInfo').style.display='none';}else{S.pers.push(_rec);}
 save();rendPer();['pNom','pApe','pCI','pTar','pBan','pCta','pTel','pIn','pOut','pNota'].forEach(i=>document.getElementById(i).value='');}
 function diasTrab(p,hasta){const fi=new Date(p.fi+'T12:00:00');const fin=p.fo?new Date(p.fo+'T12:00:00'):(hasta?new Date(hasta+'T12:00:00'):new Date());
 return Math.max(0,Math.floor((fin-fi)/864e5)+1);}
@@ -1159,7 +1163,7 @@ h+=`<tr><td><b>${p.no} ${p.ap}</b></td><td class="c">${p.ci}</td><td>${p.car}${p
 <td class="c"><input type="date" value="${p.fo||''}" style="width:106px" onchange="S.pers[${i}].fo=this.value;save();rendPer()"></td>
 <td class="c">${activo?'<span class="ok-r">ACTIVO</span>':'<span style="color:var(--mid)">Egresado</span>'}</td>
 <td class="r">${dt}</td><td class="r">${num(d)}</td><td><input value="${p.nota||''}" style="width:110px" onchange="S.pers[${i}].nota=this.value;save()"></td>
-<td><button class="btn sm r" onclick="if(confirm('¿Eliminar a ${p.no} ${p.ap}?')){S.pers.splice(${i},1);save();rendPer();}">✕</button></td></tr>`;});
+<td style="white-space:nowrap"><button class="btn sm" title="Editar datos" onclick="editPer(${i})">✎</button> <button class="btn sm r" onclick="if(confirm('¿Eliminar a ${p.no} ${p.ap}?')){S.pers.splice(${i},1);save();rendPer();}">✕</button></td></tr>`;});
 document.getElementById('perBody').innerHTML=h||'<tr><td colspan="13" style="color:var(--mid)">Sin personal registrado — registra a tu equipo para generar nóminas y alimentar los reportes.</td></tr>';
 document.getElementById('perChips').innerHTML=`<span class="chip">Registrados: <b>${S.pers.length}</b></span><span class="chip">Activos: <b>${act}</b></span><span class="chip">Devengado acumulado (salarios): <b>${num(dev)}</b></span><span class="chip">Plan salarios 90 d: <b>89.190,00</b></span>`;
 document.getElementById('perTot').textContent=act+' activos';
