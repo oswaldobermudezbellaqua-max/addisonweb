@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=118;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("mb32")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=119;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("mb32")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Centro de Control del Proyecto — SUMINISTROS ADDISON, C.A.</title>
 <style>
 :root{--navy:#0A2A4D;--blue:#014695;--lb:#7FA8D9;--steel:#3E5E80;--mid:#8a96ad;--light:#F2F5F9;--line:#dce2ec;--green:#1e7e46;--red:#b03a2e;--gold:#c79500}
@@ -1208,7 +1208,96 @@ function svgGantt(){
  const cab='<text x="10" y="14" font-size="9.5" font-weight="bold" fill="#0A2A4D">PLAZO DEL PROYECTO: '+fch(1)+' → '+fch(DUR)+' · '+DUR+' días'+(conf?' · FECHA CONFIRMADA':' · fecha estimada')+'</text>'+
  '<text x="10" y="26" font-size="7.2" fill="#5b6b7f">Barras: T taller · A tolva/cinta · B trituración · C tren motriz — el relleno amarillo es el avance real cargado en el DIARIO · línea roja = HOY</text>';
  return '<svg viewBox="0 0 '+w+' '+alto+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:#fff">'+cab+g+hoyL+'</svg>';}
-function rendGantt(){var b=document.getElementById('ganttBox'); if(b)b.innerHTML=svgGantt();}
+// ══ GANTT PLAN vs REAL + PROYECCIÓN (módulo común a los 6 Centros de Control) ══
+function gCod(p){return (typeof codP==='function')?codP(p):('P'+p.n);}
+function gTit(p){return String(p.t||'').replace(/^[\dA-Z.]+ · /,'').slice(0,34).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+// Datos reales por partida a partir de los reportes del DIARIO
+function ganttReal(){
+ const reps=(S.reps||[]).slice().sort(function(a,b){return a.f<b.f?-1:1;}); const info={}; let dL=0;
+ reps.forEach(function(r){const d=dnum(r.f); if(d>dL)dL=d; (r.av||[]).forEach(function(a){
+  const o=info[a.n]||(info[a.n]={ini:null,fin:null,p:0,ult:null});
+  if(a.p>0&&o.ini===null)o.ini=d; if(a.p>=100){if(o.fin===null)o.fin=d;}else o.fin=null; o.p=a.p; o.ult=d;});});
+ return {info:info,dL:dL,n:reps.length};
+}
+// Ritmo y proyección global
+function ganttProy(){
+ const R=ganttReal(); const dL=R.dL; if(!dL) return {dL:0,real:0,plan:0,ritmo:0,ritmoReq:0,proy:null,req:null};
+ const real=realPct(fIso(dL)), plan=planAt(dL);
+ const back=Math.min(14,dL-1); const r0=back>0?realPct(fIso(dL-back)):0;
+ let ritmo=back>0?(real-r0)/back:(dL>0?real/dL:0); if(ritmo<=0) ritmo=dL>0?real/dL:0;
+ const restante=Math.max(0,100-real);
+ const proy=ritmo>0?Math.round(dL+restante/ritmo):null;
+ const ritmoReq=(DUR-dL)>0?restante/(DUR-dL):Infinity;
+ return {dL:dL,real:real,plan:plan,ritmo:ritmo,ritmoReq:ritmoReq,proy:proy,restante:restante,n:R.n};
+}
+function fIso(d){const x=new Date(D0.getTime()+(d-1)*864e5);return x.toISOString().slice(0,10);}
+function svgGanttReal(){
+ const R=ganttReal(), G=ganttProy(), dL=R.dL;
+ const w=1000,rowH=22,left=212,right=22,top=72;
+ const rows=P48.slice(); const alto=top+rows.length*rowH+40;
+ // horizonte: hasta donde llegue la proyección más lejana
+ let hor=DUR; const proj={};
+ rows.forEach(function(p){const o=R.info[p.n]; let pr=null;
+  if(!dL){pr={a:p.a,b:p.b,t:'plan'};}
+  else if(o&&o.p>=100){pr={a:o.ini||o.fin,b:o.fin,t:'ok'};}
+  else if(o&&o.p>0){const ini=o.ini,el=Math.max(1,dL-ini+1),rit=o.p/el,rest=Math.max(1,Math.ceil((100-o.p)/rit));pr={a:ini,b:dL,t:'run',pb:dL+rest,p:o.p};}
+  else {const dur=p.b-p.a; if(p.a>dL)pr={a:p.a,b:p.b,t:'plan'}; else pr={a:dL+1,b:dL+1+dur,t:'late',slip:dL+1-p.a};}
+  proj[p.n]=pr; hor=Math.max(hor,pr.pb||pr.b);});
+ if(G.proy)hor=Math.max(hor,G.proy); hor=Math.min(hor,DUR+Math.ceil(DUR*0.35)); const fuera=G.proy&&G.proy>hor;
+ const X=function(d){return left+(d-1)/(hor-1)*(w-left-right);};
+ let g='',nSem=Math.ceil(hor/7);
+ for(let s=0;s<nSem;s++){const d1=s*7+1,d2=Math.min(hor,s*7+7),x1=X(d1),x2=X(d2);
+  if(s%2===0)g+='<rect x="'+x1+'" y="'+(top-16)+'" width="'+(x2-x1)+'" height="'+(rows.length*rowH+16)+'" fill="#3E5E80" opacity="0.05"/>';
+  g+='<text x="'+((x1+x2)/2)+'" y="'+(top-22)+'" font-size="7" font-weight="bold" fill="#3E5E80" text-anchor="middle">S'+(s+1)+'</text>';}
+ // zona fuera del plazo
+ if(hor>DUR){g+='<rect x="'+X(DUR)+'" y="'+(top-16)+'" width="'+(X(hor)-X(DUR))+'" height="'+(rows.length*rowH+16)+'" fill="#b03a2e" opacity="0.06"/>';}
+ rows.forEach(function(p,i){
+  const y=top+i*rowH, pr=proj[p.n], o=R.info[p.n]||{p:0};
+  g+='<text x="'+(left-6)+'" y="'+(y+10.5)+'" font-size="7.4" fill="#0A2A4D" text-anchor="end"><tspan font-weight="bold">'+gCod(p)+'</tspan> '+gTit(p)+'</text>';
+  // ventana plan (fantasma)
+  g+='<rect x="'+X(p.a)+'" y="'+(y+1)+'" width="'+Math.max(2,X(p.b)-X(p.a))+'" height="3" rx="1" fill="#8a96ad" opacity="0.55"/>';
+  const plEsp=dL?Math.round(Math.min(100,Math.max(0,(dL-p.a+1)/(p.b-p.a+1)*100))):0;
+  if(pr.t==='ok'){g+='<rect x="'+X(pr.a)+'" y="'+(y+5)+'" width="'+Math.max(4,X(pr.b)-X(pr.a))+'" height="12" rx="3" fill="#0A2A4D"/>';
+   if(X(pr.b)-X(pr.a)>58)g+='<text x="'+(X(pr.a)+X(pr.b))/2+'" y="'+(y+14)+'" font-size="6.4" font-weight="bold" fill="#fff" text-anchor="middle">100% · '+fch(pr.b)+'</text>';
+   else g+='<text x="'+(X(pr.b)+4)+'" y="'+(y+14)+'" font-size="6.4" font-weight="bold" fill="#0A2A4D">100% · '+fch(pr.b)+'</text>';}
+  else if(pr.t==='run'){const col=(o.p>=plEsp-5)?'#1e7e46':'#C45E00';
+   g+='<rect x="'+X(pr.a)+'" y="'+(y+5)+'" width="'+Math.max(4,X(pr.b)-X(pr.a))+'" height="12" rx="3" fill="'+col+'"/>';
+   g+='<rect x="'+X(pr.b)+'" y="'+(y+5)+'" width="'+Math.max(3,X(pr.pb)-X(pr.b))+'" height="12" rx="3" fill="'+col+'" opacity="0.32" stroke="'+col+'" stroke-dasharray="3,2" stroke-width="0.8"/>';
+   g+='<text x="'+(X(pr.a)+2)+'" y="'+(y+14)+'" font-size="6.4" font-weight="bold" fill="#fff">'+Math.round(o.p)+'%</text>';
+   g+='<text x="'+(X(pr.pb)+3)+'" y="'+(y+14)+'" font-size="6.2" fill="'+(pr.pb>p.b?'#b03a2e':'#1e7e46')+'">→ '+fch(pr.pb)+(pr.pb>p.b?' (+'+(pr.pb-p.b)+'d)':'')+'</text>';}
+  else if(pr.t==='late'){g+='<rect x="'+X(pr.a)+'" y="'+(y+5)+'" width="'+Math.max(4,X(pr.b)-X(pr.a))+'" height="12" rx="3" fill="#b03a2e" opacity="0.28" stroke="#b03a2e" stroke-dasharray="3,2" stroke-width="0.8"/>';
+   g+='<text x="'+(X(pr.a)+2)+'" y="'+(y+14)+'" font-size="6.2" font-weight="bold" fill="#b03a2e">sin inicio · '+pr.slip+' d de atraso</text>';}
+  else {g+='<rect x="'+X(pr.a)+'" y="'+(y+5)+'" width="'+Math.max(4,X(pr.b)-X(pr.a))+'" height="12" rx="3" fill="#7FA8D9" opacity="0.35"/>';
+   g+='<text x="'+(X(pr.a)+2)+'" y="'+(y+14)+'" font-size="6.2" fill="#3E5E80">por iniciar · '+fch(pr.a)+'</text>';}
+ });
+ let ticks=[];for(let d=1;d<=hor;d+=7)ticks.push(d); if(ticks[ticks.length-1]!==hor)ticks.push(hor);
+ ticks.forEach(function(d){const x=X(d);g+='<line x1="'+x+'" y1="'+(top-16)+'" x2="'+x+'" y2="'+(top+rows.length*rowH)+'" stroke="#dce2ec" stroke-width="0.5"/>';
+  g+='<text x="'+x+'" y="'+(top+rows.length*rowH+15)+'" font-size="6.6" fill="#8a96ad" text-anchor="middle">'+fch(d)+'</text><text x="'+x+'" y="'+(top+rows.length*rowH+25)+'" font-size="6" fill="#aab7c6" text-anchor="middle">d'+d+'</text>';});
+ const yb=top+rows.length*rowH+3;
+ let L='<line x1="'+X(DUR)+'" y1="'+(top-18)+'" x2="'+X(DUR)+'" y2="'+yb+'" stroke="#0A2A4D" stroke-width="1.4"/><text x="'+X(DUR)+'" y="'+(top-30)+'" font-size="7" font-weight="bold" fill="#0A2A4D" text-anchor="middle">PLAZO d'+DUR+'</text>';
+ if(dL){L+='<line x1="'+X(dL)+'" y1="'+(top-18)+'" x2="'+X(dL)+'" y2="'+yb+'" stroke="#b03a2e" stroke-width="1.6"/><text x="'+X(dL)+'" y="'+(top-30)+'" font-size="7" font-weight="bold" fill="#b03a2e" text-anchor="middle">ÚLT. REPORTE d'+dL+'</text>';}
+ if(G.proy){const xp=X(Math.min(G.proy,hor));L+='<line x1="'+xp+'" y1="'+(top-18)+'" x2="'+xp+'" y2="'+yb+'" stroke="'+(G.proy>DUR?'#b03a2e':'#1e7e46')+'" stroke-width="1.4" stroke-dasharray="5,3"/><text x="'+xp+'" y="'+(top-40)+'" font-size="7" font-weight="bold" fill="'+(G.proy>DUR?'#b03a2e':'#1e7e46')+'" text-anchor="'+(fuera?'end':'middle')+'">PROYECCIÓN d'+G.proy+' · '+fch(G.proy)+(fuera?' (fuera del gráfico)':'')+'</text>';}
+ const cab='<text x="10" y="14" font-size="9.5" font-weight="bold" fill="#0A2A4D">REAL Y PROYECCIÓN — '+(dL?('al último reporte (día '+dL+' · '+fch(dL)+') · ritmo real '+G.ritmo.toFixed(2)+' %/día'):'sin reportes todavía')+'</text>'+
+ '<text x="10" y="25" font-size="7.2" fill="#5b6b7f">Barra sólida = ejecutado (verde en ritmo · naranja atrasado · azul oscuro terminado) · barra punteada = proyección a ese ritmo · línea gris fina = ventana del plan · zona rosada = fuera del plazo</text>';
+ return '<svg viewBox="0 0 '+w+' '+alto+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:#fff">'+cab+g+L+'</svg>';
+}
+function ganttKpi(){
+ const G=ganttProy(); if(!G.dL) return '<div class="callout">Aún no hay reportes del DIARIO: el diagrama real se construye con el avance acumulado que se registra cada día.</div>';
+ const dv=G.real-G.plan, atr=G.proy?G.proy-DUR:null;
+ const k=function(v,l,c){return '<div class="kb"><div class="v" style="color:'+(c||'#0A2A4D')+'">'+v+'</div><div class="l">'+l+'</div></div>';};
+ return '<div class="kpi" style="margin:6px 0 10px">'+
+  k(G.plan.toFixed(1)+'%','Plan al día '+G.dL)+k(G.real.toFixed(1)+'%','Real al último reporte<br>'+fch(G.dL),dv>=0?'#1e7e46':'#b03a2e')+
+  k((dv>=0?'+':'')+dv.toFixed(1)+' pts','Desviación real − plan',dv>=0?'#1e7e46':'#b03a2e')+
+  k(G.ritmo.toFixed(2)+' %/d','Ritmo real (últimos '+Math.min(14,G.dL-1)+' d)')+
+  k(G.proy?('d'+G.proy+' · '+fch(G.proy)):'—','Terminación proyectada a este ritmo',atr>0?'#b03a2e':'#1e7e46')+
+  k(atr===null?'—':((atr>0?'+':'')+atr+' d'),'vs plazo contractual (d'+DUR+' · '+fch(DUR)+')',atr>0?'#b03a2e':'#1e7e46')+
+  k(isFinite(G.ritmoReq)?G.ritmoReq.toFixed(2)+' %/d':'—','Ritmo necesario para cerrar en plazo',isFinite(G.ritmoReq)&&G.ritmoReq>G.ritmo*1.15?'#b03a2e':'#1e7e46')+
+  '</div>';
+}
+function rendGantt(){var b=document.getElementById('ganttBox'); if(!b)return;
+ b.innerHTML=ganttKpi()+'<h5 style="margin:8px 0 4px">A · PROGRAMA (PLAN) — ventanas contractuales y avance real cargado</h5>'+svgGantt()+
+  '<h5 style="margin:14px 0 4px">B · EJECUCIÓN REAL Y PROYECCIÓN — construido con los reportes diarios</h5>'+svgGanttReal();}
+
 function svgCurva(w,h,hasta){const pad=40,padB=30,padT=24;
 const X=function(d){return pad+(d-1)/(DUR-1)*(w-pad-12);};
 const Y=function(v){return h-padB-(v/100*(h-padB-padT));};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=118;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("agua")<0)){alert("Tu usuario no tiene acceso a este proyecto.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=119;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("agua")<0)){alert("Tu usuario no tiene acceso a este proyecto.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Centro de Control del Proyecto — SUMINISTROS ADDISON, C.A.</title>
 <style>
 :root{--navy:#0A2A4D;--blue:#014695;--lb:#7FA8D9;--steel:#3E5E80;--mid:#8a96ad;--light:#F2F5F9;--line:#dce2ec;--green:#1e7e46;--red:#b03a2e;--gold:#c79500}
@@ -164,8 +164,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--lb)}
 
 <!-- ==== T3 GANTT ==== -->
 <div class="page hide" id="t3">
-<h3>Gantt — 15 partidas<span class="right">15-sep → 23-nov-2026 (referencial) · línea roja = HOY</span></h3>
-<svg viewBox="0 0 1000 790" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto"><text x="210" y="18" font-size="10" font-weight="bold" fill="#0A2A4D" font-family="Helvetica">GANTT REFERENCIAL — 15 partidas · 70 días · D0 15-sep-2026 (ajustable al emitirse el pedido)</text><line x1="210.0" y1="28" x2="210.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="210.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">15-sep</text><line x1="287.0" y1="28" x2="287.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="287.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">22-sep</text><line x1="364.0" y1="28" x2="364.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="364.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">29-sep</text><line x1="441.0" y1="28" x2="441.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="441.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">06-oct</text><line x1="518.0" y1="28" x2="518.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="518.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">13-oct</text><line x1="595.0" y1="28" x2="595.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="595.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">20-oct</text><line x1="672.0" y1="28" x2="672.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="672.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">27-oct</text><line x1="749.0" y1="28" x2="749.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="749.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">03-nov</text><line x1="826.0" y1="28" x2="826.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="826.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">10-nov</text><line x1="903.0" y1="28" x2="903.0" y2="768" stroke="#E4EAF2" stroke-width="1"/><text x="903.0" y="780" font-size="7.5" fill="#8a96ad" text-anchor="middle" font-family="Helvetica">17-nov</text><text x="204" y="52.0" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">G.1 · Estudio de integridad mecánica de equi</text><rect x="210.0" y="44.0" width="132.0" height="10" rx="2" fill="#B26A00"><title>G.1 · Estudio de integridad mecánica de equipos estáticos (con posible reemplazo de tramos de tubería) · 15-sep→26-sep</title></rect><text x="204" y="100.3" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">81.1 · Análisis de agua - Instrumentación po</text><rect x="243.0" y="92.3" width="143.0" height="10" rx="2" fill="#014695"><title>81.1 · Análisis de agua - Instrumentación portátil de calidad · 18-sep→30-sep</title></rect><text x="204" y="148.5" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">81.2 · Acondicionamiento de tanques de agua </text><rect x="287.0" y="140.5" width="297.0" height="10" rx="2" fill="#014695"><title>81.2 · Acondicionamiento de tanques de agua cruda · 22-sep→18-oct</title></rect><text x="204" y="196.8" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">81.3 · Acondicionamiento de filtros multicap</text><rect x="364.0" y="188.8" width="242.0" height="10" rx="2" fill="#014695"><title>81.3 · Acondicionamiento de filtros multicapa · 29-sep→20-oct</title></rect><text x="204" y="245.1" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">81.4 · Suministro e instalación de motobomba</text><rect x="419.0" y="237.1" width="253.0" height="10" rx="2" fill="#014695"><title>81.4 · Suministro e instalación de motobombas de transferencia · 04-oct→26-oct</title></rect><text x="204" y="293.3" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">81.5 · Habilitación del tanque alterno de re</text><rect x="474.0" y="285.3" width="242.0" height="10" rx="2" fill="#014695"><title>81.5 · Habilitación del tanque alterno de reserva de agua cruda (+ sistema de motobomba) · 09-oct→30-oct</title></rect><text x="204" y="341.6" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">81.6 · Acondicionamiento del tanque T-82-1 y</text><rect x="529.0" y="333.6" width="187.0" height="10" rx="2" fill="#014695"><title>81.6 · Acondicionamiento del tanque T-82-1 y bomba de respaldo · 14-oct→30-oct</title></rect><text x="204" y="389.9" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">66.1 · Integridad mecánica del Tren 1 e inte</text><rect x="397.0" y="381.9" width="231.0" height="10" rx="2" fill="#3E5E80"><title>66.1 · Integridad mecánica del Tren 1 e interconexión 81-66 · 02-oct→22-oct</title></rect><text x="204" y="438.1" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">66.2 · Filtro de carbón, intercambiadores y </text><rect x="507.0" y="430.1" width="275.0" height="10" rx="2" fill="#3E5E80"><title>66.2 · Filtro de carbón, intercambiadores y desgasificador (+ resinas) · 12-oct→05-nov</title></rect><text x="204" y="486.4" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">66.3 · Reactivos (H2SO4/NaOH) y piscina de n</text><rect x="584.0" y="478.4" width="231.0" height="10" rx="2" fill="#3E5E80"><title>66.3 · Reactivos (H2SO4/NaOH) y piscina de neutralización · 19-oct→08-nov</title></rect><text x="204" y="534.7" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">66.4 · Instrumentación, control y válvulas d</text><rect x="639.0" y="526.7" width="253.0" height="10" rx="2" fill="#3E5E80"><title>66.4 · Instrumentación, control y válvulas del Tren 1 (crítico) · 24-oct→15-nov</title></rect><text x="204" y="582.9" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">66.5 · Bombeo del Tren 1: transferencia a ca</text><rect x="694.0" y="574.9" width="220.0" height="10" rx="2" fill="#3E5E80"><title>66.5 · Bombeo del Tren 1: transferencia a calderas (P-66-1) y recirculación (P-66-2) · 29-oct→17-nov</title></rect><text x="204" y="631.2" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">66.6 · Limpieza y protección epóxica de tanq</text><rect x="749.0" y="623.2" width="187.0" height="10" rx="2" fill="#3E5E80"><title>66.6 · Limpieza y protección epóxica de tanques T-66-1/2 · 03-nov→19-nov</title></rect><text x="204" y="679.5" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">66.7 · Reparación del sistema de fosas para </text><rect x="804.0" y="671.5" width="154.0" height="10" rx="2" fill="#3E5E80"><title>66.7 · Reparación del sistema de fosas para tratamiento de desechos (Área 66) · 08-nov→21-nov</title></rect><text x="204" y="727.7" font-size="7.6" fill="#0A2A4D" text-anchor="end" font-family="Helvetica">G.2 · Pintura y alumbrado general de las áre</text><rect x="837.0" y="719.7" width="143.0" height="10" rx="2" fill="#B26A00"><title>G.2 · Pintura y alumbrado general de las áreas · 11-nov→23-nov</title></rect><line id="hoyline" x1="-10" y1="28" x2="-10" y2="768" stroke="#b03a2e" stroke-width="2" stroke-dasharray="4 3"/><text id="hoytxt" x="-10" y="26" font-size="8" fill="#b03a2e" text-anchor="middle" font-family="Helvetica" font-weight="bold">HOY</text></svg>
+<h3>Gantt — 15 partidas<span class="right" id="ganttSub">70 días referenciales desde la fecha de arranque · línea roja = HOY</span></h3>
+<div id="ganttBox"></div>
 </div>
 
 <!-- ==== T4 PROCURA ==== -->
@@ -840,7 +840,7 @@ function ccCSV(){ ccInit(); let c='Fecha;Categoria;Concepto;Beneficiario;Recibo;
   ccFiltrada().forEach(x=>{c+=[x.f,x.cat,'"'+x.d+'"','"'+(x.ben||'')+'"',x.rec||'',x.pp||'',x.mon,x.m,x.tasa||'',ccBS(x).toFixed(2),ccUSD(x).toFixed(2),({P:'PENDIENTE',A:'APROBADO',R:'RECHAZADO'})[x.est],x.por,x.apr||'',x.fapr||''].join(';')+'\n';});
   dl(c,'caja_chica.csv'); }
 
-function tab(b){document.querySelectorAll('.tb[data-t]').forEach(x=>x.classList.toggle('on',x===b));if(typeof rendPartSel==='function')setTimeout(rendPartSel,0);
+function tab(b){document.querySelectorAll('.tb[data-t]').forEach(x=>x.classList.toggle('on',x===b));if(b.dataset.t==='t3'&&typeof rendGantt==='function')setTimeout(rendGantt,0);if(typeof rendPartSel==='function')setTimeout(rendPartSel,0);
 ['t1','t2','t3','t4','t5','t6','t7','t8','t9','t10','t11','t12','t13','t14'].forEach(t=>{const el=document.getElementById(t);
 if(t==='t4'){el.style.display=(b.dataset.t===t)?'':'none';}else el.classList.toggle('hide',b.dataset.t!==t);});if(b.dataset.t==='t13')rendGastos(); if(b.dataset.t==='t14')rendCaja();}
 // ── HORIZONTE DINÁMICO: el plazo sale de la brecha real de las partidas ──
@@ -1209,7 +1209,7 @@ function tablaContraste(hasta){
  const nf=reps.filter(function(r){const d=dnum(r.f);return d<1||d>DUR;}).length;
  const nota=nf?'<p style="font-size:7.8pt;color:#b03a2e;margin:4px 0"><b>⚠ '+nf+' reporte(s) fuera del plazo.</b> Sus fechas no caen dentro de la ventana del proyecto (día 1 al '+DUR+') porque la <b>fecha de arranque</b> está fijada en <b>'+((S.d0&&S.d0.f)||'—')+'</b>. Ajústala en la barra 📅 de la pestaña PARTIDAS para que entren en la curva.</p>':'';
  return '<table><tr><th>Fecha del reporte</th><th class="c">Día</th><th class="r">REAL</th><th class="r">PLAN</th><th class="r">Desviación</th><th class="c">Estado</th></tr>'+filas+'</table>'+nota;}
-function curva(){var _fr=(document.getElementById('rFecha')||{}).value||null;
+function curva(){if(typeof rendGantt==='function')rendGantt();var _fr=(document.getElementById('rFecha')||{}).value||null;
 document.getElementById('curva').innerHTML=svgCurva(500,240,_fr);
 var _tc=document.getElementById('tabContraste'); if(_tc)_tc.innerHTML=tablaContraste(_fr);
 const last=S.reps[S.reps.length-1];
@@ -1875,9 +1875,131 @@ function expJSON(){const a=document.createElement('a');a.href=URL.createObjectUR
 function impJSON(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);
 ['proc','maq'].forEach(k=>S[k]=d[k]||{});['reps','extras','maqx','pers','prov','serv','tram'].forEach(k=>S[k]=d[k]||[]);
 save();initAll();alert('Respaldo importado ✔');}catch(x){alert('Archivo inválido');}};r.readAsText(f);}
-// gantt hoy-line
-(function(){const dh=hoyDia();if(dh>=1&&dh<=70){const x=210+(dh-1)*((1000-210-20)/70);const l=document.getElementById('hoyline'),t=document.getElementById('hoytxt');
-if(l){l.setAttribute('x1',x);l.setAttribute('x2',x);t.setAttribute('x',x);t.textContent='HOY';}}})();
+
+function svgGantt(){
+ const w=1000,rowH=22,left=212,right=22,top=58;
+ const rows=P48.slice().sort(function(a,b){return a.a-b.a||a.b-b.b||a.n-b.n;});
+ const alto=top+rows.length*rowH+40;
+ const X=function(d){return left+(d-1)/(DUR-1)*(w-left-right);};
+ const COL={T:'#C45E00',A:'#0D676C',B:'#014695',C:'#6A3E9E',G:'#8a5a2b'};
+ let g='',nSem=Math.ceil(DUR/7);
+ for(let s=0;s<nSem;s++){
+  const d1=s*7+1,d2=Math.min(DUR,s*7+7),x1=X(d1),x2=X(d2);
+  if(s%2===0)g+='<rect x="'+x1+'" y="'+(top-16)+'" width="'+(x2-x1)+'" height="'+(rows.length*rowH+16)+'" fill="#3E5E80" opacity="0.05"/>';
+  g+='<text x="'+((x1+x2)/2)+'" y="'+(top-22)+'" font-size="7" font-weight="bold" fill="#3E5E80" text-anchor="middle">S'+(s+1)+'</text>';
+ }
+ const av=(typeof avanceMap==='function')?avanceMap():{};
+ rows.forEach(function(p,i){
+  const y=top+i*rowH,x1=X(p.a),x2=X(p.b),anc=Math.max(4,x2-x1),pct=av[p.n]||0;
+  g+='<text x="'+(left-6)+'" y="'+(y+10.5)+'" font-size="7.4" fill="#0A2A4D" text-anchor="end"><tspan font-weight="bold">'+gCod(p)+'</tspan> '+gTit(p).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>';
+  g+='<rect x="'+x1+'" y="'+y+'" width="'+anc+'" height="14" rx="3" fill="'+(COL[p.s]||'#0D676C')+'"/>';
+  if(pct>0)g+='<rect x="'+x1+'" y="'+y+'" width="'+(anc*Math.min(100,pct)/100)+'" height="14" rx="3" fill="#FFC400" opacity="0.85"/>';
+  g+='<text x="'+((x1+x2)/2)+'" y="'+(y+10.5)+'" font-size="6.6" font-weight="bold" fill="'+(pct>50?'#0A2A4D':'#fff')+'" text-anchor="middle">'+(p.b-p.a+1)+'d'+(pct>0?' · '+Math.round(pct)+'%':'')+'</text>';
+ });
+ let ticks=[];for(let d=1;d<=DUR;d+=7)ticks.push(d); if(ticks[ticks.length-1]!==DUR)ticks.push(DUR);
+ ticks.forEach(function(d){const x=X(d);
+  g+='<line x1="'+x+'" y1="'+(top-16)+'" x2="'+x+'" y2="'+(top+rows.length*rowH)+'" stroke="#dce2ec" stroke-width="0.5"/>';
+  g+='<text x="'+x+'" y="'+(top+rows.length*rowH+15)+'" font-size="6.6" fill="#8a96ad" text-anchor="middle">'+fch(d)+'</text>';
+  g+='<text x="'+x+'" y="'+(top+rows.length*rowH+25)+'" font-size="6" fill="#aab7c6" text-anchor="middle">d'+d+'</text>';});
+ let hoyL='',hd=hoyDia();
+ if(hd>=1&&hd<=DUR){const x=X(hd);
+  hoyL='<line x1="'+x+'" y1="'+(top-18)+'" x2="'+x+'" y2="'+(top+rows.length*rowH+3)+'" stroke="#b03a2e" stroke-width="1.6"/>'+
+  '<text x="'+x+'" y="'+(top-30)+'" font-size="7" font-weight="bold" fill="#b03a2e" text-anchor="middle">HOY d'+hd+'</text>';}
+ const conf=S.d0&&S.d0.t==='CONFIRMADA';
+ const cab='<text x="10" y="14" font-size="9.5" font-weight="bold" fill="#0A2A4D">PLAZO DEL PROYECTO: '+fch(1)+' → '+fch(DUR)+' · '+DUR+' días'+(conf?' · FECHA CONFIRMADA':' · fecha estimada')+'</text>'+
+ '<text x="10" y="26" font-size="7.2" fill="#5b6b7f">Barras por sección — el relleno amarillo es el avance real cargado en el DIARIO · línea roja = HOY</text>';
+ return '<svg viewBox="0 0 '+w+' '+alto+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:#fff">'+cab+g+hoyL+'</svg>';}
+// ══ GANTT PLAN vs REAL + PROYECCIÓN (módulo común a los 6 Centros de Control) ══
+function gCod(p){return (typeof codP==='function')?codP(p):('P'+p.n);}
+function gTit(p){return String(p.t||'').replace(/^[\dA-Z.]+ · /,'').slice(0,34).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+// Datos reales por partida a partir de los reportes del DIARIO
+function ganttReal(){
+ const reps=(S.reps||[]).slice().sort(function(a,b){return a.f<b.f?-1:1;}); const info={}; let dL=0;
+ reps.forEach(function(r){const d=dnum(r.f); if(d>dL)dL=d; (r.av||[]).forEach(function(a){
+  const o=info[a.n]||(info[a.n]={ini:null,fin:null,p:0,ult:null});
+  if(a.p>0&&o.ini===null)o.ini=d; if(a.p>=100){if(o.fin===null)o.fin=d;}else o.fin=null; o.p=a.p; o.ult=d;});});
+ return {info:info,dL:dL,n:reps.length};
+}
+// Ritmo y proyección global
+function ganttProy(){
+ const R=ganttReal(); const dL=R.dL; if(!dL) return {dL:0,real:0,plan:0,ritmo:0,ritmoReq:0,proy:null,req:null};
+ const real=realPct(fIso(dL)), plan=planAt(dL);
+ const back=Math.min(14,dL-1); const r0=back>0?realPct(fIso(dL-back)):0;
+ let ritmo=back>0?(real-r0)/back:(dL>0?real/dL:0); if(ritmo<=0) ritmo=dL>0?real/dL:0;
+ const restante=Math.max(0,100-real);
+ const proy=ritmo>0?Math.round(dL+restante/ritmo):null;
+ const ritmoReq=(DUR-dL)>0?restante/(DUR-dL):Infinity;
+ return {dL:dL,real:real,plan:plan,ritmo:ritmo,ritmoReq:ritmoReq,proy:proy,restante:restante,n:R.n};
+}
+function fIso(d){const x=new Date(D0.getTime()+(d-1)*864e5);return x.toISOString().slice(0,10);}
+function svgGanttReal(){
+ const R=ganttReal(), G=ganttProy(), dL=R.dL;
+ const w=1000,rowH=22,left=212,right=22,top=72;
+ const rows=P48.slice(); const alto=top+rows.length*rowH+40;
+ // horizonte: hasta donde llegue la proyección más lejana
+ let hor=DUR; const proj={};
+ rows.forEach(function(p){const o=R.info[p.n]; let pr=null;
+  if(!dL){pr={a:p.a,b:p.b,t:'plan'};}
+  else if(o&&o.p>=100){pr={a:o.ini||o.fin,b:o.fin,t:'ok'};}
+  else if(o&&o.p>0){const ini=o.ini,el=Math.max(1,dL-ini+1),rit=o.p/el,rest=Math.max(1,Math.ceil((100-o.p)/rit));pr={a:ini,b:dL,t:'run',pb:dL+rest,p:o.p};}
+  else {const dur=p.b-p.a; if(p.a>dL)pr={a:p.a,b:p.b,t:'plan'}; else pr={a:dL+1,b:dL+1+dur,t:'late',slip:dL+1-p.a};}
+  proj[p.n]=pr; hor=Math.max(hor,pr.pb||pr.b);});
+ if(G.proy)hor=Math.max(hor,G.proy); hor=Math.min(hor,DUR+Math.ceil(DUR*0.35)); const fuera=G.proy&&G.proy>hor;
+ const X=function(d){return left+(d-1)/(hor-1)*(w-left-right);};
+ let g='',nSem=Math.ceil(hor/7);
+ for(let s=0;s<nSem;s++){const d1=s*7+1,d2=Math.min(hor,s*7+7),x1=X(d1),x2=X(d2);
+  if(s%2===0)g+='<rect x="'+x1+'" y="'+(top-16)+'" width="'+(x2-x1)+'" height="'+(rows.length*rowH+16)+'" fill="#3E5E80" opacity="0.05"/>';
+  g+='<text x="'+((x1+x2)/2)+'" y="'+(top-22)+'" font-size="7" font-weight="bold" fill="#3E5E80" text-anchor="middle">S'+(s+1)+'</text>';}
+ // zona fuera del plazo
+ if(hor>DUR){g+='<rect x="'+X(DUR)+'" y="'+(top-16)+'" width="'+(X(hor)-X(DUR))+'" height="'+(rows.length*rowH+16)+'" fill="#b03a2e" opacity="0.06"/>';}
+ rows.forEach(function(p,i){
+  const y=top+i*rowH, pr=proj[p.n], o=R.info[p.n]||{p:0};
+  g+='<text x="'+(left-6)+'" y="'+(y+10.5)+'" font-size="7.4" fill="#0A2A4D" text-anchor="end"><tspan font-weight="bold">'+gCod(p)+'</tspan> '+gTit(p)+'</text>';
+  // ventana plan (fantasma)
+  g+='<rect x="'+X(p.a)+'" y="'+(y+1)+'" width="'+Math.max(2,X(p.b)-X(p.a))+'" height="3" rx="1" fill="#8a96ad" opacity="0.55"/>';
+  const plEsp=dL?Math.round(Math.min(100,Math.max(0,(dL-p.a+1)/(p.b-p.a+1)*100))):0;
+  if(pr.t==='ok'){g+='<rect x="'+X(pr.a)+'" y="'+(y+5)+'" width="'+Math.max(4,X(pr.b)-X(pr.a))+'" height="12" rx="3" fill="#0A2A4D"/>';
+   if(X(pr.b)-X(pr.a)>58)g+='<text x="'+(X(pr.a)+X(pr.b))/2+'" y="'+(y+14)+'" font-size="6.4" font-weight="bold" fill="#fff" text-anchor="middle">100% · '+fch(pr.b)+'</text>';
+   else g+='<text x="'+(X(pr.b)+4)+'" y="'+(y+14)+'" font-size="6.4" font-weight="bold" fill="#0A2A4D">100% · '+fch(pr.b)+'</text>';}
+  else if(pr.t==='run'){const col=(o.p>=plEsp-5)?'#1e7e46':'#C45E00';
+   g+='<rect x="'+X(pr.a)+'" y="'+(y+5)+'" width="'+Math.max(4,X(pr.b)-X(pr.a))+'" height="12" rx="3" fill="'+col+'"/>';
+   g+='<rect x="'+X(pr.b)+'" y="'+(y+5)+'" width="'+Math.max(3,X(pr.pb)-X(pr.b))+'" height="12" rx="3" fill="'+col+'" opacity="0.32" stroke="'+col+'" stroke-dasharray="3,2" stroke-width="0.8"/>';
+   g+='<text x="'+(X(pr.a)+2)+'" y="'+(y+14)+'" font-size="6.4" font-weight="bold" fill="#fff">'+Math.round(o.p)+'%</text>';
+   g+='<text x="'+(X(pr.pb)+3)+'" y="'+(y+14)+'" font-size="6.2" fill="'+(pr.pb>p.b?'#b03a2e':'#1e7e46')+'">→ '+fch(pr.pb)+(pr.pb>p.b?' (+'+(pr.pb-p.b)+'d)':'')+'</text>';}
+  else if(pr.t==='late'){g+='<rect x="'+X(pr.a)+'" y="'+(y+5)+'" width="'+Math.max(4,X(pr.b)-X(pr.a))+'" height="12" rx="3" fill="#b03a2e" opacity="0.28" stroke="#b03a2e" stroke-dasharray="3,2" stroke-width="0.8"/>';
+   g+='<text x="'+(X(pr.a)+2)+'" y="'+(y+14)+'" font-size="6.2" font-weight="bold" fill="#b03a2e">sin inicio · '+pr.slip+' d de atraso</text>';}
+  else {g+='<rect x="'+X(pr.a)+'" y="'+(y+5)+'" width="'+Math.max(4,X(pr.b)-X(pr.a))+'" height="12" rx="3" fill="#7FA8D9" opacity="0.35"/>';
+   g+='<text x="'+(X(pr.a)+2)+'" y="'+(y+14)+'" font-size="6.2" fill="#3E5E80">por iniciar · '+fch(pr.a)+'</text>';}
+ });
+ let ticks=[];for(let d=1;d<=hor;d+=7)ticks.push(d); if(ticks[ticks.length-1]!==hor)ticks.push(hor);
+ ticks.forEach(function(d){const x=X(d);g+='<line x1="'+x+'" y1="'+(top-16)+'" x2="'+x+'" y2="'+(top+rows.length*rowH)+'" stroke="#dce2ec" stroke-width="0.5"/>';
+  g+='<text x="'+x+'" y="'+(top+rows.length*rowH+15)+'" font-size="6.6" fill="#8a96ad" text-anchor="middle">'+fch(d)+'</text><text x="'+x+'" y="'+(top+rows.length*rowH+25)+'" font-size="6" fill="#aab7c6" text-anchor="middle">d'+d+'</text>';});
+ const yb=top+rows.length*rowH+3;
+ let L='<line x1="'+X(DUR)+'" y1="'+(top-18)+'" x2="'+X(DUR)+'" y2="'+yb+'" stroke="#0A2A4D" stroke-width="1.4"/><text x="'+X(DUR)+'" y="'+(top-30)+'" font-size="7" font-weight="bold" fill="#0A2A4D" text-anchor="middle">PLAZO d'+DUR+'</text>';
+ if(dL){L+='<line x1="'+X(dL)+'" y1="'+(top-18)+'" x2="'+X(dL)+'" y2="'+yb+'" stroke="#b03a2e" stroke-width="1.6"/><text x="'+X(dL)+'" y="'+(top-30)+'" font-size="7" font-weight="bold" fill="#b03a2e" text-anchor="middle">ÚLT. REPORTE d'+dL+'</text>';}
+ if(G.proy){const xp=X(Math.min(G.proy,hor));L+='<line x1="'+xp+'" y1="'+(top-18)+'" x2="'+xp+'" y2="'+yb+'" stroke="'+(G.proy>DUR?'#b03a2e':'#1e7e46')+'" stroke-width="1.4" stroke-dasharray="5,3"/><text x="'+xp+'" y="'+(top-40)+'" font-size="7" font-weight="bold" fill="'+(G.proy>DUR?'#b03a2e':'#1e7e46')+'" text-anchor="'+(fuera?'end':'middle')+'">PROYECCIÓN d'+G.proy+' · '+fch(G.proy)+(fuera?' (fuera del gráfico)':'')+'</text>';}
+ const cab='<text x="10" y="14" font-size="9.5" font-weight="bold" fill="#0A2A4D">REAL Y PROYECCIÓN — '+(dL?('al último reporte (día '+dL+' · '+fch(dL)+') · ritmo real '+G.ritmo.toFixed(2)+' %/día'):'sin reportes todavía')+'</text>'+
+ '<text x="10" y="25" font-size="7.2" fill="#5b6b7f">Barra sólida = ejecutado (verde en ritmo · naranja atrasado · azul oscuro terminado) · barra punteada = proyección a ese ritmo · línea gris fina = ventana del plan · zona rosada = fuera del plazo</text>';
+ return '<svg viewBox="0 0 '+w+' '+alto+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:#fff">'+cab+g+L+'</svg>';
+}
+function ganttKpi(){
+ const G=ganttProy(); if(!G.dL) return '<div class="callout">Aún no hay reportes del DIARIO: el diagrama real se construye con el avance acumulado que se registra cada día.</div>';
+ const dv=G.real-G.plan, atr=G.proy?G.proy-DUR:null;
+ const k=function(v,l,c){return '<div class="kb"><div class="v" style="color:'+(c||'#0A2A4D')+'">'+v+'</div><div class="l">'+l+'</div></div>';};
+ return '<div class="kpi" style="margin:6px 0 10px">'+
+  k(G.plan.toFixed(1)+'%','Plan al día '+G.dL)+k(G.real.toFixed(1)+'%','Real al último reporte<br>'+fch(G.dL),dv>=0?'#1e7e46':'#b03a2e')+
+  k((dv>=0?'+':'')+dv.toFixed(1)+' pts','Desviación real − plan',dv>=0?'#1e7e46':'#b03a2e')+
+  k(G.ritmo.toFixed(2)+' %/d','Ritmo real (últimos '+Math.min(14,G.dL-1)+' d)')+
+  k(G.proy?('d'+G.proy+' · '+fch(G.proy)):'—','Terminación proyectada a este ritmo',atr>0?'#b03a2e':'#1e7e46')+
+  k(atr===null?'—':((atr>0?'+':'')+atr+' d'),'vs plazo contractual (d'+DUR+' · '+fch(DUR)+')',atr>0?'#b03a2e':'#1e7e46')+
+  k(isFinite(G.ritmoReq)?G.ritmoReq.toFixed(2)+' %/d':'—','Ritmo necesario para cerrar en plazo',isFinite(G.ritmoReq)&&G.ritmoReq>G.ritmo*1.15?'#b03a2e':'#1e7e46')+
+  '</div>';
+}
+function rendGantt(){var b=document.getElementById('ganttBox'); if(!b)return;
+ b.innerHTML=ganttKpi()+'<h5 style="margin:8px 0 4px">A · PROGRAMA (PLAN) — ventanas contractuales y avance real cargado</h5>'+svgGantt()+
+  '<h5 style="margin:14px 0 4px">B · EJECUCIÓN REAL Y PROYECCIÓN — construido con los reportes diarios</h5>'+svgGanttReal();}
+
+
 // init
 function initAll(){try{rendCaja();}catch(e){}rendP();rendProc();rendM();rendPer();rendSv();rendProv();rendX();rendReps();rendTram();rendTi();curva();loadRates();rendProv7();kpis();
 document.getElementById('trF').value=new Date().toISOString().slice(0,10);
