@@ -36,7 +36,6 @@
   const esc = input => String(input ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
   const prose = input => esc(input || 'Sin registro en este corte.').replace(/\n/g, '<br>');
   const code = p => String(p.id).padStart(2, '0');
-  const physicalOpening = items.reduce((sum, p) => sum + p.weight * p.field / p.qty, 0);
   const opening = items.reduce((sum, p) => sum + p.opening, 0);
   const groupBalance = Object.fromEntries(Object.keys(titles).map(group => [
     group, items.filter(p => p.group === group).reduce((sum, p) => sum + p.weight - p.opening, 0),
@@ -55,6 +54,11 @@
     return (bridge.getReports() || []).filter(r => /^\d{4}-\d\d-\d\d$/.test(r.f)).slice().sort((a, b) => a.f.localeCompare(b.f));
   }
   function validPercent(x) { return typeof x === 'number' && Number.isFinite(x) && x >= 0 && x <= 100; }
+  function earned(item, quantity) {
+    if (item.qty <= item.field) return item.weight;
+    const fraction = clamp((quantity - item.field) / (item.qty - item.field), 0, 1);
+    return item.opening + (item.weight - item.opening) * fraction;
+  }
   function valuesOn(date, allReports) {
     const quantities = new Map(items.map(p => [p.id, p.field]));
     for (const report of allReports) {
@@ -66,14 +70,8 @@
         }
       }
     }
-    const physical = items.reduce((sum, p) => sum + p.weight * quantities.get(p.id) / p.qty, 0);
-    const integral = items.reduce((sum, p) => {
-      const remaining = p.qty - p.field;
-      return sum + (remaining > 0
-        ? p.opening + (p.weight - p.opening) * (quantities.get(p.id) - p.field) / remaining
-        : p.weight);
-    }, 0);
-    return { quantities, physical, integral };
+    const integral = items.reduce((sum, p) => sum + earned(p, quantities.get(p.id)), 0);
+    return { quantities, integral };
   }
   function planned(date) {
     if (date < cut) return null;
@@ -89,8 +87,7 @@
     if (date < cut) {
       const reviewed = recorded?.lv4?.historical;
       return {
-        date, recorded, history: true, legacy: recorded ? bridge.original(date) : null,
-        physical: validPercent(reviewed?.physical) && reviewed.ref ? reviewed.physical : null,
+        date, recorded, history: true,
         integral: validPercent(reviewed?.integral) && reviewed.ref ? reviewed.integral : null,
         ref: reviewed?.ref || '', plan: null,
       };
@@ -99,24 +96,31 @@
     const last = allReports.filter(r => r.f >= cut && r.f <= date && Object.keys(r.lv4?.quantities || {}).length).at(-1);
     return { ...values, date, recorded, history: false, plan: planned(date), lastMeasure: last?.f || cut };
   }
+  function difference(day) {
+    if (!validPercent(day.integral) || !validPercent(day.plan)) return '—';
+    const delta = day.integral - day.plan;
+    return (delta > 0.00001 ? '+' : '') + number(delta) + ' pts';
+  }
   function historyTable(allReports, until, limit = 0) {
     const dates = [...new Set([...allReports.map(r => r.f), cut])].sort().filter(f => !until || f <= until);
     const rows = limit ? dates.slice(-limit) : dates;
-    return '<div class="lv-scroll"><table><thead><tr><th>Fecha</th><th>Serie anterior</th><th>Obra y transporte</th><th>Integral conciliado</th><th>Plan vigente</th><th>Estado del corte</th></tr></thead><tbody>' +
+    return '<div class="lv-scroll"><table><thead><tr><th>Fecha</th><th>Día</th><th>Plan</th><th>Real</th><th>Desviación</th><th>Estado del corte</th></tr></thead><tbody>' +
       rows.map(date => {
         const d = daily(date, allReports);
         const status = d.history ? (d.ref || 'Pendiente de conciliación documental') : (date === cut ? 'Corte base de sinceración' : 'Metrado al ' + dateLabel(d.lastMeasure));
-        return '<tr><td>' + dateLabel(date) + '</td><td>' + pct(d.legacy) + '</td><td>' + pct(d.physical) + '</td><td>' + pct(d.integral) + '</td><td>' + pct(d.plan) + '</td><td>' + esc(status) + '</td></tr>';
+        const day = days(start,date)+1;
+        return '<tr><td>' + dateLabel(date) + '</td><td>' + (day > 0 ? day : '—') + '</td><td>' + pct(d.plan) + '</td><td><b>' + pct(d.integral) + '</b></td><td>' + difference(d) + '</td><td>' + esc(status) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
   }
   function chart(allReports, until) {
     const width = 700, height = 228, left = 46, right = 20, top = 23, bottom = 42;
-    const first = allReports[0]?.f < start ? allReports[0].f : start;
+    const first = until && until < cut ? start : cut;
     const last = allReports.at(-1)?.f > end ? allReports.at(-1).f : end;
     const x = f => left + days(first, f) / days(first, last) * (width - left - right);
     const y = v => height - bottom - clamp(v, 0, 100) / 100 * (height - top - bottom);
     const points = (rows, prop) => rows.filter(r => validPercent(r[prop])).map(r => x(r.date).toFixed(1) + ',' + y(r[prop]).toFixed(1)).join(' ');
-    const rows = [...new Set([...allReports.map(r => r.f), cut])].sort().filter(f => !until || f <= until).map(f => daily(f, allReports));
+    const dates = [...new Set([...allReports.map(r => r.f), cut])].sort();
+    const rows = dates.filter(f => f >= first && (!until || f <= until)).map(f => daily(f, allReports));
     const oldRows = rows.filter(r => r.history);
     const newRows = rows.filter(r => !r.history && (r.date === cut || r.lastMeasure === r.date));
     const planRows = Array.from({ length: days(cut, end) + 1 }, (_, i) => {
@@ -124,47 +128,124 @@
     });
     const line = (pts, color, dash = '') => pts ? '<polyline fill="none" stroke="' + color + '" stroke-width="2.4" ' + (dash ? 'stroke-dasharray="' + dash + '" ' : '') + 'points="' + pts + '"/>' : '';
     const dot = (rows, key, color) => rows.filter(r => validPercent(r[key])).map(r => '<circle cx="' + x(r.date) + '" cy="' + y(r[key]) + '" r="3" fill="' + color + '"><title>' + r.date + ' · ' + pct(r[key]) + '</title></circle>').join('');
-    return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Curva por fecha: registro original, avance conciliado y plan al 12 de diciembre" style="width:100%;height:auto;background:#fff">' +
+    const ticks = [first, ...['2026-11-26','2026-12-03','2026-12-10'].filter(f=>f>first&&days(f,last)>3), last];
+    return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Curva de avance real y programado al 12 de diciembre" style="width:100%;height:auto;background:#fff">' +
       [0, 25, 50, 75, 100].map(v => '<line x1="' + left + '" x2="' + (width-right) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#d6e1ed"/><text x="' + (left-7) + '" y="' + (y(v)+4) + '" text-anchor="end" font-size="11" fill="#475e76">' + v + '%</text>').join('') +
-      [first, '2026-10-19', '2026-11-02', cut, '2026-12-01', end].map(f => '<text x="' + x(f) + '" y="' + (height-bottom+19) + '" text-anchor="middle" font-size="11" fill="#475e76">' + dateLabel(f) + '</text>').join('') +
-      '<line x1="' + x(cut) + '" x2="' + x(cut) + '" y1="' + top + '" y2="' + y(0) + '" stroke="#a27124" stroke-dasharray="4 4"/>' +
-      line(points(oldRows, 'legacy'), '#8390a0', '4 4') +
-      (until && until < cut ? '' : line(points(planRows, 'plan'), '#3074b8', '6 3')) +
-      line(points(newRows, 'integral'), '#116b58') + line(points(newRows, 'physical'), '#a5671f') +
-      dot(newRows, 'integral', '#116b58') + dot(newRows, 'physical', '#a5671f') +
-      dot(oldRows, 'integral', '#116b58') + dot(oldRows, 'physical', '#a5671f') + '</svg>' +
-      '<p><span style="color:#56677b">— Serie anterior</span> · <span style="color:#116b58">— Integral conciliado</span> · <span style="color:#825013">— Obra y transporte</span> · <span style="color:#225b8f">— Plan desde el 19/11</span></p>';
+      ticks.map(f => '<text x="' + x(f) + '" y="' + (height-bottom+19) + '" text-anchor="middle" font-size="11" fill="#475e76">' + dateLabel(f) + '</text>').join('') +
+      (until && until < cut ? '' : line(points(planRows, 'plan'), '#3074b8')) +
+      line(points(newRows, 'integral'), '#116b58') + dot(newRows, 'integral', '#116b58') +
+      dot(oldRows, 'integral', '#116b58') + '</svg>' +
+      '<p><span style="color:#225b8f">— Plan programado</span> · <span style="color:#116b58">— Avance real</span></p>';
   }
-  function gantt() {
-    const length = days(cut, end);
-    const tick = ['2026-11-20', '2026-11-27', '2026-12-04', '2026-12-12'];
-    const x = f => 270 + days(cut, f) / length * 435;
-    const y = i => 38 + i * 29;
-    const height = y(schedule.length) + 24;
-    const bars = schedule.map((r, i) => {
-      const color = r.milestone ? '#a27124' : r.group === 'electricidad' ? '#17538e' : '#147662';
-      return '<text x="8" y="' + (y(i)+12) + '" font-size="11" fill="#123252">' + esc(r.label) + '</text><rect x="' + (x(r.from)-3) + '" y="' + y(i) + '" width="' + Math.max(8, x(r.to)-x(r.from)+4) + '" height="14" rx="3" fill="' + color + '"><title>' + dateLabel(r.from) + ' – ' + dateLabel(r.to) + '</title></rect>';
+  const catalogItems = new Map();
+  for (const item of items) {
+    if (item.legacy) catalogItems.set(item.legacy, [...(catalogItems.get(item.legacy) || []), item]);
+  }
+  function rowPercent(id, state) {
+    const related = catalogItems.get(id) || [];
+    const base = related.reduce((total,p)=>total+p.weight,0);
+    return base ? clamp(related.reduce((total,p)=>total+earned(p,state.quantities.get(p.id)),0)/base*100,0,100) : null;
+  }
+  function period(row) {
+    const related = catalogItems.get(row.n) || [];
+    const groups = new Set(related.filter(p=>p.qty>p.field).map(p=>p.group));
+    const windows = schedule.filter(w=>groups.has(w.group));
+    if (windows.length) return { from:windows.map(w=>w.from).sort()[0], to:windows.map(w=>w.to).sort().at(-1) };
+    const cutoffDay = days(start,cut);
+    const from = clamp(row.a-1,0,cutoffDay);
+    return { from:dateAt(start,from), to:dateAt(start,clamp(row.b-1,from,cutoffDay)) };
+  }
+  function progress(all, through) {
+    const asOf = through < cut ? cut : through;
+    const d = daily(asOf,all), last = d.lastMeasure;
+    const previous = [cut,...all.filter(r=>r.f>=cut&&r.f<last&&Object.keys(r.lv4?.quantities||{}).length).map(r=>r.f)]
+      .find(f=>days(f,last)>0&&days(f,last)<=14);
+    const earlier = previous ? valuesOn(previous,all) : null;
+    const span = earlier ? days(previous,last) : 0;
+    const rate = span ? (d.integral-earlier.integral)/span : null;
+    const projection = rate>=0.01&&d.integral<100 ? dateAt(last,Math.ceil((100-d.integral)/rate)) : null;
+    return { d,last,earlier,span,rate,projection };
+  }
+  function ganttChart(summary, mode) {
+    const { d,last,earlier,span,projection } = summary;
+    const rows = bridge.getPartidas();
+    const width=1000, left=237, right=36, top=54, rowH=23, height=top+rows.length*rowH+43;
+    const axisEnd = [end,last,projection].filter(Boolean).sort().at(-1);
+    const extent = clamp(days(start,axisEnd),days(start,end),days(start,end)+30);
+    const x = f=>left+clamp(days(start,f),0,extent)*(width-left-right)/extent;
+    const ticks = Array.from({length:Math.floor(extent/7)+1},(_,i)=>dateAt(start,i*7))
+      .filter(f=>f===start||Math.abs(days(f,end))>3);
+    ticks.push(end);
+    ticks.sort();
+    const colors={C1:'#8a5a2b',C2:'#014695',C3:'#0d676c',C4:'#6a3e9e',C5:'#c45e00',C6:'#8a96ad'};
+    const label = (xx,yy,v,attr='')=>'<text x="'+xx+'" y="'+yy+'" font-size="9" fill="#314963" '+attr+'>'+esc(v)+'</text>';
+    const rect = (xx,yy,ww,hh,color,extra='')=>'<rect x="'+xx+'" y="'+yy+'" width="'+Math.max(2,ww)+'" height="'+hh+'" fill="'+color+'" '+extra+'/>';
+    const mark = (f, color) => '<line x1="'+x(f)+'" x2="'+x(f)+'" y1="34" y2="'+(height-34)+'" stroke="'+color+'" stroke-width="1.3"/>';
+    let body = ticks.map((f,i) => {
+      const nx=x(ticks[i+1]||dateAt(start,extent));
+      return (i%2===0&&nx>x(f)?rect(x(f),34,nx-x(f),height-68,'#edf3fa'):'')+
+        mark(f,'#d9e3ee')+label(x(f),height-15,dateLabel(f),'text-anchor="middle"');
     }).join('');
-    return '<svg viewBox="0 0 725 ' + height + '" role="img" aria-label="Ventanas previstas de montaje, electricidad y entrega" style="width:100%;height:auto;background:#fff">' +
-      tick.map(f => '<line x1="' + x(f) + '" x2="' + x(f) + '" y1="26" y2="' + (height-16) + '" stroke="#d6e1ed"/><text x="' + x(f) + '" y="19" text-anchor="middle" font-size="11" fill="#475e76">' + dateLabel(f) + '</text>').join('') + bars + '</svg>' +
-      '<p>Meta de obra constructiva: 07/12. Instalación eléctrica: 08–11/12, una vez liberada toda la construcción. Pruebas y entrega: 12/12. Ventanas de control sujetas a productividad y condiciones de campo.</p>';
+    rows.forEach((row,i)=>{
+      const yy=top+i*rowH, window=period(row);
+      const a=x(window.from), b=x(window.to), length=Math.max(5,b-a);
+      const measured=rowPercent(row.n,d);
+      body+=label(left-6,yy+10,(row.cod||row.n)+' · '+row.t.slice(0,39),'text-anchor="end"');
+      if(measured===null) return;
+      if(mode==='plan'){
+        body+=rect(a,yy,length,14,colors[row.s]||'#014695','rx="3"');
+        if(measured>0) body+=rect(a,yy,length*measured/100,14,'#ffc400','rx="3" opacity="0.85"');
+        if(length>48) body+=label((a+b)/2,yy+10,Math.round(measured)+' %','text-anchor="middle" style="fill:'+(measured>=50?'#0a2a4d':'#fff')+';font-weight:bold"');
+      } else {
+        body+=rect(a,yy+2,length,3,'#9aaabd','opacity="0.72"');
+        const baseline=rowPercent(row.n,valuesAtCut);
+        if(measured>0) {
+          const xa=x(cut), xb=x(last);
+          const realColor=measured>=99.999?'#0a2a4d':'#176854';
+          if(measured>baseline+0.00001&&xb>xa) body+=rect(xa,yy+6,xb-xa,10,realColor,'rx="2"');
+          body+='<circle cx="'+xb+'" cy="'+(yy+11)+'" r="3.8" fill="'+realColor+'"><title>'+esc(pct(measured))+'</title></circle>';
+          body+=label(xb+6,yy+14,pct(measured));
+        }
+        const old=earlier?rowPercent(row.n,earlier):null;
+        const pace=old===null||!span?0:(measured-old)/span;
+        if(pace>=0.01&&measured<99.999) {
+          const projected=dateAt(last,Math.ceil((100-measured)/pace));
+          body+=rect(x(last),yy+7,x(projected)-x(last),8,'#176854','opacity=".3" stroke="#176854" stroke-dasharray="3 2"');
+        }
+      }
+    });
+    body+=mark(end,'#0a2a4d')+label(x(end),24,'META 12/12','text-anchor="middle"');
+    body+=mark(last,'#b03a2e')+label(x(last),mode==='plan'?24:13,'CORTE '+dateLabel(last),'text-anchor="middle"');
+    const name=mode==='plan'?'Programa por partida':'Ejecución real y proyección por partida';
+    return '<div class="lv-gantt"><svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+name+'" style="width:100%;height:auto;background:#fff">'+body+'</svg></div>';
   }
-  function balanceTable(state, showComplete = false) {
-    return '<div class="lv-scroll"><table><thead><tr><th>Part. Rev. 4</th><th>Actividad pendiente</th><th>Ejecutado acumulado</th><th>Saldo por medir</th><th>Saldo integral (puntos)</th></tr></thead><tbody>' +
-      items.filter(p => showComplete || state.quantities.get(p.id) < p.qty - 0.00001).map(p => {
-        const q = state.quantities.get(p.id);
-        const residual = p.qty === p.field ? 0 : (p.weight - p.opening) * (p.qty-q) / (p.qty-p.field);
-        return '<tr><td>' + code(p) + '</td><td>' + esc(p.label) + '</td><td>' + number(q) + ' ' + esc(p.unit) + '</td><td>' + number(p.qty-q) + ' ' + esc(p.unit) + '</td><td>' + number(residual, 3) + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
+  const valuesAtCut = valuesOn(cut, []);
+  function ganttView(all, through) {
+    const p = progress(all, through), dateDay=days(start,p.d.date)+1, available=days(p.d.date,end);
+    const cards = [
+      [pct(p.d.plan),'Plan al día '+dateDay],
+      [pct(p.d.integral),'Real al corte '+dateLabel(p.last)],
+      [difference(p.d),'Desviación real − plan'],
+      [p.rate===null?'—':number(p.rate)+' %/d','Ritmo medido'],
+      [p.projection?dateLabel(p.projection):'—','Terminación proyectada'],
+      [available>0?number((100-p.d.integral)/available)+' %/d':'—','Ritmo para cerrar al 12/12'],
+    ];
+    return '<div class="kpi" style="margin:6px 0 10px">'+cards.map(([v,t])=>'<div class="kb"><div class="v">'+esc(v)+'</div><div class="l">'+esc(t)+'</div></div>').join('')+'</div>'+
+      '<h5 style="margin:8px 0 4px">A · PROGRAMA (PLAN) — ventanas por partida y porcentaje real</h5>'+
+      '<p>05/10–12/12/2026 · 69 días calendario. Relleno amarillo = avance real.</p>'+ganttChart(p,'plan')+
+      '<h5 style="margin:14px 0 4px">B · EJECUCIÓN REAL Y PROYECCIÓN — según los reportes diarios</h5>'+
+      '<p>La línea gris marca la ventana programada. La proyección se calcula cuando hay dos cortes comparables.</p>'+ganttChart(p,'real');
+  }
+  function pendingList(state) {
+    const groups = [...new Set(items.filter(p=>state.quantities.get(p.id)<p.qty-0.00001).map(p=>p.group))];
+    return groups.length ? groups.map(group=>{
+      const windows=schedule.filter(row=>row.group===group);
+      return '<div style="border-left:3px solid var(--blue);padding-left:6px;margin:5px 0"><b>'+esc(titles[group])+'</b> · '+windows.map(w=>esc(w.label)+' ('+dateLabel(w.from)+'–'+dateLabel(w.to)+')').join(' · ')+'</div>';
+    }).join('') : '<span class="ok-r">Sin actividades pendientes.</span>';
   }
   function renderGantt() {
     const target = el('ganttBox');
-    if (!target) return;
-    const all = reports(), active = daily(today() < cut ? cut : today(), all);
-    target.innerHTML = '<div class="callout"><b>05/10–12/12/2026 · 69 días calendario.</b> Avance integral ' + pct(active.integral) + ' · obra y transporte ' + pct(active.physical) + '.</div>' +
-      gantt() + '<h5>Saldo por partida · Rev. 4</h5>' + balanceTable(active);
-    if (el('lvActiveItems')) el('lvActiveItems').innerHTML = balanceTable(active, true);
-    if (el('lvExecution')) el('lvExecution').innerHTML = gantt();
+    if (target) target.innerHTML = ganttView(reports(),today());
   }
   function render() {
     const all = reports();
@@ -175,10 +256,10 @@
     el('tabContraste').innerHTML = historyTable(all, selected, 10);
     el('desv').className = 'callout';
     el('desv').innerHTML = day.history
-      ? '<b>Registro del ' + dateLabel(selected) + '.</b> Serie anterior: ' + pct(day.legacy) + '. Integral conciliado: ' + pct(day.integral) + '. ' + esc(day.ref || historicalEvidence[selected] || 'La conciliación requiere respaldo de ese día.')
-      : '<b>Al ' + dateLabel(selected) + ' · día ' + (days(start, selected)+1) + '.</b> Integral ' + pct(day.integral) + ' · obra y transporte ' + pct(day.physical) + ' · plan ' + pct(day.plan) + ' · diferencia ' + number(day.integral - day.plan) + ' puntos · metrado al ' + dateLabel(day.lastMeasure) + '.';
+      ? '<b>Registro del ' + dateLabel(selected) + '.</b> Real: ' + pct(day.integral) + '. ' + esc(day.ref || historicalEvidence[selected] || 'La conciliación requiere respaldo de ese día.')
+      : '<b>Al ' + dateLabel(selected) + ' · día ' + (days(start, selected)+1) + '.</b> Real: ' + pct(day.integral) + ' · Plan: ' + pct(day.plan) + ' · Desviación: ' + difference(day) + ' · Último corte: ' + dateLabel(day.lastMeasure) + '.';
     const current = daily(today() < cut ? cut : today(), all);
-    el('hoyPend').innerHTML = balanceTable(current);
+    el('hoyPend').innerHTML = pendingList(current);
     renderGantt();
     kpis();
   }
@@ -186,7 +267,6 @@
     const date = today() < cut ? cut : today(), state = daily(date, reports());
     el('kAv').textContent = pct(state.integral);
     el('kPlanHoy').textContent = pct(state.plan);
-    if (el('lvPhysical')) el('lvPhysical').textContent = pct(state.physical);
   }
   function loadForm() {
     const f = el('rFecha').value;
@@ -201,13 +281,12 @@
     const access = bridge.canEdit();
     if (f < cut) {
       const h = saved?.historical || {};
-      editor.innerHTML = '<p><b>Conciliar un corte anterior</b>. Indica porcentajes con respaldo de esa fecha.</p>' +
-        '<label>Obra y transporte (%) <input id="lvOldPhysical" type="number" min="0" max="100" step="0.01" value="' + (validPercent(h.physical) ? h.physical : '') + '"></label> ' +
-        '<label>Integral (%) <input id="lvOldIntegral" type="number" min="0" max="100" step="0.01" value="' + (validPercent(h.integral) ? h.integral : '') + '"></label><br>' +
+      editor.innerHTML = '<h5>2 · Avance acumulado del corte anterior</h5>' +
+        '<label>Avance real (%) <input id="lvOldIntegral" type="number" min="0" max="100" step="0.01" value="' + (validPercent(h.integral) ? h.integral : '') + '"></label><br>' +
         '<label>Planilla, diario o acta de respaldo <input id="lvOldSource" maxlength="220" type="text" value="' + esc(h.ref || '') + '"></label>' +
         (historicalEvidence[f] ? '<p>' + esc(historicalEvidence[f]) + '</p>' : '');
     } else {
-      editor.innerHTML = '<p><b>Metrado acumulado instalado · Rev. 4</b>. Actualiza únicamente las partidas medidas en este día.</p>' +
+      editor.innerHTML = '<h5>2 · Avance por partida (acumulado)</h5><p>Actualiza las cantidades acumuladas de las partidas medidas en este día.</p>' +
         '<label>Partida <select id="lvPartida"><option value="">Seleccionar</option>' +
         items.filter(p => p.field < p.qty).map(p => '<option value="' + p.id + '">' + code(p) + ' · ' + esc(p.label.slice(0, 70)) + '</option>').join('') + '</select></label> ' +
         '<label>Cantidad <input id="lvQuantity" type="number" min="0" step="any" style="width:110px"></label> <button type="button" id="lvAdd" class="btn sm">Añadir medición</button>' +
@@ -249,17 +328,12 @@
     }
     if (f >= cut) return { quantities: Object.fromEntries(draft) };
     const ref = el('lvOldSource')?.value.trim() || '';
-    const rawPhysical = el('lvOldPhysical')?.value || '';
     const rawIntegral = el('lvOldIntegral')?.value || '';
-    if (!rawPhysical && !rawIntegral && !ref) throw new Error('Indica los datos y el respaldo con los que se concilia este corte.');
-    const readPercent = (raw) => raw === '' ? null : Number(raw);
-    const physical = readPercent(rawPhysical), integral = readPercent(rawIntegral);
-    if (!ref || (physical === null && integral === null) ||
-      (physical !== null && !validPercent(physical)) || (integral !== null && !validPercent(integral)) ||
-      (physical !== null && integral !== null && physical > integral)) {
-      throw new Error('Indica un respaldo y al menos un porcentaje válido. El avance integral debe cubrir la obra ejecutada.');
+    const integral = rawIntegral === '' ? null : Number(rawIntegral);
+    if (!ref || !validPercent(integral)) {
+      throw new Error('Indica el avance real de esa fecha y su respaldo documental.');
     }
-    return { historical: { physical, integral, ref } };
+    return { historical: { ...previous?.lv4?.historical, integral, ref } };
   }
   function list() {
     const all = reports();
@@ -267,7 +341,7 @@
     el('rCount').textContent = all.length + ' diarios · corte de control 19/11';
     el('rLista').innerHTML = dates.map(date => {
       const d = daily(date, all), originalIndex = bridge.getReports().findIndex(r => r.f === date);
-      const status = d.history ? 'Original ' + pct(d.legacy) + ' · conciliado ' + pct(d.integral) : 'Integral ' + pct(d.integral) + ' · obra y transporte ' + pct(d.physical);
+      const status = 'Real: <b>' + pct(d.integral) + '</b> · Plan: ' + pct(d.plan) + (d.history&&!d.ref?' · Pendiente de conciliación':'');
       return '<div class="repcard"><b>' + date + '</b> · ' + status +
         ' <button type="button" class="btn sm g" onclick="LVRevision.print(\'' + date + '\')">' + (d.history ? 'PDF revisión del corte' : d.recorded ? 'PDF reporte ajustado' : 'Vista del corte') + '</button>' +
         (originalIndex >= 0 && d.history ? ' <button type="button" class="btn sm" onclick="verRep(' + originalIndex + ',\'OPS\')">Copia original</button>' : '') +
@@ -290,9 +364,9 @@
     const photos = await Promise.allSettled((r?.fotos || []).map(item => bridge.photo(item)));
     const images = photos.flatMap(image => image.status === 'fulfilled' && /^data:image\/(jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(image.value || '') ? [image.value] : []);
     const notes = d.history
-      ? '<p>Serie anterior: <b>' + pct(d.legacy) + '</b> · Obra conciliada: <b>' + pct(d.physical) + '</b> · Integral conciliado: <b>' + pct(d.integral) + '</b>.</p><p>' + esc(d.ref || historicalEvidence[date] || 'Corte pendiente de conciliación documental.') + '</p>'
-      : '<p>Integral conciliado: <b>' + pct(d.integral) + '</b> · Obra y transporte: <b>' + pct(d.physical) + '</b> · Plan: <b>' + pct(d.plan) + '</b>.</p><p>Metrado al ' + dateLabel(d.lastMeasure) + '. Día ' + (days(start,date)+1) + ' de 69. El avance integral incluye suministro acopiado y el ajuste de apertura del 19/11.</p>';
-    const footer = d.history ? '<h2>Antecedente y relación con el nuevo corte</h2><p>El programa reprogramado y su curva integral se aplican desde el 19/11/2026. La presente revisión conserva el diario y distingue las cifras que tienen respaldo para la fecha de este documento.</p>' : '<h2>Programa de cierre y saldo</h2>' + gantt() + balanceTable(d);
+      ? '<p>Avance real al corte: <b>' + pct(d.integral) + '</b>.</p><p>' + esc(d.ref || historicalEvidence[date] || 'Corte pendiente de conciliación documental.') + '</p>'
+      : '<p>Real: <b>' + pct(d.integral) + '</b> · Plan: <b>' + pct(d.plan) + '</b> · Desviación: <b>' + difference(d) + '</b>.</p><p>Último corte: ' + dateLabel(d.lastMeasure) + '. Día ' + (days(start,date)+1) + ' de 69. Plan reprogramado desde el corte del 19/11.</p>';
+    const footer = d.history ? '<h2>Antecedente y relación con el nuevo corte</h2><p>El programa reprogramado se aplica desde el 19/11/2026.</p>' : '<h2>Programa de cierre y saldo</h2>' + ganttView(all,date) + pendingList(d);
     const content = '<p><b>Fecha:</b> ' + date + ' · <b>Tope de ejecución:</b> 12/12/2026.</p>' + notes +
       '<h2>Actividades de la jornada</h2><p>' + prose(r?.txt) + '</p><h2>Novedades</h2><p>' + prose(r?.nov) + '</p>' +
       '<h2>Curva y cortes diarios</h2>' + chart(all, date) + historyTable(all, date, 12) + footer +
@@ -302,18 +376,10 @@
   }
   function legacyDisplay() {
     const state = valuesOn(today() < cut ? cut : today(), reports());
-    const groups = new Map();
-    for (const p of items) {
-      if (!p.legacy) continue;
-      const g = groups.get(p.legacy) || { base: 0, installed: 0 };
-      g.base += p.weight;
-      g.installed += p.weight * state.quantities.get(p.id) / p.qty;
-      groups.set(p.legacy, g);
-    }
-    return Object.fromEntries([...groups].map(([id,g]) => [id, Math.round(g.installed / g.base * 10000) / 100]));
+    return Object.fromEntries([...catalogItems.keys()].map(id => [id, Math.round(rowPercent(id,state)*100)/100]));
   }
   window.LVRevision = {
-    install: api => { bridge = api; }, cut, today, loadForm, readForm, list, render, renderGantt, kpis, print, openDate, legacyDisplay,
-    model: { daily, valuesOn, planned, schedule, opening, physicalOpening },
+    install: api => { bridge = api; }, cut, today, loadForm, readForm, list, render, renderGantt, kpis, print, openDate, legacyDisplay, period,
+    model: { daily, valuesOn, planned, schedule, opening },
   };
 })();
