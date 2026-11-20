@@ -34,6 +34,7 @@
   const prose = input => esc(input || 'Sin registro en este corte.').replace(/\n/g, '<br>');
   const code = p => String(p.id).padStart(2, '0');
   const opening = items.reduce((sum, p) => sum + p.opening, 0);
+  const dayZero = dateAt(start,-1);
   const byId = new Map(items.map(item => [item.id, item]));
   const weights = new Map(items.map(item => [item.id, {
     material: item.weight * item.supplyShare,
@@ -42,20 +43,64 @@
   const tasks = diary.program.flatMap(([ids, stage, fraction, from, to]) => ids.map(id => ({
     id, stage, from, to, weight: weights.get(id)[stage] * fraction,
   })));
-  const history = new Map();
-  const acceptedEvidence = 'Corte interno acordado al cierre del 18/11. Incluye el suministro confirmado en sitio y los metrados acumulados. El diario original registra 95 m² de cubierta de esa jornada.';
-  const physical = new Map();
-  const delivered = new Map();
-  for (const [date, ref, installed = {}, supplied = {}] of diary.history) {
-    for (const [id, percent] of Object.entries(installed)) physical.set(Number(id), percent / 100);
-    for (const [id, percent] of Object.entries(supplied)) delivered.set(Number(id), percent / 100);
-    const integral = items.reduce((sum, item) => {
-      const fraction = Math.min(item.field / item.qty, physical.get(item.id) || 0);
-      const delivery = Math.max(fraction, delivered.get(item.id) || 0);
-      const weight = weights.get(item.id);
-      return sum + Math.min(item.opening, fraction * weight.obra + delivery * weight.material);
-    }, 0);
-    history.set(date, { integral, ref });
+  const acceptedEvidence = 'Saldo de arranque aprobado al cierre del 18/11/2026.';
+  const balances = new Map(Object.keys(titles).map(group => [
+    group, items.filter(item => item.group === group).reduce((sum,item) => sum + item.weight - item.opening,0),
+  ]));
+  const targets = diary.target.map(([group,fraction,from,to,label,dependency]) => ({
+    group, from, to, weight: balances.get(group)*fraction, label, dependency,
+  }));
+  const historicalDays = new Map(diary.history.map(row => [row[0],row]));
+  const receiptWindows = new Map(diary.materials.flatMap(([ids,from,to]) =>
+    ids.map(id => [id,{from,to}])
+  ));
+  const completedFromReports = new Map(items.map(p => [p.id, diary.history.reduce((max,row) =>
+    Math.max(max,(row[2]?.[p.id] || 0)/100),0)
+  ]));
+  const reconstruction = new Map([[dayZero, { integral: 0, ref: 'Apertura del 05/10, antes de reconocer las actividades de preinicio.' }]]);
+  const measuredField = new Map(), knownMaterial = new Map();
+  let previousGroups = Object.fromEntries(Object.keys(titles).map(group=>[group,0]));
+  for (let date = diary.history[0][0]; date <= controlCut; date = dateAt(date,1)) {
+    const row = historicalDays.get(date);
+    for (const [id,value] of Object.entries(row?.[2] || {})) {
+      measuredField.set(Number(id),Math.max(measuredField.get(Number(id)) || 0,value/100));
+    }
+    for (const [id,value] of Object.entries(row?.[3] || {})) {
+      knownMaterial.set(Number(id),Math.max(knownMaterial.get(Number(id)) || 0,value/100));
+    }
+    if (date < start) continue;
+    const groups = Object.fromEntries(Object.keys(titles).map(group=>[group,0]));
+    for (const item of items) {
+      const finalField = item.field/item.qty;
+      let field = measuredField.get(item.id) || 0;
+      const application = diary.installationDays[item.id];
+      if (application && date >= application[0]) {
+        const base = completedFromReports.get(item.id);
+        const fraction = application.filter(f=>f<=date).length/application.length;
+        field = Math.max(field,base + (finalField-base)*fraction);
+      }
+      if (item.id === 23) {
+        const placedBeforeClosing = item.field-diary.roofMeasuredOnClosingDay;
+        const reportedDays = diary.roofDates.filter(f=>f<=date).length;
+        field = (placedBeforeClosing*reportedDays/diary.roofDates.length +
+          (date === controlCut ? diary.roofMeasuredOnClosingDay : 0))/item.qty;
+      }
+      if (field > 0 && Math.abs(field-finalField)<0.00001) field = finalField;
+      field = clamp(field,0,finalField);
+      const window = receiptWindows.get(item.id);
+      const assumedDelivery = window ? windowFraction(date,window) : 0;
+      const received = Math.max(field,knownMaterial.get(item.id) || 0,assumedDelivery);
+      const materialCredit = Math.min(item.opening,weights.get(item.id).material);
+      const fieldCredit = item.opening-materialCredit;
+      groups[item.group] += materialCredit*received + (finalField ? fieldCredit*field/finalField : 0);
+    }
+    reconstruction.set(date,{
+      integral: Object.values(groups).reduce((sum,value)=>sum+value,0),
+      ref: row?.[1] || 'Sin parte de obra para la jornada. El saldo solo refleja las ventanas estimadas de suministro que aplican.',
+      changes: Object.entries(groups).filter(([group,value])=>value-previousGroups[group]>0.000000001)
+        .map(([group,value])=>({ label:titles[group], points:value-previousGroups[group] })),
+    });
+    previousGroups = groups;
   }
   let bridge;
   let draft = new Map();
@@ -90,31 +135,43 @@
     const integral = items.reduce((sum, p) => sum + earned(p, quantities.get(p.id)), 0);
     return { quantities, integral };
   }
+  function windowFraction(date,row) {
+    return clamp((days(row.from,date)+1)/(days(row.from,row.to)+1),0,1);
+  }
+  function scheduledBy(date, rows) {
+    return rows.reduce((sum,row) => {
+      return sum + row.weight*windowFraction(date,row);
+    },0);
+  }
   function planned(date) {
+    if (date === dayZero) return 0;
     if (date < start) return null;
     if (date >= end) return 100;
-    return tasks.reduce((sum, row) => {
-      const fraction = clamp((days(row.from, date) + 1) / (days(row.from, row.to) + 1), 0, 1);
-      return sum + row.weight * fraction;
-    }, 0);
+    return scheduledBy(date,tasks);
+  }
+  function target(date) {
+    if (date < controlCut) return null;
+    if (date >= end) return 100;
+    return opening+scheduledBy(date,targets);
+  }
+  function activeReports(all, until) {
+    return all.filter(r => r.f >= cut && (!until || r.f <= until) && r.lv4?.quantities);
   }
   function daily(date, allReports) {
     const recorded = allReports.find(r => r.f === date);
     const plan = planned(date);
     if (date < controlCut) {
-      const prior = [...history.keys()].filter(f => f <= date).at(-1);
-      const point = history.get(prior);
-      return {
-        date, recorded, history: true, plan, lastMeasure: prior,
-        integral: point?.integral ?? null,
-        ref: history.get(date)?.ref || 'Sin metrado disponible para la jornada. Se mantiene el último acumulado acreditado.',
-      };
+      const point = reconstruction.get(date);
+      return { date, recorded, history: true, plan, ...point,
+        integral: point?.integral ?? null, ref: point?.ref || 'Reporte del archivo anterior.' };
     }
     const values = valuesOn(date, allReports);
     if (date === controlCut) {
-      return { ...values, date, recorded, history: true, plan, lastMeasure: date, ref: acceptedEvidence };
+      const point = reconstruction.get(date);
+      return { ...values, date, recorded, history: true, plan, lastMeasure: date,
+        changes: point.changes, ref: acceptedEvidence + ' ' + point.ref };
     }
-    const last = allReports.filter(r => r.f >= cut && r.f <= date && r.lv4?.quantities).at(-1);
+    const last = activeReports(allReports,date).at(-1);
     const pending = last?.f !== date;
     return { ...values, date, recorded, history: false, pending, plan, lastMeasure: last?.f || controlCut,
       integral: pending ? null : values.integral };
@@ -125,14 +182,17 @@
     return 'Avance acumulado al cierre de la jornada.';
   }
   function status(day) {
+    if (day.date === dayZero) return 'Apertura';
+    if (day.date === controlCut) return 'Corte acordado';
+    if (day.history && validPercent(day.integral)) return 'Reconstruido';
     if (day.pending) return 'Pendiente';
     if (!validPercent(day.integral) || !validPercent(day.plan)) return 'Preinicio';
     const delta = day.integral - day.plan;
     return delta >= 2 ? 'Adelantado' : delta >= -2 ? 'En línea' : 'Retrasado';
   }
   function datesThrough(all, until) {
-    return [...new Set([...history.keys(), ...all.map(r => r.f), controlCut])]
-      .sort().filter(f => !until || f <= until);
+    return [...reconstruction.keys(),...activeReports(all,until).map(r => r.f)]
+      .filter(date=>!until||date<=until).sort();
   }
   function difference(day) {
     if (!validPercent(day.integral) || !validPercent(day.plan)) return '—';
@@ -143,32 +203,34 @@
     const dates = datesThrough(allReports, until);
     const rows = limit ? dates.slice(-limit).reverse() : dates;
     return '<div class="lv-scroll"><table><thead><tr><th>Fecha</th><th>Día</th><th class="r">Real</th><th class="r">Plan</th><th class="r">Desviación</th><th>Estado</th>' +
-      (details ? '<th>Respaldo del corte</th>' : '') + '</tr></thead><tbody>' +
+      (details ? '<th>Respaldo y criterio</th>' : '') + '</tr></thead><tbody>' +
       rows.map(date => {
         const d = daily(date, allReports);
         const deltaColor = d.integral >= d.plan ? '#0f7a35' : '#b03a2e';
         const day = days(start,date)+1;
-        return '<tr><td>' + dateLabel(date) + '</td><td>' + (day > 0 ? day : '—') + '</td><td class="r"><b>' +
+        return '<tr><td>' + (date===dayZero ? 'Apertura 05/10' : dateLabel(date)) + '</td><td>' + (day >= 0 ? day : '—') + '</td><td class="r"><b>' +
           pct(d.integral) + '</b></td><td class="r">' + pct(d.plan) + '</td><td class="r" style="color:' + deltaColor + '">' +
           difference(d) + '</td><td>' + status(d) + '</td>' + (details ? '<td>' + esc(cutNote(d)) + '</td>' : '') + '</tr>';
       }).join('') + '</tbody></table></div>';
   }
   function chart(allReports, until, width = 500) {
     const through = until < today() ? until : today();
-    const points = datesThrough(allReports,through).filter(f => f >= start)
+    const points = datesThrough(allReports,through)
       .map(date => daily(date,allReports)).filter(d => validPercent(d.integral));
     const last = points.at(-1)?.date;
-    const duration = days(start,last > end ? last : end)+1;
+    const duration = days(dayZero,last > end ? last : end)+1;
     return bridge.chart(width,240,last,{
       duration,
-      dayOf: date => days(start,date)+1,
-      planned: day => planned(dateAt(start,day-1)),
+      dayOffset: 1,
+      dayOf: date => days(dayZero,date)+1,
+      planned: day => planned(dateAt(dayZero,day-1)),
       label: day => {
-        const parts = dateAt(start,day-1).split('-');
+        if (day === 1) return 'Día 0 · 0,00 %';
+        const parts = dateAt(dayZero,day-1).split('-');
         const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
         return parts[2]+'-'+months[Number(parts[1])-1];
       },
-      points: points.map(p => [days(start,p.date)+1,p.integral]),
+      points: points.map(p => [days(dayZero,p.date)+1,p.integral]),
     });
   }
   const catalogItems = new Map();
@@ -190,7 +252,7 @@
     const asOf = through < controlCut ? controlCut : through;
     const last = daily(asOf,all).lastMeasure;
     const d = daily(last,all);
-    const previous = [controlCut,...all.filter(r=>r.f>=cut&&r.f<last&&Object.keys(r.lv4?.quantities||{}).length).map(r=>r.f)]
+    const previous = [controlCut,...activeReports(all).filter(r=>r.f<last).map(r=>r.f)]
       .find(f=>days(f,last)>0&&days(f,last)<=14);
     const earlier = previous ? valuesOn(previous,all) : null;
     const span = earlier ? days(previous,last) : 0;
@@ -275,9 +337,24 @@
       return '<div style="border-left:3px solid var(--blue);padding-left:6px;margin:5px 0"><b>'+esc(titles[group])+'</b> · '+windows.map(w=>esc(w.label)+' ('+dateLabel(w.from)+'–'+dateLabel(w.to)+')').join(' · ')+'</div>';
     }).join('') : '<span class="ok-r">Sin actividades pendientes.</span>';
   }
+  function targetView() {
+    const fronts = targets.map(row => '<tr><td>' + esc(row.label) + '</td><td>' +
+      dateLabel(row.from) + '–' + dateLabel(row.to) + '</td><td>' + esc(row.dependency) + '</td></tr>').join('');
+    const calendar = Array.from({length:days(cut,end)+1},(_,i) => {
+      const date = dateAt(cut,i), plan = planned(date), goal = target(date);
+      return '<tr><td>' + dateLabel(date) + '</td><td class="r">' + pct(plan) + '</td><td class="r">' +
+        pct(goal) + '</td><td class="r">' + difference({integral:goal,plan}) + '</td></tr>';
+    }).join('');
+    return '<h5 style="margin:14px 0 4px">Meta interna de ejecución por prelaciones</h5>' +
+      '<p>Escenario sujeto a capacidad de montaje, liberación de tramos y clima. Del 20 al 27/11 exige montar aproximadamente 837 kg de estructura por jornada en el galpón 2, con una cuadrilla paralela de cubierta en el galpón 1. El drenaje y los cerramientos deben quedar liberados el 05/12 para iniciar electricidad el 06/12.</p>' +
+      '<div class="lv-scroll"><table><thead><tr><th>Frente</th><th>Ventana objetivo</th><th>Prelación</th></tr></thead><tbody>' + fronts + '</tbody></table></div>' +
+      '<details style="margin-top:7px"><summary>Ver metas acumuladas por jornada</summary>' +
+      '<div class="lv-scroll"><table><thead><tr><th>Fecha</th><th class="r">Plan</th><th class="r">Meta</th><th class="r">Holgura</th></tr></thead><tbody>' +
+      calendar + '</tbody></table></div></details>';
+  }
   function renderGantt() {
     const target = el('ganttBox');
-    if (target) target.innerHTML = ganttView(reports(),today());
+    if (target) target.innerHTML = ganttView(reports(),today()) + targetView();
   }
   function render() {
     const all = reports();
@@ -286,9 +363,9 @@
     const comparison = day.pending ? daily(day.lastMeasure,all) : day;
     el('curva').innerHTML = chart(all, selected);
     el('tabContraste').innerHTML = historyTable(all, selected, 12) +
-      '<details style="margin-top:6px"><summary>Ver respaldo de los cortes diarios</summary>' +
-      '<p>Real histórico reconstruido con el Diario, el informe CVM del 26/10 y los pesos Rev. 4. Los tramos con metrado parcial se estiman con el respaldo disponible. Los siete partes de preinicio se incorporan al saldo inicial del 05/10. El cierre del 18/11 incorpora el suministro confirmado en sitio sin fecha individual de recepción respaldada.</p>' +
-      historyTable(all, selected, 0, true) + '</details>';
+      '<details><summary>Ver historial diario reconstruido</summary><p>Se estiman las cantidades sin metrado diario con las ventanas de suministro y las actividades documentadas. Los partes previos al inicio se reconocen en el día 1. El 18/11 es el corte acordado.</p>' +
+      historyTable([],controlCut,0,true) + '</details>';
+    el('lvCurveNote').textContent = 'Historial reconstruido con estimaciones hasta el 18/11. El Diario nuevo aporta los metrados desde el 19/11.';
     const delta = comparison.integral - comparison.plan;
     const elapsed = days(start,comparison.date)+1;
     const reportDay = elapsed > 0 ? ' (día ' + elapsed + ')' : ' · preinicio';
@@ -323,19 +400,27 @@
     if (!editor) return;
     const access = bridge.canEdit();
     if (f < cut) {
-      editor.innerHTML = '<h5>2 · Respaldo del corte histórico</h5><p>' + esc(cutNote(daily(f, all))) + '</p>';
+      editor.innerHTML = '<h5>2 · Consulta del archivo</h5><p>' + esc(cutNote(daily(f, all))) + '</p>';
     } else {
-      editor.innerHTML = '<h5>2 · Avance por partida (acumulado)</h5><p>Actualiza las cantidades acumuladas de las partidas medidas en este día.</p>' +
+      const prior = valuesOn(dateAt(f,-1),all);
+      const goal = target(f);
+      editor.innerHTML = '<h5>2 · Avance por partida (acumulado)</h5><p>Registra las cantidades acumuladas medidas al cierre de la jornada.</p>' +
         '<label>Partida <select id="lvPartida"><option value="">Seleccionar</option>' +
         items.filter(p => p.field < p.qty).map(p => '<option value="' + p.id + '">' + code(p) + ' · ' + esc(p.label.slice(0, 70)) + '</option>').join('') + '</select></label> ' +
         '<label>Cantidad <input id="lvQuantity" type="number" min="0" step="any" style="width:110px"></label> <button type="button" id="lvAdd" class="btn sm">Añadir medición</button>' +
-        '<p id="lvMeterHint"></p><div id="lvDraft"></div>';
+        '<p id="lvMeterHint"></p><div id="lvDraft"></div><p id="lvDraftAdvance"></p>';
       const showDraft = () => {
         el('lvDraft').innerHTML = [...draft].map(([id, q]) => '<span class="chip">Partida ' + id + ': ' + number(q, 3) + ' ' + esc(items.find(p => p.id === id)?.unit || '') + '</span>').join(' ');
+        const increment = [...draft].reduce((sum,[id,q]) => {
+          const item = byId.get(id);
+          return item ? sum+earned(item,q)-earned(item,prior.quantities.get(id)) : sum;
+        },0);
+        el('lvDraftAdvance').textContent = 'Avance de la jornada según metrado: ' + number(increment) + ' pts · Acumulado: ' +
+          pct(prior.integral+increment) + ' · Meta interna del día: ' + pct(goal);
       };
       const showHint = () => {
         const p = items.find(r => r.id === Number(el('lvPartida').value));
-        el('lvMeterHint').textContent = !p ? '' : 'Anterior: ' + number(valuesOn(dateAt(f, -1), all).quantities.get(p.id), 3) + ' ' + p.unit + ' · Contratado: ' + number(p.qty, 3) + ' ' + p.unit + '.';
+        el('lvMeterHint').textContent = !p ? '' : 'Anterior: ' + number(prior.quantities.get(p.id), 3) + ' ' + p.unit + ' · Contratado: ' + number(p.qty, 3) + ' ' + p.unit + '.';
         if (p) el('lvQuantity').value = draft.get(p.id) ?? '';
       };
       el('lvPartida').addEventListener('change', showHint);
@@ -345,8 +430,7 @@
         const input = el('lvQuantity'), q = Number(input.value);
         if (!p || !input.value || !Number.isFinite(q)) return alert('Selecciona la partida y escribe la cantidad acumulada.');
         if (q < p.field - 0.00001 || q > p.qty) return alert('La cantidad debe estar entre el metrado de apertura y el contratado.');
-        const prior = valuesOn(dateAt(f, -1), all).quantities.get(p.id);
-        if (q < prior && !confirm('La cantidad es menor a la del corte anterior. ¿Registrar esta corrección?')) return;
+        if (q < prior.quantities.get(p.id) && !confirm('La cantidad es menor a la del corte anterior. ¿Registrar esta corrección?')) return;
         draft.set(p.id, q);
         showDraft();
       });
@@ -370,17 +454,23 @@
   }
   function list() {
     const all = reports();
-    const dates = [...new Set([...all.map(r => r.f), controlCut])].sort().reverse();
-    el('rCount').textContent = all.length + ' diarios · corte de control ' + dateLabel(controlCut);
-    el('rLista').innerHTML = dates.map(date => {
-      const d = daily(date, all), originalIndex = bridge.getReports().findIndex(r => r.f === date);
-      const status = 'Real: <b>' + pct(d.integral) + '</b> · Plan: ' + pct(d.plan);
-      return '<div class="repcard"><b>' + date + '</b> · ' + status +
-        (d.history ? '' : ' <button type="button" class="btn sm g" onclick="LVRevision.print(\'' + date + '\')">PDF reporte</button>') +
-        (originalIndex >= 0 && d.history ? ' <button type="button" class="btn sm" onclick="verRep(' + originalIndex + ',\'OPS\')">Copia original</button>' : '') +
-        (originalIndex >= 0 && bridge.isAdmin() ? ' <button type="button" class="btn sm" onclick="verRep(' + originalIndex + ',\'JD\')">Copia económica original</button>' : '') +
+    const current = all.filter(r => r.f>=cut).reverse();
+    const archived = all.filter(r => r.f<cut).reverse();
+    el('rCount').textContent = current.length + ' · desde el ' + dateLabel(cut);
+    el('rLista').innerHTML = current.map(({f:date}) => {
+      const d = daily(date, all);
+      return '<div class="repcard"><b>' + date + '</b> · Real: <b>' + pct(d.integral) + '</b> · Plan: ' + pct(d.plan) +
+        ' <button type="button" class="btn sm g" onclick="LVRevision.print(\'' + date + '\')">PDF reporte</button>' +
         ' <button type="button" class="btn sm" onclick="LVRevision.openDate(\'' + date + '\')">Abrir fecha</button></div>';
-    }).join('');
+    }).join('') || '<p>El primer reporte del nuevo Diario está pendiente.</p>';
+    el('lvArchivo').innerHTML = archived.length ? '<details><summary>Archivo histórico · ' + archived.length + ' reportes</summary>' +
+      archived.map(({f:date}) => {
+        const index = bridge.getReports().findIndex(r=>r.f===date);
+        return '<div class="repcard"><b>' + date + '</b> ' +
+          '<button type="button" class="btn sm" onclick="verRep(' + index + ',\'OPS\')">Copia original</button>' +
+          (bridge.isAdmin() ? ' <button type="button" class="btn sm" onclick="verRep(' + index + ',\'JD\')">Copia económica original</button>' : '') +
+          '</div>';
+      }).join('') + '</details>' : '';
   }
   function openDate(date) {
     el('rFecha').value = date;
@@ -401,9 +491,20 @@
     const notes = '<p>Real: <b>' + pct(d.integral) + '</b> · Plan: <b>' + pct(d.plan) + '</b> · Desviación: <b>' +
       difference(d) + '</b>.</p><p>Último corte: ' + dateLabel(d.lastMeasure) + '. Día ' + (days(start,date)+1) +
       ' de 69. Programa del 05/10 al 12/12/2026.</p>';
+    const prior = valuesOn(dateAt(date,-1),all);
+    const amounts = Object.keys(r.lv4?.quantities || {}).map(id => {
+      const item = byId.get(Number(id));
+      if (!item) return '';
+      const q = d.quantities.get(item.id), delta = q-prior.quantities.get(item.id);
+      return '<tr><td>' + code(item) + '</td><td>' + esc(item.label) + '</td><td>' + number(delta,3) +
+        ' ' + esc(item.unit) + '</td><td>' + number(q,3) + ' ' + esc(item.unit) + '</td></tr>';
+    }).join('');
+    const measured = amounts ? '<table><tr><th>Partida</th><th>Descripción</th><th>Variación del día</th><th>Acumulado medido</th></tr>' +
+      amounts + '</table>' : '<p>Sin partidas con nuevo metrado en la jornada.</p>';
     const footer = '<h2>Programa de cierre y saldo</h2>' + ganttView(all,date) + pendingList(d);
     const content = '<p><b>Fecha:</b> ' + date + ' · <b>Tope de ejecución:</b> 12/12/2026.</p>' + notes +
       '<h2>Actividades de la jornada</h2><p>' + prose(r?.txt) + '</p><h2>Novedades</h2><p>' + prose(r?.nov) + '</p>' +
+      '<h2>Metrado de la jornada</h2>' + measured +
       '<h2>Curva y cortes diarios</h2>' + chart(all, date, 640) + historyTable(all, date, 12) + footer +
       '<h2>Registro fotográfico</h2>' + (images.length ? images.map(image => '<img class="foto" src="' + image + '">').join('') : '<p>Sin fotografías incorporadas a este corte.</p>');
     bridge.print('LAS VAINITAS · REPORTE DIARIO DE OBRA', 'Galpones de Arenas · Planta Las Vainitas · CVM', content, true, 'ADD-RD-' + date.replaceAll('-', '') + '-OPS · Rev. 1', tab);
@@ -414,6 +515,6 @@
   }
   window.LVRevision = {
     install: api => { bridge = api; }, cut, today, loadForm, readForm, list, render, renderGantt, kpis, print, openDate, legacyDisplay, period,
-    model: { daily, valuesOn, planned, schedule, opening, tasks },
+    model: { daily, valuesOn, planned, schedule, opening, tasks, target, targets, dayZero, controlCut },
   };
 })();

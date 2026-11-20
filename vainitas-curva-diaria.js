@@ -1,4 +1,4 @@
-// Las Vainitas · reconstrucción del Diario y programa reprogramado.
+// Las Vainitas · programa de ejecución y metas de cierre.
 // Porcentajes acumulados de cantidad sobre la Rev. 4. Referencias: Diario web,
 // CVM-GI-LV-INF-001 (26/10), aprobación del acta y corte de control acordado.
 // Montaje/obra y material entregado se valoran con los coeficientes del APU.
@@ -30,7 +30,7 @@ window.LV_DIARIO = {
     ['2026-10-18', 'Instalados los 20 flanches. Continúa el refuerzo de riostras del galpón 2. Columnas aún en preparación.', {12:100}],
     ['2026-10-19', 'Instalado el refuerzo del lateral derecho de riostras del galpón 2 y desencofrados los pedestales del galpón 1.', {3:75,5:50,9:50}],
     ['2026-10-20', 'Refuerzo de riostras armado al 100 %, instalación aún parcial. Avanza la fabricación de cumbreras.', {}, {3:100}],
-    ['2026-10-21', 'Jornada sin reporte. Se conserva el acumulado anterior.'],
+    ['2026-10-21', 'Jornada sin parte de obra. Se conserva el último metrado y se reconoce el suministro estimado dentro de su ventana.'],
     ['2026-10-22', 'Vaciados 34 m de riostra y armada la primera cabriada. Se reconoce suministro de perfiles para la pieza fabricada.', {6:71,3:85,10:71}, {14:8.256}],
     ['2026-10-23', 'Vaciados 7 m de riostra e instalados los 16 m finales del refuerzo, completando esta partida.', {3:100,6:75,10:75}],
     ['2026-10-24', 'Encofrados 20 m de riostra y cuatro cajones. Cuatro cabriadas fabricadas. Transporte de cemento informado completo.', {9:87,10:95,39:100}, {14:33.026}],
@@ -52,13 +52,57 @@ window.LV_DIARIO = {
     ['2026-11-09', 'Otros 143 m de correas colocadas. Quedan 143 m por instalar en el galpón 1.', {15:27.251}],
     ['2026-11-10', 'Instalación completa de correas del galpón 1. Continúa fondo y esmalte.', {15:36.335}],
     ['2026-11-11', 'Instaladas dos cruces. Láminas de cubierta movilizadas, sin cantidad de material identificable en el parte.', {21:23.362}],
-    ['2026-11-12', 'Instaladas las dos cruces restantes. Inicia cubierta sin área consignada. Movilización pesada y liviana reportada completa.', {21:46.723,44:100,45:100}],
+    ['2026-11-12', 'Instaladas las dos cruces restantes. Inicia cubierta sin área consignada. Movilización pesada y liviana reportada completa.', {21:633.9666375576/1356.8*100,44:100,45:100}],
     ['2026-11-13', 'Montaje de láminas sin área acumulada comprobable. Material para columnas del galpón 2 en preparación. Transporte complementario informado completo.', {43:100}, {13:100}],
     ['2026-11-14', 'Continúan instalación de cubierta y pintura. Parte sin áreas comparables al metrado final.'],
     ['2026-11-15', 'Arranca ensamblado de canaletas y bajantes. Sin instalación acreditada al corte.'],
     ['2026-11-16', 'Seis columnas del galpón 2 instaladas. Armado de 14 m de drenaje. El tramo se acredita como material de canaleta, pendiente de instalación.', {13:80}, {24:13.462}],
     ['2026-11-17', 'Cuatro columnas restantes instaladas. Continúa cubierta sin cantidad verificable y comienza fabricación de cabriadas del galpón 2.', {13:100}],
-    ['2026-11-18', 'El parte respalda 95 m² de cubierta de la jornada.', {23:10.6216466905}],
+    ['2026-11-18', 'El parte respalda 95 m² de cubierta de la jornada. El corte acordado acreditó 178,464 m² acumulados en el galpón 1.', {23:10.6216466905}],
+  ],
+  // Ventanas de recepción estimadas para el saldo suministrado al 18/11.
+  // Los porcentajes fechados del Diario y el material implícito en una
+  // instalación prevalecen cuando acreditan una cantidad mayor.
+  materials: [
+    [[2], '2026-10-01', '2026-10-09'],
+    [[3], '2026-09-28', '2026-10-20'],
+    [[4,5,6,8,9,10,12], '2026-10-01', '2026-10-16'],
+    [[7,11], '2026-10-20', '2026-10-30'],
+    [[13], '2026-10-16', '2026-11-13'],
+    [[14,15,21,22], '2026-10-09', '2026-10-25'],
+    [[16,17,18,19,20], '2026-10-26', '2026-11-12'],
+    [[23], '2026-10-20', '2026-11-12'],
+    [[24,25,38], '2026-11-11', '2026-11-18'],
+    [[26,27,28,29,30,31,32,33,34,35,36,37], '2026-11-09', '2026-11-18'],
+  ],
+  // Jornadas compatibles con la aplicación de pintura y el montaje
+  // cuando el parte acredita la actividad y omite el metrado acumulado.
+  installationDays: {
+    16: ['2026-11-04','2026-11-08','2026-11-09','2026-11-10','2026-11-14','2026-11-15','2026-11-18'],
+    17: ['2026-11-14','2026-11-15','2026-11-16','2026-11-17','2026-11-18'],
+    18: ['2026-10-30','2026-11-02','2026-11-04','2026-11-09','2026-11-10','2026-11-11','2026-11-12'],
+    19: ['2026-11-08','2026-11-09','2026-11-10'],
+    20: ['2026-11-04','2026-11-09','2026-11-10','2026-11-12'],
+    22: ['2026-11-03','2026-11-04','2026-11-05','2026-11-06','2026-11-12'],
+  },
+  // El 18/11 consta una colocación de 95 m² de cubierta. Los 83,464 m²
+  // restantes del acumulado de 178,464 m² se distribuyen en los cuatro
+  // partes previos que mencionan montaje sin indicar la cantidad.
+  roofDates: ['2026-11-12','2026-11-13','2026-11-14','2026-11-17'],
+  roofMeasuredOnClosingDay: 95,
+  // Escenario de ejecución acelerada desde el saldo del corte. Se grafica
+  // como meta en el Gantt y se mantiene separado de los metrados del Diario.
+  target: [
+    ['estructura', 1, '2026-11-20', '2026-11-27', 'Galpón 2 · fabricar y montar cerchas, correas y arriostramientos', 'Montar los lotes liberados desde el 20/11 y completar las conexiones antes de liberar el techo.'],
+    ['pintura', 1, '2026-11-20', '2026-11-29', 'Galpón 2 · aplicar fondo y esmalte por lotes', 'Proteger cada tramo antes de liberar la cubierta. Completar los retoques al terminar el montaje.'],
+    ['cubierta', 267.696/715.936, '2026-11-20', '2026-11-25', 'Galpón 1 · terminar los 267,70 m² de cubierta', 'Frente paralelo. Colocar aproximadamente 45 m² por jornada.'],
+    ['cubierta', 448.24/715.936, '2026-11-29', '2026-12-04', 'Galpón 2 · instalar los 448,24 m² de cubierta', 'Trabajar en sectores estructurales liberados, con una meta de aproximadamente 75 m² por jornada.'],
+    ['drenaje', .5, '2026-11-26', '2026-11-30', 'Galpón 1 · instalar canaletas y bajantes', 'Montar con el alero terminado y comprobar pendientes, sellos y descarga.'],
+    ['drenaje', .5, '2026-12-04', '2026-12-05', 'Galpón 2 · instalar canaletas y bajantes', 'Trabajar en los tramos de alero liberados y comprobar escurrimiento el 05/12.'],
+    ['cerramiento', .5, '2026-11-26', '2026-11-30', 'Galpón 1 · cerrar los laterales', 'Completar fijaciones y remates antes de liberar el frente eléctrico.'],
+    ['cerramiento', .5, '2026-12-02', '2026-12-05', 'Galpón 2 · cerrar los laterales', 'Instalar por paños estructurales liberados, coordinados con la cubierta.'],
+    ['electricidad', .95, '2026-12-06', '2026-12-10', 'Ambos galpones · instalar electricidad y fotovoltaicos', 'Iniciar con las estructuras, cubiertas, cerramientos y drenajes liberados.'],
+    ['electricidad', .05, '2026-12-11', '2026-12-12', 'Pruebas, correcciones y entrega', 'Verificar alumbrado, protecciones, puesta a tierra y sistemas solares.'],
   ],
   // Partidas, componente, fracción, primera y última jornada. Las fracciones
   // de cada componente suman uno. El 12/12 se prueba el sistema fotovoltaico.

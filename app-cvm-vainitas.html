@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=125;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script src="vainitas-rev4-data.js?v=122"></script><script src="vainitas-curva-diaria.js?v=125"></script><script src="vainitas-rev4.js?v=125"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("vainitas")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=127;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script src="vainitas-rev4-data.js?v=122"></script><script src="vainitas-curva-diaria.js?v=127"></script><script src="vainitas-rev4.js?v=127"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("vainitas")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Centro de Control — Galpones de Arenas · Planta Las Vainitas (CVM) · SUMINISTROS ADDISON, C.A.</title>
 <style>
 :root{--navy:#0A2A4D;--blue:#014695;--lb:#7FA8D9;--steel:#3E5E80;--mid:#8a96ad;--light:#F2F5F9;--line:#dce2ec;--green:#1e7e46;--red:#b03a2e;--gold:#c79500}
@@ -425,8 +425,11 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <p style="margin-top:7px"><button class="btn g" id="lvSave" onclick="guardar()">Guardar reporte del día</button></p>
 </div>
 <div>
+<div id="lvCurvePanel">
 <h5>Curva S — real vs plan · 05/10–12/12/2026</h5>
 <div id="curva"></div>
+<p id="lvCurveNote" style="font-size:8pt;color:var(--mid);margin:4px 0"></p>
+</div>
 <div id="desv" class="callout" style="margin-top:6px">Sin datos reales aún.</div>
 <h5>Contraste real vs plan por reporte</h5><div id="tabContraste" style="font-size:8pt"></div>
 <h5>Saldo de ejecución del último corte</h5>
@@ -444,8 +447,9 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <div><h5>Acuerdos y compromisos (uno por línea: compromiso | responsable | fecha)</h5><textarea id="miC" rows="7" style="width:100%" placeholder="Emitir OC de grating | Gcia. Comercial | 07-ago&#10;…"></textarea>
 <p style="margin-top:6px"><button class="btn g" onclick="minuta()">🖨 Generar minuta</button></p></div>
 </div>
-<h3>Reportes guardados<span class="right" id="rCount"></span></h3>
+<h3>Reportes del nuevo Diario<span class="right" id="rCount"></span></h3>
 <div id="rLista"></div>
+<div id="lvArchivo" style="margin-top:10px"></div>
 </div>
 
 <!-- ==== T11 TRAMITES ==== -->
@@ -1332,7 +1336,7 @@ if(rl.length>0){const up=[],dn=[];
 let vline='';
 if(hasta){const dh=dayOf(hasta); if(dh>=1&&dh<=length){const x=X(dh);
  vline='<line x1="'+x+'" y1="'+(padT-2)+'" x2="'+x+'" y2="'+(h-padB)+'" stroke="#0A2A4D" stroke-dasharray="3,3" stroke-width="1"/>'+
- '<text x="'+(series?Math.max(74,Math.min(w-49,x)):x)+'" y="'+(series?padT+10:padT-5)+'" font-size="6.8" fill="#0A2A4D" text-anchor="middle" font-weight="bold"'+(series?' stroke="#fff" stroke-width="3" paint-order="stroke"':'')+'>'+hasta+' · día '+dh+'</text>';}}
+ '<text x="'+(series?Math.max(74,Math.min(w-49,x)):x)+'" y="'+(series?padT+10:padT-5)+'" font-size="6.8" fill="#0A2A4D" text-anchor="middle" font-weight="bold"'+(series?' stroke="#fff" stroke-width="3" paint-order="stroke"':'')+'>'+hasta+' · día '+(dh-(series?.dayOffset||0))+'</text>';}}
 // etiquetas del contraste en el último punto real
 let lab='';
 if(rl.length>0){const u=rl[rl.length-1],pv=plannedAt(u[0]),dv=u[1]-pv;
@@ -1358,7 +1362,7 @@ if(!rl.length&&fuera){aviso='<rect x="'+(pad+6)+'" y="'+(h/2-24)+'" width="'+(w-
  '<text x="'+(w/2)+'" y="'+(h/2+16)+'" font-size="7.2" fill="#8a3227" text-anchor="middle" font-weight="bold">Corrígela en la barra 📅 FECHA DE ARRANQUE (pestaña PARTIDAS) y la curva se traza sola.</text>';}
 else if(!rl.length){aviso='<text x="'+(w/2)+'" y="'+(h/2)+'" font-size="8" fill="#b03a2e" text-anchor="middle" font-weight="bold">Sin curva real todavía — registra el % de avance por partida al guardar el reporte</text>';}
 else if(fuera){aviso='<text x="'+(w/2)+'" y="'+(padT+10)+'" font-size="7" fill="#b03a2e" text-anchor="middle" font-weight="bold">⚠ '+fuera+' reporte(s) fuera del plazo no se grafican</text>';}
-const uni=rl.length===1?'<text x="'+(w/2)+'" y="'+(h-padB+24)+'" font-size="6.8" fill="#8a96ad" text-anchor="middle">Con un solo reporte la curva real es un punto; con dos o más se traza la línea y la brecha.</text>':'';
+const uni=rl.length===1?'<text x="'+(w/2)+'" y="'+(h-padB+24)+'" font-size="6.8" fill="#8a96ad" text-anchor="middle">'+(series?'Saldo de arranque. El primer reporte agregará el próximo punto real.':'Con un solo reporte la curva real es un punto; con dos o más se traza la línea y la brecha.')+'</text>':'';
 return '<svg viewBox="0 0 '+w+' '+(h+(uni?10:0))+'" style="width:100%;height:auto;background:#fff;border:1px solid #dce2ec;border-radius:4px">'+g+area+vline+
 '<polyline points="'+pts+'" fill="none" stroke="#7FA8D9" stroke-width="2"/>'+
 '<polyline points="'+rpts+'" fill="none" stroke="#b03a2e" stroke-width="2.6"/>'+
