@@ -1,8 +1,10 @@
 (function () {
   'use strict';
   const data = window.LV4_DATA;
-  if (!data) return;
+  const diary = window.LV_DIARIO;
+  if (!data || !diary) return;
   const { start, cut, end, items } = data;
+  const { controlCut } = diary;
   const titles = {
     civil: 'Fundaciones y obra civil', estructura: 'Estructura y arriostramiento',
     pintura: 'Fondo anticorrosivo y esmalte', cubierta: 'Cubierta Acerolit',
@@ -10,21 +12,16 @@
     electricidad: 'Electricidad y fotovoltaico', transporte: 'Transporte y movilización',
   };
   const schedule = [
-    { group: 'estructura', label: 'Galpón 2 · fabricar y montar estructura', from: '2026-11-20', to: '2026-11-30', share: 1 },
-    { group: 'pintura', label: 'Galpón 2 · fondo, esmalte y retoques por tramo', from: '2026-11-20', to: '2026-12-02', share: 1 },
-    { group: 'cubierta', label: 'Galpón 1 · terminar cubierta', from: '2026-11-20', to: '2026-11-26', share: 267.696 / 715.936 },
-    { group: 'cubierta', label: 'Galpón 2 · instalar cubierta por tramos liberados', from: '2026-12-01', to: '2026-12-06', share: 448.24 / 715.936 },
-    { group: 'drenaje', label: 'Galpón 1 · instalar drenaje pluvial', from: '2026-11-27', to: '2026-12-03', share: 0.5 },
-    { group: 'drenaje', label: 'Galpón 2 · instalar drenaje pluvial', from: '2026-12-02', to: '2026-12-07', share: 0.5 },
-    { group: 'cerramiento', label: 'Ambos galpones · instalar pantallas laterales', from: '2026-11-27', to: '2026-12-07', share: 1 },
-    { group: 'electricidad', label: 'Instalar alumbrado, protecciones y sistema solar', from: '2026-12-08', to: '2026-12-11', share: 1 },
+    { group: 'estructura', label: 'Galpón 2 · fabricar y montar estructura', from: '2026-11-20', to: '2026-11-30' },
+    { group: 'pintura', label: 'Galpón 2 · fondo, esmalte y retoques por tramo', from: '2026-11-20', to: '2026-12-02' },
+    { group: 'cubierta', label: 'Galpón 1 · terminar cubierta', from: '2026-11-20', to: '2026-11-26' },
+    { group: 'cubierta', label: 'Galpón 2 · instalar cubierta por tramos liberados', from: '2026-12-01', to: '2026-12-06' },
+    { group: 'drenaje', label: 'Galpón 1 · instalar drenaje pluvial', from: '2026-11-27', to: '2026-12-03' },
+    { group: 'drenaje', label: 'Galpón 2 · instalar drenaje pluvial', from: '2026-12-02', to: '2026-12-07' },
+    { group: 'cerramiento', label: 'Ambos galpones · instalar pantallas laterales', from: '2026-11-27', to: '2026-12-07' },
+    { group: 'electricidad', label: 'Instalar alumbrado, protecciones y sistema solar', from: '2026-12-08', to: '2026-12-11' },
     { label: 'Pruebas funcionales, drenaje y entrega', from: '2026-12-12', to: '2026-12-12', milestone: true },
   ];
-  const historicalEvidence = {
-    '2026-11-16': 'El diario registra 6 de las 10 columnas del galpón 2 instaladas y el armado de 14 m de canaletas y bajantes. El armado se registra como fabricación.',
-    '2026-11-17': 'El diario registra el montaje de las 4 columnas restantes del galpón 2, el inicio de fabricación de cabrillas y la continuidad de cubierta en el galpón 1.',
-    '2026-11-18': 'El diario registra 95 m² de cubierta colocados durante la jornada en el galpón 1, recubrimientos y fabricación de cabrillas del galpón 2. Los 95 m² corresponden a la jornada.',
-  };
   const el = id => document.getElementById(id);
   const ms = f => Date.parse(f + 'T00:00:00Z');
   const days = (a, b) => Math.round((ms(b) - ms(a)) / 86400000);
@@ -37,9 +34,29 @@
   const prose = input => esc(input || 'Sin registro en este corte.').replace(/\n/g, '<br>');
   const code = p => String(p.id).padStart(2, '0');
   const opening = items.reduce((sum, p) => sum + p.opening, 0);
-  const groupBalance = Object.fromEntries(Object.keys(titles).map(group => [
-    group, items.filter(p => p.group === group).reduce((sum, p) => sum + p.weight - p.opening, 0),
-  ]));
+  const byId = new Map(items.map(item => [item.id, item]));
+  const weights = new Map(items.map(item => [item.id, {
+    material: item.weight * item.supplyShare,
+    obra: item.weight * (1 - item.supplyShare),
+  }]));
+  const tasks = diary.program.flatMap(([ids, stage, fraction, from, to]) => ids.map(id => ({
+    id, stage, from, to, weight: weights.get(id)[stage] * fraction,
+  })));
+  const history = new Map();
+  const acceptedEvidence = 'Corte interno acordado al cierre del 18/11. Incluye el suministro confirmado en sitio y los metrados acumulados. El diario original registra 95 m² de cubierta de esa jornada.';
+  const physical = new Map();
+  const delivered = new Map();
+  for (const [date, ref, installed = {}, supplied = {}] of diary.history) {
+    for (const [id, percent] of Object.entries(installed)) physical.set(Number(id), percent / 100);
+    for (const [id, percent] of Object.entries(supplied)) delivered.set(Number(id), percent / 100);
+    const integral = items.reduce((sum, item) => {
+      const fraction = Math.min(item.field / item.qty, physical.get(item.id) || 0);
+      const delivery = Math.max(fraction, delivered.get(item.id) || 0);
+      const weight = weights.get(item.id);
+      return sum + Math.min(item.opening, fraction * weight.obra + delivery * weight.material);
+    }, 0);
+    history.set(date, { integral, ref });
+  }
   let bridge;
   let draft = new Map();
   let formDate = '';
@@ -64,7 +81,7 @@
     for (const report of allReports) {
       if (report.f < cut || report.f > date) continue;
       for (const [id, q] of Object.entries(report.lv4?.quantities || {})) {
-        const item = items.find(p => p.id === Number(id));
+        const item = byId.get(Number(id));
         if (item && typeof q === 'number' && Number.isFinite(q) && q >= item.field - 0.00001 && q <= item.qty) {
           quantities.set(item.id, q);
         }
@@ -74,68 +91,85 @@
     return { quantities, integral };
   }
   function planned(date) {
-    if (date < cut) return null;
+    if (date < start) return null;
     if (date >= end) return 100;
-    return opening + schedule.reduce((sum, row) => {
-      if (row.milestone) return sum;
+    return tasks.reduce((sum, row) => {
       const fraction = clamp((days(row.from, date) + 1) / (days(row.from, row.to) + 1), 0, 1);
-      return sum + groupBalance[row.group] * row.share * fraction;
+      return sum + row.weight * fraction;
     }, 0);
   }
   function daily(date, allReports) {
     const recorded = allReports.find(r => r.f === date);
-    if (date < cut) {
-      const reviewed = recorded?.lv4?.historical;
+    const plan = planned(date);
+    if (date < controlCut) {
+      const prior = [...history.keys()].filter(f => f <= date).at(-1);
+      const point = history.get(prior);
       return {
-        date, recorded, history: true,
-        integral: validPercent(reviewed?.integral) && reviewed.ref ? reviewed.integral : null,
-        ref: reviewed?.ref || '', plan: null,
+        date, recorded, history: true, plan, lastMeasure: prior,
+        integral: point?.integral ?? null,
+        ref: history.get(date)?.ref || 'Sin metrado disponible para la jornada. Se mantiene el último acumulado acreditado.',
       };
     }
     const values = valuesOn(date, allReports);
-    const last = allReports.filter(r => r.f >= cut && r.f <= date && Object.keys(r.lv4?.quantities || {}).length).at(-1);
-    return { ...values, date, recorded, history: false, plan: planned(date), lastMeasure: last?.f || cut };
+    if (date === controlCut) {
+      return { ...values, date, recorded, history: true, plan, lastMeasure: date, ref: acceptedEvidence };
+    }
+    const last = allReports.filter(r => r.f >= cut && r.f <= date && r.lv4?.quantities).at(-1);
+    const pending = last?.f !== date;
+    return { ...values, date, recorded, history: false, pending, plan, lastMeasure: last?.f || controlCut,
+      integral: pending ? null : values.integral };
+  }
+  function cutNote(day) {
+    if (day.history) return day.ref;
+    if (day.pending) return 'Reporte pendiente. Último corte registrado el ' + dateLabel(day.lastMeasure) + '.';
+    return 'Avance acumulado al cierre de la jornada.';
+  }
+  function status(day) {
+    if (day.pending) return 'Pendiente';
+    if (!validPercent(day.integral) || !validPercent(day.plan)) return 'Preinicio';
+    const delta = day.integral - day.plan;
+    return delta >= 2 ? 'Adelantado' : delta >= -2 ? 'En línea' : 'Retrasado';
+  }
+  function datesThrough(all, until) {
+    return [...new Set([...history.keys(), ...all.map(r => r.f), controlCut])]
+      .sort().filter(f => !until || f <= until);
   }
   function difference(day) {
     if (!validPercent(day.integral) || !validPercent(day.plan)) return '—';
     const delta = day.integral - day.plan;
     return (delta > 0.00001 ? '+' : '') + number(delta) + ' pts';
   }
-  function historyTable(allReports, until, limit = 0) {
-    const dates = [...new Set([...allReports.map(r => r.f), cut])].sort().filter(f => !until || f <= until);
-    const rows = limit ? dates.slice(-limit) : dates;
-    return '<div class="lv-scroll"><table><thead><tr><th>Fecha</th><th>Día</th><th>Plan</th><th>Real</th><th>Desviación</th><th>Estado del corte</th></tr></thead><tbody>' +
+  function historyTable(allReports, until, limit = 0, details = false) {
+    const dates = datesThrough(allReports, until);
+    const rows = limit ? dates.slice(-limit).reverse() : dates;
+    return '<div class="lv-scroll"><table><thead><tr><th>Fecha</th><th>Día</th><th class="r">Real</th><th class="r">Plan</th><th class="r">Desviación</th><th>Estado</th>' +
+      (details ? '<th>Respaldo del corte</th>' : '') + '</tr></thead><tbody>' +
       rows.map(date => {
         const d = daily(date, allReports);
-        const status = d.history ? (d.ref || 'Pendiente de conciliación documental') : (date === cut ? 'Corte base de sinceración' : 'Metrado al ' + dateLabel(d.lastMeasure));
+        const deltaColor = d.integral >= d.plan ? '#0f7a35' : '#b03a2e';
         const day = days(start,date)+1;
-        return '<tr><td>' + dateLabel(date) + '</td><td>' + (day > 0 ? day : '—') + '</td><td>' + pct(d.plan) + '</td><td><b>' + pct(d.integral) + '</b></td><td>' + difference(d) + '</td><td>' + esc(status) + '</td></tr>';
+        return '<tr><td>' + dateLabel(date) + '</td><td>' + (day > 0 ? day : '—') + '</td><td class="r"><b>' +
+          pct(d.integral) + '</b></td><td class="r">' + pct(d.plan) + '</td><td class="r" style="color:' + deltaColor + '">' +
+          difference(d) + '</td><td>' + status(d) + '</td>' + (details ? '<td>' + esc(cutNote(d)) + '</td>' : '') + '</tr>';
       }).join('') + '</tbody></table></div>';
   }
-  function chart(allReports, until) {
-    const width = 700, height = 228, left = 46, right = 20, top = 23, bottom = 42;
-    const first = until && until < cut ? start : cut;
-    const last = allReports.at(-1)?.f > end ? allReports.at(-1).f : end;
-    const x = f => left + days(first, f) / days(first, last) * (width - left - right);
-    const y = v => height - bottom - clamp(v, 0, 100) / 100 * (height - top - bottom);
-    const points = (rows, prop) => rows.filter(r => validPercent(r[prop])).map(r => x(r.date).toFixed(1) + ',' + y(r[prop]).toFixed(1)).join(' ');
-    const dates = [...new Set([...allReports.map(r => r.f), cut])].sort();
-    const rows = dates.filter(f => f >= first && (!until || f <= until)).map(f => daily(f, allReports));
-    const oldRows = rows.filter(r => r.history);
-    const newRows = rows.filter(r => !r.history && (r.date === cut || r.lastMeasure === r.date));
-    const planRows = Array.from({ length: days(cut, end) + 1 }, (_, i) => {
-      const date = dateAt(cut, i); return { date, plan: planned(date) };
+  function chart(allReports, until, width = 500) {
+    const through = until < today() ? until : today();
+    const points = datesThrough(allReports,through).filter(f => f >= start)
+      .map(date => daily(date,allReports)).filter(d => validPercent(d.integral));
+    const last = points.at(-1)?.date;
+    const duration = days(start,last > end ? last : end)+1;
+    return bridge.chart(width,240,last,{
+      duration,
+      dayOf: date => days(start,date)+1,
+      planned: day => planned(dateAt(start,day-1)),
+      label: day => {
+        const parts = dateAt(start,day-1).split('-');
+        const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        return parts[2]+'-'+months[Number(parts[1])-1];
+      },
+      points: points.map(p => [days(start,p.date)+1,p.integral]),
     });
-    const line = (pts, color, dash = '') => pts ? '<polyline fill="none" stroke="' + color + '" stroke-width="2.4" ' + (dash ? 'stroke-dasharray="' + dash + '" ' : '') + 'points="' + pts + '"/>' : '';
-    const dot = (rows, key, color) => rows.filter(r => validPercent(r[key])).map(r => '<circle cx="' + x(r.date) + '" cy="' + y(r[key]) + '" r="3" fill="' + color + '"><title>' + r.date + ' · ' + pct(r[key]) + '</title></circle>').join('');
-    const ticks = [first, ...['2026-11-26','2026-12-03','2026-12-10'].filter(f=>f>first&&days(f,last)>3), last];
-    return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Curva de avance real y programado al 12 de diciembre" style="width:100%;height:auto;background:#fff">' +
-      [0, 25, 50, 75, 100].map(v => '<line x1="' + left + '" x2="' + (width-right) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#d6e1ed"/><text x="' + (left-7) + '" y="' + (y(v)+4) + '" text-anchor="end" font-size="11" fill="#475e76">' + v + '%</text>').join('') +
-      ticks.map(f => '<text x="' + x(f) + '" y="' + (height-bottom+19) + '" text-anchor="middle" font-size="11" fill="#475e76">' + dateLabel(f) + '</text>').join('') +
-      (until && until < cut ? '' : line(points(planRows, 'plan'), '#3074b8')) +
-      line(points(newRows, 'integral'), '#116b58') + dot(newRows, 'integral', '#116b58') +
-      dot(oldRows, 'integral', '#116b58') + '</svg>' +
-      '<p><span style="color:#225b8f">— Plan programado</span> · <span style="color:#116b58">— Avance real</span></p>';
   }
   const catalogItems = new Map();
   for (const item of items) {
@@ -147,18 +181,16 @@
     return base ? clamp(related.reduce((total,p)=>total+earned(p,state.quantities.get(p.id)),0)/base*100,0,100) : null;
   }
   function period(row) {
-    const related = catalogItems.get(row.n) || [];
-    const groups = new Set(related.filter(p=>p.qty>p.field).map(p=>p.group));
-    const windows = schedule.filter(w=>groups.has(w.group));
-    if (windows.length) return { from:windows.map(w=>w.from).sort()[0], to:windows.map(w=>w.to).sort().at(-1) };
-    const cutoffDay = days(start,cut);
-    const from = clamp(row.a-1,0,cutoffDay);
-    return { from:dateAt(start,from), to:dateAt(start,clamp(row.b-1,from,cutoffDay)) };
+    const ids = new Set((catalogItems.get(row.n) || []).map(item => item.id));
+    const windows = tasks.filter(task => ids.has(task.id));
+    if (!windows.length) return { from: start, to: end };
+    return { from: windows.map(w=>w.from).sort()[0], to: windows.map(w=>w.to).sort().at(-1) };
   }
   function progress(all, through) {
-    const asOf = through < cut ? cut : through;
-    const d = daily(asOf,all), last = d.lastMeasure;
-    const previous = [cut,...all.filter(r=>r.f>=cut&&r.f<last&&Object.keys(r.lv4?.quantities||{}).length).map(r=>r.f)]
+    const asOf = through < controlCut ? controlCut : through;
+    const last = daily(asOf,all).lastMeasure;
+    const d = daily(last,all);
+    const previous = [controlCut,...all.filter(r=>r.f>=cut&&r.f<last&&Object.keys(r.lv4?.quantities||{}).length).map(r=>r.f)]
       .find(f=>days(f,last)>0&&days(f,last)<=14);
     const earlier = previous ? valuesOn(previous,all) : null;
     const span = earlier ? days(previous,last) : 0;
@@ -200,7 +232,7 @@
         body+=rect(a,yy+2,length,3,'#9aaabd','opacity="0.72"');
         const baseline=rowPercent(row.n,valuesAtCut);
         if(measured>0) {
-          const xa=x(cut), xb=x(last);
+          const xa=x(controlCut), xb=x(last);
           const realColor=measured>=99.999?'#0a2a4d':'#176854';
           if(measured>baseline+0.00001&&xb>xa) body+=rect(xa,yy+6,xb-xa,10,realColor,'rx="2"');
           body+='<circle cx="'+xb+'" cy="'+(yy+11)+'" r="3.8" fill="'+realColor+'"><title>'+esc(pct(measured))+'</title></circle>';
@@ -219,9 +251,9 @@
     const name=mode==='plan'?'Programa por partida':'Ejecución real y proyección por partida';
     return '<div class="lv-gantt"><svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+name+'" style="width:100%;height:auto;background:#fff">'+body+'</svg></div>';
   }
-  const valuesAtCut = valuesOn(cut, []);
+  const valuesAtCut = valuesOn(controlCut, []);
   function ganttView(all, through) {
-    const p = progress(all, through), dateDay=days(start,p.d.date)+1, available=days(p.d.date,end);
+    const p = progress(all, through), dateDay=days(start,p.d.date)+1, available=days(through,end);
     const cards = [
       [pct(p.d.plan),'Plan al día '+dateDay],
       [pct(p.d.integral),'Real al corte '+dateLabel(p.last)],
@@ -249,24 +281,35 @@
   }
   function render() {
     const all = reports();
-    const last = (...xs) => xs.sort().at(-1);
-    const selected = el('rFecha')?.value || last(all.at(-1)?.f || cut, cut);
+    const selected = el('rFecha')?.value || today();
     const day = daily(selected, all);
+    const comparison = day.pending ? daily(day.lastMeasure,all) : day;
     el('curva').innerHTML = chart(all, selected);
-    el('tabContraste').innerHTML = historyTable(all, selected, 10);
-    el('desv').className = 'callout';
-    el('desv').innerHTML = day.history
-      ? '<b>Registro del ' + dateLabel(selected) + '.</b> Real: ' + pct(day.integral) + '. ' + esc(day.ref || historicalEvidence[selected] || 'La conciliación requiere respaldo de ese día.')
-      : '<b>Al ' + dateLabel(selected) + ' · día ' + (days(start, selected)+1) + '.</b> Real: ' + pct(day.integral) + ' · Plan: ' + pct(day.plan) + ' · Desviación: ' + difference(day) + ' · Último corte: ' + dateLabel(day.lastMeasure) + '.';
-    const current = daily(today() < cut ? cut : today(), all);
+    el('tabContraste').innerHTML = historyTable(all, selected, 12) +
+      '<details style="margin-top:6px"><summary>Ver respaldo de los cortes diarios</summary>' +
+      '<p>Real histórico reconstruido con el Diario, el informe CVM del 26/10 y los pesos Rev. 4. Los tramos con metrado parcial se estiman con el respaldo disponible. Los siete partes de preinicio se incorporan al saldo inicial del 05/10. El cierre del 18/11 incorpora el suministro confirmado en sitio sin fecha individual de recepción respaldada.</p>' +
+      historyTable(all, selected, 0, true) + '</details>';
+    const delta = comparison.integral - comparison.plan;
+    const elapsed = days(start,comparison.date)+1;
+    const reportDay = elapsed > 0 ? ' (día ' + elapsed + ')' : ' · preinicio';
+    el('desv').className = 'callout' + (comparison.plan === null ? '' : delta >= 0 ? ' grn' : ' red');
+    el('desv').innerHTML = '<b>Al ' + dateLabel(comparison.date) + reportDay +
+      ':</b> real <b>' + pct(comparison.integral) + '</b> vs plan <b>' + pct(comparison.plan) +
+      '</b> → desviación <b>' + difference(comparison) + '</b>.' +
+      (day.pending ? '<br>Reporte del ' + dateLabel(selected) + ' pendiente.' : '<br>' + esc(cutNote(day)));
+    const current = valuesOn(today(), all);
     el('hoyPend').innerHTML = pendingList(current);
     renderGantt();
     kpis();
   }
   function kpis() {
-    const date = today() < cut ? cut : today(), state = daily(date, reports());
+    const all = reports();
+    const date = today() < controlCut ? controlCut : today();
+    const current = daily(date,all);
+    const state = current.pending ? daily(current.lastMeasure,all) : current;
     el('kAv').textContent = pct(state.integral);
     el('kPlanHoy').textContent = pct(state.plan);
+    el('kPlanLabel').textContent = 'vs plan al ' + dateLabel(state.date) + ' ';
   }
   function loadForm() {
     const f = el('rFecha').value;
@@ -280,11 +323,7 @@
     if (!editor) return;
     const access = bridge.canEdit();
     if (f < cut) {
-      const h = saved?.historical || {};
-      editor.innerHTML = '<h5>2 · Avance acumulado del corte anterior</h5>' +
-        '<label>Avance real (%) <input id="lvOldIntegral" type="number" min="0" max="100" step="0.01" value="' + (validPercent(h.integral) ? h.integral : '') + '"></label><br>' +
-        '<label>Planilla, diario o acta de respaldo <input id="lvOldSource" maxlength="220" type="text" value="' + esc(h.ref || '') + '"></label>' +
-        (historicalEvidence[f] ? '<p>' + esc(historicalEvidence[f]) + '</p>' : '');
+      editor.innerHTML = '<h5>2 · Respaldo del corte histórico</h5><p>' + esc(cutNote(daily(f, all))) + '</p>';
     } else {
       editor.innerHTML = '<h5>2 · Avance por partida (acumulado)</h5><p>Actualiza las cantidades acumuladas de las partidas medidas en este día.</p>' +
         '<label>Partida <select id="lvPartida"><option value="">Seleccionar</option>' +
@@ -315,35 +354,29 @@
     }
     if (!access) editor.querySelectorAll('input,select,button').forEach(input => input.disabled = true);
     const info = el('rDiaInfo');
-    if (info) info.textContent = f < cut ? 'Diario histórico · corte por conciliar' : 'Día ' + (days(start,f)+1) + ' · fecha tope 12/12/2026';
+    if (info) info.textContent = f < cut ? 'Diario original · consulta' : 'Día ' + (days(start,f)+1) + ' · fecha tope 12/12/2026';
     if (el('lvLegacyEditor')) el('lvLegacyEditor').hidden = true;
     for (const id of ['rTexto', 'rNov', 'rFotos', 'rPers']) {
       if (el(id)) el(id).disabled = !access || f < cut;
     }
-    if (el('lvSave')) el('lvSave').textContent = f < cut ? 'Guardar conciliación histórica' : 'Guardar reporte del día';
+    if (el('lvSave')) el('lvSave').hidden = f < cut || !access;
   }
   function readForm(f, previous) {
     if (f !== formDate || loadedReport !== JSON.stringify(previous || null)) {
       throw new Error('El corte cambió durante la edición. Conserva una copia de tu borrador y vuelve a abrir esa fecha antes de guardar.');
     }
-    if (f >= cut) return { quantities: Object.fromEntries(draft) };
-    const ref = el('lvOldSource')?.value.trim() || '';
-    const rawIntegral = el('lvOldIntegral')?.value || '';
-    const integral = rawIntegral === '' ? null : Number(rawIntegral);
-    if (!ref || !validPercent(integral)) {
-      throw new Error('Indica el avance real de esa fecha y su respaldo documental.');
-    }
-    return { historical: { ...previous?.lv4?.historical, integral, ref } };
+    if (f < cut) throw new Error('El reporte histórico se conserva como original de consulta.');
+    return { quantities: Object.fromEntries(draft) };
   }
   function list() {
     const all = reports();
-    const dates = [...new Set([...all.map(r => r.f), cut])].sort().reverse();
-    el('rCount').textContent = all.length + ' diarios · corte de control 19/11';
+    const dates = [...new Set([...all.map(r => r.f), controlCut])].sort().reverse();
+    el('rCount').textContent = all.length + ' diarios · corte de control ' + dateLabel(controlCut);
     el('rLista').innerHTML = dates.map(date => {
       const d = daily(date, all), originalIndex = bridge.getReports().findIndex(r => r.f === date);
-      const status = 'Real: <b>' + pct(d.integral) + '</b> · Plan: ' + pct(d.plan) + (d.history&&!d.ref?' · Pendiente de conciliación':'');
+      const status = 'Real: <b>' + pct(d.integral) + '</b> · Plan: ' + pct(d.plan);
       return '<div class="repcard"><b>' + date + '</b> · ' + status +
-        ' <button type="button" class="btn sm g" onclick="LVRevision.print(\'' + date + '\')">' + (d.history ? 'PDF revisión del corte' : d.recorded ? 'PDF reporte ajustado' : 'Vista del corte') + '</button>' +
+        (d.history ? '' : ' <button type="button" class="btn sm g" onclick="LVRevision.print(\'' + date + '\')">PDF reporte</button>') +
         (originalIndex >= 0 && d.history ? ' <button type="button" class="btn sm" onclick="verRep(' + originalIndex + ',\'OPS\')">Copia original</button>' : '') +
         (originalIndex >= 0 && bridge.isAdmin() ? ' <button type="button" class="btn sm" onclick="verRep(' + originalIndex + ',\'JD\')">Copia económica original</button>' : '') +
         ' <button type="button" class="btn sm" onclick="LVRevision.openDate(\'' + date + '\')">Abrir fecha</button></div>';
@@ -356,23 +389,24 @@
     el('rFecha').focus();
   }
   async function print(date) {
+    if (date < cut) return;
+    const all = reports(), d = daily(date, all), r = d.recorded;
+    if (!r) return;
     const tab = window.open('', '_blank');
     if (!tab) return alert('Permite abrir la vista de impresión en este navegador.');
     tab.document.title = 'Las Vainitas · ' + date;
     tab.document.body.textContent = 'Preparando reporte…';
-    const all = reports(), d = daily(date, all), r = d.recorded;
     const photos = await Promise.allSettled((r?.fotos || []).map(item => bridge.photo(item)));
     const images = photos.flatMap(image => image.status === 'fulfilled' && /^data:image\/(jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(image.value || '') ? [image.value] : []);
-    const notes = d.history
-      ? '<p>Avance real al corte: <b>' + pct(d.integral) + '</b>.</p><p>' + esc(d.ref || historicalEvidence[date] || 'Corte pendiente de conciliación documental.') + '</p>'
-      : '<p>Real: <b>' + pct(d.integral) + '</b> · Plan: <b>' + pct(d.plan) + '</b> · Desviación: <b>' + difference(d) + '</b>.</p><p>Último corte: ' + dateLabel(d.lastMeasure) + '. Día ' + (days(start,date)+1) + ' de 69. Plan reprogramado desde el corte del 19/11.</p>';
-    const footer = d.history ? '<h2>Antecedente y relación con el nuevo corte</h2><p>El programa reprogramado se aplica desde el 19/11/2026.</p>' : '<h2>Programa de cierre y saldo</h2>' + ganttView(all,date) + pendingList(d);
+    const notes = '<p>Real: <b>' + pct(d.integral) + '</b> · Plan: <b>' + pct(d.plan) + '</b> · Desviación: <b>' +
+      difference(d) + '</b>.</p><p>Último corte: ' + dateLabel(d.lastMeasure) + '. Día ' + (days(start,date)+1) +
+      ' de 69. Programa del 05/10 al 12/12/2026.</p>';
+    const footer = '<h2>Programa de cierre y saldo</h2>' + ganttView(all,date) + pendingList(d);
     const content = '<p><b>Fecha:</b> ' + date + ' · <b>Tope de ejecución:</b> 12/12/2026.</p>' + notes +
       '<h2>Actividades de la jornada</h2><p>' + prose(r?.txt) + '</p><h2>Novedades</h2><p>' + prose(r?.nov) + '</p>' +
-      '<h2>Curva y cortes diarios</h2>' + chart(all, date) + historyTable(all, date, 12) + footer +
+      '<h2>Curva y cortes diarios</h2>' + chart(all, date, 640) + historyTable(all, date, 12) + footer +
       '<h2>Registro fotográfico</h2>' + (images.length ? images.map(image => '<img class="foto" src="' + image + '">').join('') : '<p>Sin fotografías incorporadas a este corte.</p>');
-    const title = d.history ? 'REVISIÓN DOCUMENTAL DEL DIARIO' : r ? 'REPORTE DIARIO DE OBRA' : 'BORRADOR DEL CORTE DE CONTROL';
-    bridge.print('LAS VAINITAS · ' + title, 'Galpones de Arenas · Planta Las Vainitas · CVM', content, true, 'ADD-RD-' + date.replaceAll('-', '') + '-OPS · Rev. 1', tab);
+    bridge.print('LAS VAINITAS · REPORTE DIARIO DE OBRA', 'Galpones de Arenas · Planta Las Vainitas · CVM', content, true, 'ADD-RD-' + date.replaceAll('-', '') + '-OPS · Rev. 1', tab);
   }
   function legacyDisplay() {
     const state = valuesOn(today() < cut ? cut : today(), reports());
@@ -380,6 +414,6 @@
   }
   window.LVRevision = {
     install: api => { bridge = api; }, cut, today, loadForm, readForm, list, render, renderGantt, kpis, print, openDate, legacyDisplay, period,
-    model: { daily, valuesOn, planned, schedule, opening },
+    model: { daily, valuesOn, planned, schedule, opening, tasks },
   };
 })();

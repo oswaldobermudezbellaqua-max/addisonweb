@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=123;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script src="vainitas-rev4-data.js?v=122"></script><script src="vainitas-rev4.js?v=123"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("vainitas")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html><html lang="es"><head><script id="adVersionFix">(function(){var V=125;try{if(!window.fetch)return;fetch("version.json?nc="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j||!j.v||j.v<=V)return;var k="ad_vfix_"+j.v;if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1");var p=[];if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)p.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));if(window.caches)p.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}));Promise.all(p).then(function(){location.reload()},function(){location.reload()})}).catch(function(){})}catch(e){}})();</script><script src="addison-cloud.js"></script><script src="vainitas-rev4-data.js?v=122"></script><script src="vainitas-curva-diaria.js?v=125"></script><script src="vainitas-rev4.js?v=125"></script><script>(function(){try{var s=sessionStorage.getItem("addison_sess")||localStorage.getItem("addison_sess");if(!s){location.replace("index.html?login=1");return;}var S=JSON.parse(s);if(S.rol!=="ADMIN"&&(!S.proy||S.proy.indexOf("vainitas")<0)){alert("Tu usuario no tiene acceso a este proyecto. Contacta al administrador.");location.replace("empresas.html");}}catch(e){location.replace("index.html?login=1")}})();</script><script>document.addEventListener("DOMContentLoaded",function(){var a=document.createElement("a");a.href="empresas.html";a.textContent="⌂ EMPRESAS";a.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0A2A4D;color:#FFC400;font:800 8.5pt Segoe UI,Arial;padding:8px 14px;border-radius:16px;border:1.5px solid #D9A11B;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:.92";document.body.appendChild(a);});</script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Centro de Control — Galpones de Arenas · Planta Las Vainitas (CVM) · SUMINISTROS ADDISON, C.A.</title>
 <style>
 :root{--navy:#0A2A4D;--blue:#014695;--lb:#7FA8D9;--steel:#3E5E80;--mid:#8a96ad;--light:#F2F5F9;--line:#dce2ec;--green:#1e7e46;--red:#b03a2e;--gold:#c79500}
@@ -90,7 +90,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--lb)}
   <div class="titlebar">CENTRO DE CONTROL DEL PROYECTO — GALPONES DE ARENAS · PLANTA LAS VAINITAS · CVM<span style="display:inline-block;margin-left:10px;background:#D9A11B;color:#0A2A4D;font-size:7.4pt;font-weight:900;padding:3px 10px;border-radius:11px;vertical-align:middle">PROGRAMA DE EJECUCIÓN · CULMINACIÓN 12/12/2026</span></div>
   <div class="subbar">Partidas · ejecución · Gantt · procura · maquinaria · personal · servicios · proveedores · extras · caja chica · diario de obra y curva S. <b>Plazo de ejecución: 05/10–12/12/2026 · 69 días calendario.</b> El catálogo de procura conserva la referencia Rev. 2.</div>
   <div class="kpi">
-    <div class="kb"><div class="v b" id="kAv">0,0%</div><div class="l">Avance real<br>vs plan hoy: <span id="kPlanHoy">—</span></div></div>
+    <div class="kb"><div class="v b" id="kAv">0,0%</div><div class="l">Avance real<br><span id="kPlanLabel">vs plan hoy </span>: <span id="kPlanHoy">—</span></div></div>
     <div class="kb"><div class="v" id="kProc">0/86</div><div class="l">Procura comprada<br><span id="kMonto">0</span> USD</div></div>
     <div class="kb"><div class="v r" id="kPriA">0</div><div class="l">Renglones en<br>PRIORIDAD ALTA hoy</div></div>
     <div class="kb"><div class="v r" id="kMaqA">0</div><div class="l">Equipos en<br>PRIORIDAD ALTA hoy</div></div>
@@ -425,7 +425,7 @@ Caja chica USD <input type="number" id="mCaja" style="width:64px" min="0" step="
 <p style="margin-top:7px"><button class="btn g" id="lvSave" onclick="guardar()">Guardar reporte del día</button></p>
 </div>
 <div>
-<h5>Curva S — real vs plan</h5>
+<h5>Curva S — real vs plan · 05/10–12/12/2026</h5>
 <div id="curva"></div>
 <div id="desv" class="callout" style="margin-top:6px">Sin datos reales aún.</div>
 <h5>Contraste real vs plan por reporte</h5><div id="tabContraste" style="font-size:8pt"></div>
@@ -1161,21 +1161,21 @@ function guardar(){const f=document.getElementById('rFecha').value;if(!f){alert(
 const revision=window.LVRevision;
  if(revision&&!ccPuedeEditar()){alert('Inicia una sesión con permiso de edición para guardar.');return;}
  const previous=S.reps.find(r=>r.f===f);
- const historic=revision&&f<revision.cut;
- if(historic&&!previous){alert('Esta fecha no tiene un diario original para conciliar.');return;}
+ if(revision&&f<revision.cut){alert('El diario histórico se conserva como original de consulta.');return;}
+
  let reviewed;
  try{reviewed=revision?.readForm(f,previous);}catch(e){alert(e.message);return;}
  const _hoy=revision?revision.today():new Date().toISOString().slice(0,10);
 if(f>_hoy&&!confirm('La fecha '+f+' es posterior a hoy. ¿Guardar de todos modos?'))return;
-if(previous&&!historic&&!confirm('Ya existe un reporte del '+f+'. ¿Guardar las modificaciones de esta fecha?'))return;
+if(previous&&!confirm('Ya existe un reporte del '+f+'. ¿Guardar las modificaciones de esta fecha?'))return;
 S.reps=S.reps.filter(r=>r.f!==f);
-const entry=historic?{...previous,lv4:reviewed}:{...previous,f,pers:document.getElementById('rPers').value,txt:document.getElementById('rTexto').value,nov:document.getElementById('rNov').value,av:curAv.slice(),fotos:curFotos.slice()};
+const entry={...previous,f,pers:document.getElementById('rPers').value,txt:document.getElementById('rTexto').value,nov:document.getElementById('rNov').value,av:curAv.slice(),fotos:curFotos.slice()};
  if(reviewed) entry.lv4=reviewed;
  S.reps.push(entry);
 S.reps.sort((a,b)=>a.f<b.f?-1:1);
 try{save();}catch(e){alert('⚠ Almacenamiento lleno (fotos). Exporta respaldo y usa menos fotos por reporte.');return;}
 curAv=[];curFotos=[];rendAv();rendFotos();document.getElementById('rTexto').value='';document.getElementById('rNov').value='';
-rendReps();curva();rendP();document.getElementById('rFecha').value=f;cargarDia();alert((historic?'Conciliación histórica':'Reporte')+' guardado para el '+f+'.');}
+rendReps();curva();rendP();document.getElementById('rFecha').value=f;cargarDia();alert('Reporte guardado para el '+f+'.');}
 function rendReps(){if(window.LVRevision){LVRevision.list();kpis();return;}document.getElementById('rCount').textContent=S.reps.length+' reportes';
 document.getElementById('rLista').innerHTML=S.reps.slice().reverse().map((r,i)=>{const idx=S.reps.length-1-i;
 const d=dnum(r.f);const pl=(d>=1&&d<=DUR)?planAt(d):null;const re=realPct(r.f);
@@ -1304,42 +1304,48 @@ function rendGantt(){if(window.LVRevision)return LVRevision.renderGantt();var b=
  b.innerHTML=ganttKpi()+'<h5 style="margin:8px 0 4px">A · PROGRAMA (PLAN) — ventanas contractuales y avance real cargado</h5>'+svgGantt()+
   '<h5 style="margin:14px 0 4px">B · EJECUCIÓN REAL Y PROYECCIÓN — construido con los reportes diarios</h5>'+svgGanttReal();}
 
-function svgCurva(w,h,hasta){const pad=40,padB=30,padT=24;
-const X=function(d){return pad+(d-1)/(DUR-1)*(w-pad-12);};
+function svgCurva(w,h,hasta,series){const pad=40,padB=30,padT=24;
+const length=series?.duration||DUR,plannedAt=series?.planned||planAt;
+const dayOf=series?.dayOf||dnum,label=series?.label||fch;
+const ticks=series?Array.from({length:8},(_,i)=>Math.round(1+i*(length-1)/7)):ticksDUR();
+const format=series?function(value){return value.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});}:function(value){return value.toFixed(1);};
+const X=function(d){return pad+(d-1)/(length-1)*(w-pad-12);};
 const Y=function(v){return h-padB-(v/100*(h-padB-padT));};
 let pts='',rpts='';
-for(let d=1;d<=DUR;d++){pts+=X(d).toFixed(1)+','+Y(planAt(d)).toFixed(1)+' ';}
-const reps=S.reps.filter(function(r){return !hasta||r.f<=hasta;});
-let rl=[],fuera=0;
-reps.forEach(function(r){const d=dnum(r.f);if(d>=1&&d<=DUR)rl.push([d,realPct(r.f)]);else fuera++;});
+for(let d=1;d<=length;d++){pts+=X(d).toFixed(1)+','+Y(plannedAt(d)).toFixed(1)+' ';}
+let rl=series?series.points.slice():[],fuera=0;
+if(!series){const reps=S.reps.filter(function(r){return !hasta||r.f<=hasta;});
+reps.forEach(function(r){const d=dnum(r.f);if(d>=1&&d<=DUR)rl.push([d,realPct(r.f)]);else fuera++;});}
 rl.sort(function(a,b){return a[0]-b[0];});
 rl.forEach(function(p){rpts+=X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)+' ';});
 let g='';
 [0,25,50,75,100].forEach(function(v){const y=Y(v);g+='<line x1="'+pad+'" y1="'+y+'" x2="'+(w-12)+'" y2="'+y+'" stroke="#dce2ec" stroke-width="0.6"/><text x="'+(pad-4)+'" y="'+(y+3)+'" font-size="7" fill="#8a96ad" text-anchor="end">'+v+'%</text>';});
-ticksDUR().forEach(function(d){const x=X(d);g+='<text x="'+x+'" y="'+(h-padB+13)+'" font-size="6.6" fill="#8a96ad" text-anchor="middle">'+fch(d)+'</text>';});
+ticks.forEach(function(d){const x=X(d);g+='<text x="'+x+'" y="'+(h-padB+13)+'" font-size="6.6" fill="#8a96ad" text-anchor="middle">' +label(d)+'</text>';});
 // ÁREA DE CONTRASTE (brecha real vs plan)
 let area='';
 if(rl.length>0){const up=[],dn=[];
  rl.forEach(function(p){up.push(X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1));});
- for(let i=rl.length-1;i>=0;i--){dn.push(X(rl[i][0]).toFixed(1)+','+Y(planAt(rl[i][0])).toFixed(1));}
- const ul=rl[rl.length-1], dvv=ul[1]-planAt(ul[0]);
+ for(let i=rl.length-1;i>=0;i--){dn.push(X(rl[i][0]).toFixed(1)+','+Y(plannedAt(rl[i][0])).toFixed(1));}
+ const ul=rl[rl.length-1], dvv=ul[1]-plannedAt(ul[0]);
  if(rl.length>1)area='<polygon points="'+up.concat(dn).join(' ')+'" fill="'+(dvv>=0?'#0f7a35':'#b03a2e')+'" opacity="0.16"/>';}
 // línea vertical del día del reporte
 let vline='';
-if(hasta){const dh=dnum(hasta); if(dh>=1&&dh<=DUR){const x=X(dh);
+if(hasta){const dh=dayOf(hasta); if(dh>=1&&dh<=length){const x=X(dh);
  vline='<line x1="'+x+'" y1="'+(padT-2)+'" x2="'+x+'" y2="'+(h-padB)+'" stroke="#0A2A4D" stroke-dasharray="3,3" stroke-width="1"/>'+
- '<text x="'+x+'" y="'+(padT-5)+'" font-size="6.8" fill="#0A2A4D" text-anchor="middle" font-weight="bold">'+hasta+' · día '+dh+'</text>';}}
+ '<text x="'+(series?Math.max(74,Math.min(w-49,x)):x)+'" y="'+(series?padT+10:padT-5)+'" font-size="6.8" fill="#0A2A4D" text-anchor="middle" font-weight="bold"'+(series?' stroke="#fff" stroke-width="3" paint-order="stroke"':'')+'>'+hasta+' · día '+dh+'</text>';}}
 // etiquetas del contraste en el último punto real
 let lab='';
-if(rl.length>0){const u=rl[rl.length-1],pv=planAt(u[0]),dv=u[1]-pv;
- const x=X(u[0]),y=Y(u[1]),yp=Y(pv),xt=Math.min(w-96,x+8);
+if(rl.length>0){const u=rl[rl.length-1],pv=plannedAt(u[0]),dv=u[1]-pv;
+ const badgeW=series?94:74;
+ const x=X(u[0]),y=Y(u[1]),yp=Y(pv),xt=Math.min(w-badgeW-22,x+8);
+ const badgeY=series&&Math.abs(y-yp)<26?Math.max(y,yp)+16:(y+yp)/2-8;
  lab='<line x1="'+x+'" y1="'+y+'" x2="'+x+'" y2="'+yp+'" stroke="'+(dv>=0?'#0f7a35':'#b03a2e')+'" stroke-width="1.4" stroke-dasharray="2,2"/>'+
  '<circle cx="'+x+'" cy="'+yp+'" r="3.4" fill="#3E7FBF" stroke="#fff" stroke-width="1"/>'+
  '<circle cx="'+x+'" cy="'+y+'" r="4.2" fill="#b03a2e" stroke="#fff" stroke-width="1.2"/>'+
- '<text x="'+xt+'" y="'+(y-5)+'" font-size="7.6" font-weight="bold" fill="#b03a2e">REAL '+u[1].toFixed(1)+'%</text>'+
- '<text x="'+xt+'" y="'+(yp+(yp<y?-5:12))+'" font-size="7.6" font-weight="bold" fill="#3E7FBF">PLAN '+pv.toFixed(1)+'%</text>'+
- '<rect x="'+(xt-2)+'" y="'+((y+yp)/2-8)+'" width="74" height="13" rx="3" fill="'+(dv>=0?'#0f7a35':'#b03a2e')+'"/>'+
- '<text x="'+(xt+2)+'" y="'+((y+yp)/2+2)+'" font-size="7.6" font-weight="bold" fill="#fff">'+(dv>=0?'ADELANTO +':'RETRASO ')+dv.toFixed(1)+' pts</text>';}
+ '<text x="'+xt+'" y="'+(y-5)+'" font-size="7.6" font-weight="bold" fill="#b03a2e">REAL '+format(u[1])+'%</text>'+
+ '<text x="'+xt+'" y="'+(yp+(yp<y?-5:12))+'" font-size="7.6" font-weight="bold" fill="#3E7FBF">PLAN '+format(pv)+'%</text>'+
+ '<rect x="'+(xt-2)+'" y="'+badgeY+'" width="'+badgeW+'" height="13" rx="3" fill="'+(dv>=0?'#0f7a35':'#b03a2e')+'"/>'+
+ '<text x="'+(xt+2)+'" y="'+(badgeY+10)+'" font-size="7.6" font-weight="bold" fill="#fff">'+(dv>=0?'ADELANTO +':'RETRASO ')+format(dv)+' pts</text>';}
 // leyenda
 const leg='<rect x="'+pad+'" y="1" width="'+(w-pad-12)+'" height="16" fill="#F7FAFD" stroke="#dce2ec" stroke-width="0.6" rx="3"/>'+
 '<line x1="'+(pad+8)+'" y1="9" x2="'+(pad+26)+'" y2="9" stroke="#7FA8D9" stroke-width="2.6"/><text x="'+(pad+30)+'" y="12" font-size="7.2" font-weight="bold" fill="#3E5E80">PLAN programado</text>'+
@@ -2188,7 +2194,7 @@ if(window.LVRevision) LVRevision.install({
  getReports:()=>S.reps, getPartidas:()=>P48, canEdit:ccPuedeEditar, isAdmin:ccEsAdmin,
  loadDay:()=>{rendPartSel();cargarDia();},
  photo:ref=>window.ADCloud?ADCloud.fotoData(ref):Promise.resolve(ref),
- print:docWin
+ chart:svgCurva, print:docWin
 });
 document.getElementById('rFecha').value=window.LVRevision?LVRevision.today():new Date().toISOString().slice(0,10);
 if(typeof cargarDia==='function')cargarDia();
